@@ -8,6 +8,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Wpf.Ui.Appearance;
 
 namespace fflux
 {
@@ -19,6 +20,7 @@ namespace fflux
         public MainWindow()
         {
             InitializeComponent();
+            ApplicationThemeManager.Apply(this);
         }
     }
 }

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(dotnet nuget locals all --list)",
+      "Bash(grep -r \"INavigationViewService\\\\|INavigationService\\\\|IPageService\" \"F:/nuget/packages/wpf-ui/4.3.0\" --include=\"*.cs\" -l 2>/dev/null | head -5)",
+      "Bash(dotnet build *)"
+    ]
+  }
+}

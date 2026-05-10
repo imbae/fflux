@@ -1,0 +1,42 @@
+<Page
+    x:Class="fflux.UI.Modules.Player.PlayerPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    d:DesignHeight="600"
+    d:DesignWidth="960"
+    Title="Player">
+
+    <Grid>
+        <!-- Phase 3에서 VideoDecoder + Renderer 연동 구현 예정 -->
+        <StackPanel
+            VerticalAlignment="Center"
+            HorizontalAlignment="Center">
+
+            <ui:SymbolIcon
+                Symbol="Play48"
+                FontSize="64"
+                Foreground="{DynamicResource FFluxSecondaryBrush}"
+                HorizontalAlignment="Center" />
+
+            <TextBlock
+                Text="Player"
+                FontSize="24"
+                FontWeight="SemiBold"
+                Margin="0,16,0,0"
+                Foreground="{DynamicResource FFluxTextPrimaryBrush}"
+                HorizontalAlignment="Center" />
+
+            <TextBlock
+                Text="Phase 3에서 비디오 디코딩 및 렌더링이 구현됩니다."
+                FontSize="13"
+                Margin="0,8,0,0"
+                Foreground="{DynamicResource FFluxTextSecondaryBrush}"
+                HorizontalAlignment="Center" />
+        </StackPanel>
+    </Grid>
+
+</Page>

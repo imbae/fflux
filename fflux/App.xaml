@@ -1,17 +1,21 @@
-﻿<Application
+<Application
     x:Class="fflux.UI.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-    xmlns:local="clr-namespace:fflux.UI"
-    StartupUri="MainWindow.xaml">
+    xmlns:conv="clr-namespace:fflux.UI.Shared.Converters">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ui:ThemesDictionary
-                    Theme="Light" />
+                <!-- WPF-UI 다크 테마 -->
+                <ui:ThemesDictionary Theme="Dark" />
                 <ui:ControlsDictionary />
+                <!-- fflux 커스텀 색상 팔레트 -->
+                <ResourceDictionary Source="Shared/Themes/ColorPalette.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- 공용 컨버터 -->
+            <conv:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -1,0 +1,73 @@
+<UserControl
+    x:Class="fflux.UI.Shared.Controls.EmptyStatePlaceholder"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    d:DesignWidth="400"
+    d:DesignHeight="300"
+    Focusable="False">
+
+    <StackPanel
+        VerticalAlignment="Center"
+        HorizontalAlignment="Center"
+        MaxWidth="360">
+
+        <!-- 아이콘 -->
+        <ui:SymbolIcon
+            x:Name="PlaceholderIcon"
+            Symbol="{Binding Symbol, RelativeSource={RelativeSource AncestorType=UserControl}}"
+            FontSize="56"
+            HorizontalAlignment="Center"
+            Foreground="{DynamicResource FFluxTertiaryMutedBrush}" />
+
+        <!-- 제목 -->
+        <TextBlock
+            Text="{Binding Title, RelativeSource={RelativeSource AncestorType=UserControl}}"
+            FontSize="18"
+            FontWeight="SemiBold"
+            TextAlignment="Center"
+            Margin="0,16,0,0" />
+
+        <!-- 설명 -->
+        <TextBlock
+            Text="{Binding Description, RelativeSource={RelativeSource AncestorType=UserControl}}"
+            FontSize="13"
+            TextAlignment="Center"
+            TextWrapping="Wrap"
+            Margin="0,8,0,0"
+            Foreground="{DynamicResource TextFillColorSecondaryBrush}">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Description, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+
+        <!-- 액션 버튼 -->
+        <ui:Button
+            Content="{Binding ActionText, RelativeSource={RelativeSource AncestorType=UserControl}}"
+            Command="{Binding ActionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+            Appearance="Primary"
+            HorizontalAlignment="Center"
+            Margin="0,20,0,0">
+            <ui:Button.Style>
+                <Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ActionText, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ui:Button.Style>
+        </ui:Button>
+
+    </StackPanel>
+
+</UserControl>

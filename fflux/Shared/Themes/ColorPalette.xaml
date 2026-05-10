@@ -1,0 +1,84 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ═══════════════════════════════════════════════════════
+         fflux Color Palette — Dark Purple Theme
+         Primary   : #4B1E91  (deep dark purple)
+         Secondary : #9B6FD6  (soft lavender)
+         ═══════════════════════════════════════════════════════ -->
+
+    <!-- ── Primary (Dark Purple) ──────────────────────────── -->
+    <Color x:Key="FFluxPrimaryColor">#FF4B1E91</Color>
+    <Color x:Key="FFluxPrimaryHoverColor">#FF5C2CA8</Color>
+    <Color x:Key="FFluxPrimaryPressedColor">#FF3A1670</Color>
+    <Color x:Key="FFluxPrimaryFocusColor">#FF6E3DBF</Color>
+
+    <SolidColorBrush x:Key="FFluxPrimaryBrush"        Color="{StaticResource FFluxPrimaryColor}" />
+    <SolidColorBrush x:Key="FFluxPrimaryHoverBrush"   Color="{StaticResource FFluxPrimaryHoverColor}" />
+    <SolidColorBrush x:Key="FFluxPrimaryPressedBrush" Color="{StaticResource FFluxPrimaryPressedColor}" />
+    <SolidColorBrush x:Key="FFluxPrimaryFocusBrush"   Color="{StaticResource FFluxPrimaryFocusColor}" />
+
+    <!-- ── Secondary (Light Purple / Lavender) ────────────── -->
+    <Color x:Key="FFluxSecondaryColor">#FF9B6FD6</Color>
+    <Color x:Key="FFluxSecondaryHoverColor">#FFB48FE0</Color>
+    <Color x:Key="FFluxSecondaryPressedColor">#FF7A52B4</Color>
+
+    <SolidColorBrush x:Key="FFluxSecondaryBrush"        Color="{StaticResource FFluxSecondaryColor}" />
+    <SolidColorBrush x:Key="FFluxSecondaryHoverBrush"   Color="{StaticResource FFluxSecondaryHoverColor}" />
+    <SolidColorBrush x:Key="FFluxSecondaryPressedBrush" Color="{StaticResource FFluxSecondaryPressedColor}" />
+
+    <!-- ── Tertiary (Pale Lavender — highlights, tags) ────── -->
+    <Color x:Key="FFluxTertiaryColor">#FFC9A8F0</Color>
+    <Color x:Key="FFluxTertiaryMutedColor">#FF9C7DC0</Color>
+
+    <SolidColorBrush x:Key="FFluxTertiaryBrush"      Color="{StaticResource FFluxTertiaryColor}" />
+    <SolidColorBrush x:Key="FFluxTertiaryMutedBrush" Color="{StaticResource FFluxTertiaryMutedColor}" />
+
+    <!-- ── Surfaces ──────────────────────────────────────── -->
+    <Color x:Key="FFluxSurfaceColor">#FF1A1428</Color>
+    <Color x:Key="FFluxSurfaceVariantColor">#FF231B3C</Color>
+    <Color x:Key="FFluxSurfaceElevatedColor">#FF2D2250</Color>
+
+    <SolidColorBrush x:Key="FFluxSurfaceBrush"         Color="{StaticResource FFluxSurfaceColor}" />
+    <SolidColorBrush x:Key="FFluxSurfaceVariantBrush"  Color="{StaticResource FFluxSurfaceVariantColor}" />
+    <SolidColorBrush x:Key="FFluxSurfaceElevatedBrush" Color="{StaticResource FFluxSurfaceElevatedColor}" />
+
+    <!-- ── Borders ───────────────────────────────────────── -->
+    <Color x:Key="FFluxBorderColor">#FF3E2E68</Color>
+    <Color x:Key="FFluxBorderSubtleColor">#FF2A2048</Color>
+
+    <SolidColorBrush x:Key="FFluxBorderBrush"       Color="{StaticResource FFluxBorderColor}" />
+    <SolidColorBrush x:Key="FFluxBorderSubtleBrush" Color="{StaticResource FFluxBorderSubtleColor}" />
+
+    <!-- ── Text ─────────────────────────────────────────── -->
+    <Color x:Key="FFluxTextPrimaryColor">#FFEDE7F6</Color>
+    <Color x:Key="FFluxTextSecondaryColor">#FFB39DDB</Color>
+    <Color x:Key="FFluxTextDisabledColor">#FF7E6BA0</Color>
+    <Color x:Key="FFluxTextOnPrimaryColor">#FFFFFFFF</Color>
+
+    <SolidColorBrush x:Key="FFluxTextPrimaryBrush"   Color="{StaticResource FFluxTextPrimaryColor}" />
+    <SolidColorBrush x:Key="FFluxTextSecondaryBrush" Color="{StaticResource FFluxTextSecondaryColor}" />
+    <SolidColorBrush x:Key="FFluxTextDisabledBrush"  Color="{StaticResource FFluxTextDisabledColor}" />
+    <SolidColorBrush x:Key="FFluxTextOnPrimaryBrush" Color="{StaticResource FFluxTextOnPrimaryColor}" />
+
+    <!-- ── Semantic — Status Colors ─────────────────────── -->
+    <Color x:Key="FFluxSuccessColor">#FF66BB6A</Color>
+    <Color x:Key="FFluxSuccessMutedColor">#FF2E7D32</Color>
+    <Color x:Key="FFluxWarningColor">#FFFFA726</Color>
+    <Color x:Key="FFluxWarningMutedColor">#FFE65100</Color>
+    <Color x:Key="FFluxErrorColor">#FFEF5350</Color>
+    <Color x:Key="FFluxErrorMutedColor">#FFC62828</Color>
+    <Color x:Key="FFluxInfoColor">#FF7C9FE4</Color>
+    <Color x:Key="FFluxInfoMutedColor">#FF1565C0</Color>
+
+    <SolidColorBrush x:Key="FFluxSuccessBrush"      Color="{StaticResource FFluxSuccessColor}" />
+    <SolidColorBrush x:Key="FFluxSuccessMutedBrush" Color="{StaticResource FFluxSuccessMutedColor}" />
+    <SolidColorBrush x:Key="FFluxWarningBrush"      Color="{StaticResource FFluxWarningColor}" />
+    <SolidColorBrush x:Key="FFluxWarningMutedBrush" Color="{StaticResource FFluxWarningMutedColor}" />
+    <SolidColorBrush x:Key="FFluxErrorBrush"        Color="{StaticResource FFluxErrorColor}" />
+    <SolidColorBrush x:Key="FFluxErrorMutedBrush"   Color="{StaticResource FFluxErrorMutedColor}" />
+    <SolidColorBrush x:Key="FFluxInfoBrush"         Color="{StaticResource FFluxInfoColor}" />
+    <SolidColorBrush x:Key="FFluxInfoMutedBrush"    Color="{StaticResource FFluxInfoMutedColor}" />
+
+</ResourceDictionary>

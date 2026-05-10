@@ -2,6 +2,7 @@ using fflux.Core.Abstractions;
 using fflux.Core.Decoders;
 using fflux.Core.Demuxers;
 using fflux.Core.Parsers;
+using fflux.Core.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace fflux.Core;
@@ -30,6 +31,10 @@ public static class CoreServiceCollectionExtensions
         // Singleton: 상태 없음. 확장자 키로 구분합니다.
         services.AddKeyedSingleton<ISubtitleParser, SrtParser>("srt");
         services.AddKeyedSingleton<ISubtitleParser, VttParser>("vtt");
+
+        // ── FFmpeg 커맨드 서비스 ──────────────────────────────────────
+        // Singleton: 상태 없음.
+        services.AddSingleton<IFFmpegCommandService, FFmpegCommandService>();
 
         return services;
     }

@@ -37,6 +37,8 @@ public static class UIServiceCollectionExtensions
         // ── ViewModels (Page별) ──────────────────────────────
         services.AddSingleton<SettingsViewModel>();
         services.AddSingleton<PlayerViewModel>();
+        services.AddSingleton<FFmpegExplorerViewModel>();
+        services.AddSingleton<VideoAnalyzerViewModel>();
 
         return services;
     }

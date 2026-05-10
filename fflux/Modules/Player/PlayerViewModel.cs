@@ -1,11 +1,12 @@
+using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Threading;
 using fflux.Core.Abstractions;
 using fflux.Core.Exceptions;
 using fflux.Core.Models;
 using fflux.UI.Shared.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Win32;
+using Wpf.Ui;
 using Wpf.Ui.Controls;
 
 namespace fflux.UI.Modules.Player;
@@ -20,6 +21,7 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
 
     private readonly IServiceProvider         _services;
     private readonly MainWindowViewModel      _mainVm;
+    private readonly IContentDialogService    _dialogService;
     private readonly ILogger<PlayerViewModel> _logger;
 
     // ── FFmpeg 디코더 (파일 열기 시 교체) ────────────────────────────
@@ -48,6 +50,22 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
     // 프레임 스텝의 동시 실행을 막는 세마포어 (hold-to-repeat 시 디코딩 중복 방지)
     private readonly SemaphoreSlim _stepSemaphore = new(1, 1);
 
+    // ── 렌더링: CompositionTarget.Rendering + Interlocked 패턴 ─────
+    //
+    // 비디오 루프(백그라운드): PTS 타이밍 후 _pendingFrame에 원자적 교체
+    // CompositionTarget.Rendering(UI 스레드): vsync마다 _pendingFrame 꺼내 렌더링
+    //
+    // Dispatcher.InvokeAsync(priority=Render) 대비 이점:
+    //  - Render(7) < Normal(9) 우선순위 → 레이아웃·바인딩에 밀리는 지터 제거
+    //  - 비디오 루프가 렌더 완료를 기다리지 않아 다음 프레임 준비를 즉시 시작
+    //  - vsync에 정확히 동기화 → 찢김 없는 매끄러운 출력
+
+    private VideoFrame? _pendingFrame;       // 백그라운드 ↔ UI 공유 (Interlocked 전용)
+    private bool        _renderingSubscribed; // CompositionTarget.Rendering 구독 여부
+
+    // ── 재생 루프 태스크 ─────────────────────────────────────────────
+    // 이전 재생이 완전히 종료된 것을 확인한 후 디코더를 교체하기 위해 참조를 보관합니다.
+
     // ── 자막 ─────────────────────────────────────────────────────────
 
     private IReadOnlyList<SubtitleEntry> _subtitleEntries = [];
@@ -74,7 +92,18 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
     [NotifyCanExecuteChangedFor(nameof(StopCommand))]
     [NotifyCanExecuteChangedFor(nameof(StepFrameForwardCommand))]
     [NotifyCanExecuteChangedFor(nameof(StepFrameBackwardCommand))]
+    [NotifyPropertyChangedFor(nameof(CanSeek))]
     private bool _isFileOpen;
+
+    /// <summary>UDP / RTP / RTSP 등 라이브 스트림 재생 중이면 true. 시크·프레임스텝 비활성화.</summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(StepFrameForwardCommand))]
+    [NotifyCanExecuteChangedFor(nameof(StepFrameBackwardCommand))]
+    [NotifyPropertyChangedFor(nameof(CanSeek))]
+    private bool _isLiveStream;
+
+    /// <summary>파일이 열려 있고 라이브 스트림이 아닐 때만 시크 가능.</summary>
+    public bool CanSeek => IsFileOpen && !IsLiveStream;
 
     [ObservableProperty] private double _durationSeconds;
     [ObservableProperty] private double _positionSeconds;
@@ -118,13 +147,15 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
     // ── 생성자 ──────────────────────────────────────────────────────
 
     public PlayerViewModel(
-        IServiceProvider         services,
-        MainWindowViewModel      mainVm,
-        ILogger<PlayerViewModel> logger)
+        IServiceProvider          services,
+        MainWindowViewModel       mainVm,
+        IContentDialogService     dialogService,
+        ILogger<PlayerViewModel>  logger)
     {
-        _services = services;
-        _mainVm   = mainVm;
-        _logger   = logger;
+        _services      = services;
+        _mainVm        = mainVm;
+        _dialogService = dialogService;
+        _logger        = logger;
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -141,8 +172,74 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
         };
         if (dlg.ShowDialog() != true) return;
 
-        await OpenFileInternalAsync(dlg.FileName);
+        await OpenSourceInternalAsync(dlg.FileName, isLive: false);
     }
+
+    /// <summary>UDP / RTP / RTSP URL을 입력받아 라이브 스트리밍을 시작합니다.</summary>
+    [RelayCommand]
+    private async Task OpenStreamAsync()
+    {
+        // ── URL 입력 다이얼로그 ──────────────────────────────────────
+        var urlBox = new System.Windows.Controls.TextBox
+        {
+            MinWidth  = 400,
+            FontSize  = 13,
+            Margin    = new Thickness(0, 10, 0, 0),
+            Text      = "rtsp://",
+        };
+
+        var hint = new System.Windows.Controls.TextBlock
+        {
+            Text     = "예)  rtsp://192.168.0.1:554/stream\n" +
+                       "     udp://@239.0.0.1:1234\n" +
+                       "     rtp://224.0.0.1:5004",
+            FontSize = 11,
+            Margin   = new Thickness(0, 6, 0, 0),
+            Foreground = new SolidColorBrush(Color.FromRgb(0x99, 0x99, 0x99)),
+        };
+
+        var panel = new StackPanel();
+        panel.Children.Add(new System.Windows.Controls.TextBlock
+        {
+            Text     = "스트리밍 주소를 입력하세요:",
+            FontSize = 13,
+        });
+        panel.Children.Add(urlBox);
+        panel.Children.Add(hint);
+
+        var dialog = new ContentDialog
+        {
+            Title              = "스트리밍 열기",
+            Content            = panel,
+            PrimaryButtonText  = "열기",
+            CloseButtonText    = "취소",
+            DefaultButton      = ContentDialogButton.Primary,
+        };
+
+        // 다이얼로그가 열리면 TextBox에 포커스
+        dialog.Loaded += (_, _) =>
+        {
+            urlBox.Focus();
+            urlBox.SelectAll();
+        };
+
+        var result = await _dialogService.ShowAsync(dialog, CancellationToken.None);
+        if (result != ContentDialogResult.Primary) return;
+
+        var url = urlBox.Text.Trim();
+        if (string.IsNullOrEmpty(url)) return;
+
+        await OpenSourceInternalAsync(url, isLive: IsStreamUrl(url));
+    }
+
+    /// <summary>URL 스킴으로 라이브 스트림 여부를 판단합니다.</summary>
+    private static bool IsStreamUrl(string url)
+        => url.StartsWith("rtsp://",  StringComparison.OrdinalIgnoreCase)
+        || url.StartsWith("rtp://",   StringComparison.OrdinalIgnoreCase)
+        || url.StartsWith("udp://",   StringComparison.OrdinalIgnoreCase)
+        || url.StartsWith("srt://",   StringComparison.OrdinalIgnoreCase)
+        || url.StartsWith("rtmp://",  StringComparison.OrdinalIgnoreCase)
+        || url.StartsWith("rtmps://", StringComparison.OrdinalIgnoreCase);
 
     [RelayCommand(CanExecute = nameof(CanPlay))]
     private async Task PlayAsync()
@@ -298,13 +395,15 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
         return null;
     }
 
-    [RelayCommand(CanExecute = nameof(CanStop), AllowConcurrentExecutions = true)]
+    [RelayCommand(CanExecute = nameof(CanStep), AllowConcurrentExecutions = true)]
     private async Task StepFrameForwardAsync()
         => await StepFrameAsync(forward: true);
 
-    [RelayCommand(CanExecute = nameof(CanStop), AllowConcurrentExecutions = true)]
+    [RelayCommand(CanExecute = nameof(CanStep), AllowConcurrentExecutions = true)]
     private async Task StepFrameBackwardAsync()
         => await StepFrameAsync(forward: false);
+
+    private bool CanStep() => IsFileOpen && !IsLiveStream;
 
     /// <summary>
     /// 재생 중이면 일시정지 후 1프레임 이동합니다.
@@ -356,7 +455,7 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
 
             if (frame is not null)
             {
-                await Application.Current.Dispatcher.InvokeAsync(() => RenderFrame(frame));
+                await Application.Current.Dispatcher.InvokeAsync(() => { RenderFrame(frame); frame.Dispose(); });
                 _pausedPosition = frame.Timestamp;
             }
         }
@@ -374,7 +473,7 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
     /// <summary>현재 위치에서 <paramref name="deltaSeconds"/>만큼 상대 시크합니다.</summary>
     public async Task SeekRelativeAsync(double deltaSeconds)
     {
-        if (!IsFileOpen || DurationSeconds == 0) return;
+        if (!IsFileOpen || IsLiveStream || DurationSeconds == 0) return;
         var newPos = Math.Clamp(PositionSeconds + deltaSeconds, 0, DurationSeconds);
         _isUpdatingPositionFromPlayback = true;
         PositionSeconds = newPos;
@@ -408,18 +507,45 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
     // ── 공개 진입점: DragDrop ─────────────────────────────────────────
 
     /// <summary>View 코드-비하인드의 DragDrop 핸들러에서 호출합니다.</summary>
-    public Task OpenDroppedFileAsync(string filePath) => OpenFileInternalAsync(filePath);
+    public Task OpenDroppedFileAsync(string filePath) => OpenSourceInternalAsync(filePath, isLive: false);
 
     // ═══════════════════════════════════════════════════════════════
     // 파일 열기
     // ═══════════════════════════════════════════════════════════════
 
-    private async Task OpenFileInternalAsync(string filePath)
+    /// <summary>
+    /// 파일 경로 또는 스트리밍 URL을 열고 재생을 준비합니다.
+    /// </summary>
+    /// <param name="source">로컬 파일 경로 또는 rtsp:// · rtp:// · udp:// 등의 URL</param>
+    /// <param name="isLive">라이브 스트림이면 true (시크·프레임스텝 비활성화)</param>
+    private async Task OpenSourceInternalAsync(string source, bool isLive)
     {
         StopPlaybackLoop(pauseAudio: false);
         _pausedPosition = TimeSpan.Zero;
 
-        // 새 파일을 열면 자막 초기화 (외부에서 .srt/.vtt 드롭한 경우 별도 재로드 필요)
+        // ── 이전 재생 루프가 완전히 종료될 때까지 대기 ──────────────
+        // StopPlaybackLoop는 CancellationToken을 취소하는 것에 불과합니다.
+        // 취소 신호를 받은 백그라운드 루프가 실제로 종료될 때까지 대기하지 않으면
+        // 루프가 여전히 실행 중인 상태에서 디코더를 Dispose하여 크래시가 발생합니다.
+        var prevLoops = new[] { _videoLoopTask, _audioLoopTask }
+            .Where(t => t is { IsCompleted: false })
+            .Cast<Task>()
+            .ToArray();
+        if (prevLoops.Length > 0)
+        {
+            try
+            {
+                await Task.WhenAll(prevLoops).WaitAsync(TimeSpan.FromSeconds(3));
+            }
+            catch
+            {
+                // 타임아웃 또는 루프 내부 예외 — 계속 진행합니다.
+            }
+        }
+        _videoLoopTask = null;
+        _audioLoopTask = null;
+
+        // 자막 초기화 (라이브 스트림에서는 자막 미지원)
         _subtitleEntries = [];
         SubtitleText     = string.Empty;
 
@@ -435,11 +561,13 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
 
         try
         {
-            StatusText = "파일 열기 중…";
-            await _videoDecoder.OpenAsync(filePath);
+            StatusText = isLive ? "스트림 연결 중…" : "파일 열기 중…";
+            await _videoDecoder.OpenAsync(source);
 
+            IsLiveStream    = isLive;
             IsFileOpen      = true;
-            DurationSeconds = _videoDecoder.Duration.TotalSeconds;
+            // 라이브 스트림은 Duration을 알 수 없으므로 0으로 둠
+            DurationSeconds = isLive ? 0 : _videoDecoder.Duration.TotalSeconds;
             _frameRate      = _videoDecoder.StreamInfo?.FrameRate ?? 0;
 
             _isUpdatingPositionFromPlayback = true;
@@ -448,25 +576,31 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
 
             UpdateTimecode(TimeSpan.Zero);
 
-            _mainVm.CurrentFileName    = Path.GetFileName(filePath);
+            // 상태바 표시: 라이브는 URL 그대로, 파일은 파일명만
+            _mainVm.CurrentFileName    = isLive ? source : Path.GetFileName(source);
             _mainVm.PlaybackStatusText = "준비";
             _mainVm.PlaybackStatusIcon = "Stop24";
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "비디오 스트림 열기 실패: {File}", filePath);
-            StatusText = $"열기 실패: {ex.Message}";
-            IsFileOpen = false;
+            _logger.LogError(ex, "소스 열기 실패: {Source}", source);
+            StatusText   = $"열기 실패: {ex.Message}";
+            IsFileOpen   = false;
+            IsLiveStream = false;
             return;
         }
 
         // ── 오디오 스트림 열기 (없어도 계속 진행) ────────────────────
-        await TryOpenAudioAsync(filePath);
+        await TryOpenAudioAsync(source);
 
-        // ── 동일 이름 자막 파일 자동 로드 (.srt 우선, 없으면 .vtt) ──
-        await TryAutoLoadSubtitleAsync(filePath);
+        // ── 동일 이름 자막 파일 자동 로드 (파일 전용, 라이브 스트림 제외) ──
+        if (!isLive)
+            await TryAutoLoadSubtitleAsync(source);
 
-        UpdateStatus("준비");
+        UpdateStatus(isLive ? "● LIVE 연결됨" : "재생 중");
+
+        // ── 자동 재생 ────────────────────────────────────────────────────
+        StartPlaybackLoop();
     }
 
     private async Task TryAutoLoadSubtitleAsync(string filePath)
@@ -490,6 +624,11 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
 
     private async Task TryOpenAudioAsync(string filePath)
     {
+        // RTSP / RTP / UDP 등 라이브 스트림은 비디오와 동일한 단일 연결에서
+        // 오디오를 수신해야 합니다. 별도 연결을 시도하면 서버가 두 번째 접속을
+        // 거부하거나 avformat_find_stream_info에서 ENOMEM 오류가 발생합니다.
+        if (IsLiveStream) return;
+
         try
         {
             var decoder = _services.GetRequiredService<IAudioDecoder>();
@@ -567,7 +706,14 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
         _playbackCts = new CancellationTokenSource();
         var ct = _playbackCts.Token;
 
-        // 비디오 디코드 + 렌더 루프
+        // vsync 동기화 렌더링 구독 (UI 스레드에서만 호출됨)
+        if (!_renderingSubscribed)
+        {
+            _renderingSubscribed = true;
+            CompositionTarget.Rendering += OnCompositionTargetRendering;
+        }
+
+        // 비디오 디코드+PTS타이밍 루프 (렌더링은 OnCompositionTargetRendering에서 담당)
         _videoLoopTask = Task.Run(() => VideoPlaybackLoopAsync(ct), ct);
 
         // 오디오 디코드 + 피드 루프 (오디오 스트림 있는 경우만)
@@ -578,11 +724,32 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>
+    /// WPF 디스플레이 vsync 이벤트 핸들러 — UI 스레드에서 매 vsync마다 실행됩니다.
+    /// 비디오 루프가 PTS 타이밍으로 준비한 프레임을 렌더링합니다.
+    /// </summary>
+    private void OnCompositionTargetRendering(object? sender, EventArgs e)
+    {
+        var frame = Interlocked.Exchange(ref _pendingFrame, null);
+        if (frame is null) return;
+
+        RenderFrame(frame);
+        frame.Dispose(); // ArrayPool 버퍼 반환
+    }
+
     private void StopPlaybackLoop(bool pauseAudio)
     {
         _playbackCts?.Cancel();
         _playbackCts?.Dispose();
         _playbackCts = null;
+
+        // vsync 렌더링 이벤트 해제 + 미처리 프레임 반환 (UI 스레드에서 호출 보장)
+        if (_renderingSubscribed)
+        {
+            CompositionTarget.Rendering -= OnCompositionTargetRendering;
+            _renderingSubscribed = false;
+        }
+        Interlocked.Exchange(ref _pendingFrame, null)?.Dispose();
 
         if (pauseAudio)
             _audioPlayer?.Pause();
@@ -603,40 +770,68 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
         {
             await foreach (var frame in _videoDecoder!.DecodeAsync(ct))
             {
+                // ── PTS 기반 타이밍 ────────────────────────────────────────────
+                //
+                // 첫 프레임을 기준점으로 로컬 Stopwatch와 PTS를 동기화합니다.
+                // 이후 각 프레임은 (PTS - firstPts) 만큼 경과하면 렌더 준비 완료.
+                //
+                // timeBeginPeriod(1) 덕분에 Task.Delay가 1ms 해상도로 동작합니다.
+                // 라이브 스트림: 8프레임 채널 버퍼가 네트워크 지터를 흡수하고,
+                //                PTS 타이밍이 버스트 프레임을 올바른 속도로 소비합니다.
+
                 if (firstPts == TimeSpan.MinValue)
                 {
                     firstPts = frame.Timestamp;
                     sw.Restart();
                 }
 
-                // PTS 기반 프레임 타이밍: 재생 속도로 목표 경과시간을 나눠 빠르기 조정
                 var targetMs = (frame.Timestamp - firstPts).TotalMilliseconds / _playbackSpeed;
-                var delay    = TimeSpan.FromMilliseconds(targetMs) - sw.Elapsed;
-                if (delay > TimeSpan.FromMilliseconds(1))
-                    await Task.Delay(delay, ct);
+                var delayMs  = targetMs - sw.Elapsed.TotalMilliseconds;
 
-                await Application.Current.Dispatcher.InvokeAsync(
-                    () => RenderFrame(frame),
-                    DispatcherPriority.Render);
+                if (delayMs > 2.0)
+                    await Task.Delay((int)delayMs, ct);
+
+                // ── 비블로킹 렌더 전달 ────────────────────────────────────────
+                // UI 스레드를 기다리지 않고 _pendingFrame에 원자적으로 교체합니다.
+                // CompositionTarget.Rendering이 다음 vsync에 픽업하여 렌더링합니다.
+                //
+                // 만약 이전 프레임이 아직 렌더되지 않은 상태(PTS 타이밍 오차 등)라면
+                // 이전 프레임을 즉시 풀에 반환하고 최신 프레임으로 교체합니다.
+                Interlocked.Exchange(ref _pendingFrame, frame)?.Dispose();
             }
 
-            // 파일 끝 — 자연 종료
+            // 스트림/파일 자연 종료 — UI 스레드에서 정리
             await Application.Current.Dispatcher.InvokeAsync(() =>
             {
-                IsPlaying = false;
+                // 미처리 프레임 반환 및 렌더링 이벤트 해제
+                if (_renderingSubscribed)
+                {
+                    CompositionTarget.Rendering -= OnCompositionTargetRendering;
+                    _renderingSubscribed = false;
+                }
+                Interlocked.Exchange(ref _pendingFrame, null)?.Dispose();
+
+                var wasLive     = IsLiveStream;
+                IsPlaying       = false;
+                IsLiveStream    = false;
                 _pausedPosition = TimeSpan.Zero;
-                UpdateStatus("재생 완료");
+                UpdateStatus(wasLive ? "스트림 연결 끊김" : "재생 완료");
                 _mainVm.PlaybackStatusText = "정지";
                 _mainVm.PlaybackStatusIcon = "Stop24";
             });
         }
-        catch (OperationCanceledException) { /* 정상 취소 */ }
+        catch (OperationCanceledException)
+        {
+            // 정상 취소 — 미처리 프레임만 반환 (StopPlaybackLoop에서 이미 처리됨)
+            Interlocked.Exchange(ref _pendingFrame, null)?.Dispose();
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "비디오 재생 루프 오류");
+            Interlocked.Exchange(ref _pendingFrame, null)?.Dispose();
             await Application.Current.Dispatcher.InvokeAsync(() =>
             {
-                IsPlaying = false;
+                IsPlaying  = false;
                 StatusText = $"재생 오류: {ex.Message}";
                 _mainVm.PlaybackStatusText = "오류";
                 _mainVm.PlaybackStatusIcon = "Stop24";
@@ -650,15 +845,23 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
 
     private async Task AudioPlaybackLoopAsync(CancellationToken ct)
     {
+        bool isLive = IsLiveStream;
+
+        // 라이브: 100ms 이하로 유지 → A/V 동기화 지연 최소화
+        // 파일:  800ms 선버퍼 → 시크 후 빠른 오디오 복구
+        var maxBuffer = isLive
+            ? TimeSpan.FromMilliseconds(100)
+            : TimeSpan.FromMilliseconds(800);
+
         try
         {
             await foreach (var frame in _audioDecoder!.DecodeAsync(ct))
             {
-                // 버퍼가 0.8초 이상 차면 대기 — 오버버퍼링 및 시크 지연 방지
                 while (_audioPlayer != null
-                       && _audioPlayer.BufferedDuration > TimeSpan.FromSeconds(0.8))
+                       && _audioPlayer.BufferedDuration > maxBuffer)
                 {
-                    await Task.Delay(20, ct);
+                    // 라이브: 빠른 폴링으로 지연 최소화, 파일: 여유롭게 대기
+                    await Task.Delay(isLive ? 5 : 20, ct);
                 }
 
                 _audioPlayer?.QueueSamples(frame.Samples);
@@ -704,9 +907,13 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
             VideoBitmap.Unlock();
         }
 
-        _isUpdatingPositionFromPlayback = true;
-        PositionSeconds = frame.Timestamp.TotalSeconds;
-        _isUpdatingPositionFromPlayback = false;
+        // 라이브 스트림은 PTS 기반 위치 표시가 무의미하므로 슬라이더를 갱신하지 않습니다.
+        if (!IsLiveStream)
+        {
+            _isUpdatingPositionFromPlayback = true;
+            PositionSeconds = frame.Timestamp.TotalSeconds;
+            _isUpdatingPositionFromPlayback = false;
+        }
 
         UpdateTimecode(frame.Timestamp);
     }

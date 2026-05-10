@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -20,6 +21,12 @@ namespace fflux.UI;
 
 public partial class App : Application
 {
+    // ── Windows 타이머 해상도 설정 ───────────────────────────────────
+    // 기본값 15.6ms → 1ms로 낮춰 Task.Delay / Thread.Sleep의 정밀도를 높입니다.
+    // 비디오 재생의 PTS 기반 프레임 타이밍에 필수적입니다.
+    [DllImport("winmm.dll")] private static extern uint timeBeginPeriod(uint uMilliseconds);
+    [DllImport("winmm.dll")] private static extern uint timeEndPeriod(uint uMilliseconds);
+
     private readonly IHost _host;
 
     public static IServiceProvider Services => ((App)Current)._host.Services;
@@ -87,6 +94,9 @@ public partial class App : Application
 
     protected override async void OnStartup(StartupEventArgs e)
     {
+        // 타이머 해상도를 1ms로 설정 (기본 15.6ms → PTS 기반 프레임 타이밍 정밀도 향상)
+        timeBeginPeriod(1);
+
         await _host.StartAsync();
 
         // 1. 설정 로드 (테마·FFmpeg 초기화보다 먼저)
@@ -114,6 +124,7 @@ public partial class App : Application
 
     protected override async void OnExit(ExitEventArgs e)
     {
+        timeEndPeriod(1);
         await _host.StopAsync(TimeSpan.FromSeconds(5));
         _host.Dispose();
         base.OnExit(e);

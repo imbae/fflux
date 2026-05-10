@@ -1,3 +1,4 @@
+using System.Buffers;
 using fflux.Core.Models;
 
 namespace fflux.Core.Helpers;
@@ -46,7 +47,9 @@ internal sealed unsafe class PixelFormatConverter : IDisposable
 
         // BGRA = 4바이트/픽셀
         int stride = dstWidth * 4;
-        var data   = new byte[dstHeight * stride];
+        // ArrayPool: LOH 할당(>85 KB) 없이 버퍼를 재사용합니다.
+        // Rent()는 요청보다 큰 배열을 반환할 수 있으므로 실제 크기는 Height×Stride로 계산합니다.
+        var data   = ArrayPool<byte>.Shared.Rent(dstHeight * stride);
 
         // ── 소스 배열 구성 ──────────────────────────────────────────
         // byte_ptrArray8 / int_array8 의 인덱서는 uint를 요구합니다.
@@ -72,7 +75,7 @@ internal sealed unsafe class PixelFormatConverter : IDisposable
                 dstDataArr,    dstLinesizeArr);
         }
 
-        return new VideoFrame(dstWidth, dstHeight, stride, data, timestamp);
+        return new VideoFrame(dstWidth, dstHeight, stride, data, timestamp, isPooled: true);
     }
 
     // ── 내부 ────────────────────────────────────────────────────────

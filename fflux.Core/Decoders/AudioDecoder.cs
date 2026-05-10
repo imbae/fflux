@@ -76,11 +76,22 @@ public sealed class AudioDecoder : IAudioDecoder
                 "FFmpeg가 초기화되지 않았습니다. " +
                 "설정에서 FFmpeg LGPL 바이너리 경로를 지정한 후 저장하세요.");
 
-        if (!File.Exists(filePath))
+        // 네트워크 URL은 File.Exists() 체크를 건너뜁니다.
+        if (!IsNetworkUrl(filePath) && !File.Exists(filePath))
             throw new FileNotFoundException("미디어 파일을 찾을 수 없습니다.", filePath);
 
         return Task.Run(() => OpenCore(filePath, streamIndex), ct);
     }
+
+    private static bool IsNetworkUrl(string source)
+        => source.StartsWith("rtsp://",  StringComparison.OrdinalIgnoreCase)
+        || source.StartsWith("rtp://",   StringComparison.OrdinalIgnoreCase)
+        || source.StartsWith("udp://",   StringComparison.OrdinalIgnoreCase)
+        || source.StartsWith("srt://",   StringComparison.OrdinalIgnoreCase)
+        || source.StartsWith("rtmp://",  StringComparison.OrdinalIgnoreCase)
+        || source.StartsWith("rtmps://", StringComparison.OrdinalIgnoreCase)
+        || source.StartsWith("http://",  StringComparison.OrdinalIgnoreCase)
+        || source.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
 
     /// <inheritdoc/>
     public async IAsyncEnumerable<AudioFrame> DecodeAsync(

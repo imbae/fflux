@@ -35,7 +35,8 @@
       "Bash(dotnet add *)",
       "WebFetch(domain:github.com)",
       "WebSearch",
-      "WebFetch(domain:wpfui.lepo.co)"
+      "WebFetch(domain:wpfui.lepo.co)",
+      "Bash(cd /mnt/f/source/fflux && dotnet build fflux.Core/fflux.Core.csproj --no-restore -c Release 2>&1 | tail -20)"
     ]
   }
 }

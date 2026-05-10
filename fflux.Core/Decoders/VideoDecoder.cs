@@ -76,12 +76,25 @@ public sealed class VideoDecoder : IVideoDecoder
                 "FFmpeg가 초기화되지 않았습니다. " +
                 "설정에서 FFmpeg LGPL 바이너리 경로를 지정한 후 저장하세요.");
 
-        if (!File.Exists(filePath))
+        // 네트워크 URL은 File.Exists() 체크를 건너뜁니다.
+        // (rtsp://, rtp://, udp://, srt://, rtmp://, http://, https://)
+        if (!IsNetworkUrl(filePath) && !File.Exists(filePath))
             throw new FileNotFoundException("미디어 파일을 찾을 수 없습니다.", filePath);
 
         // avformat/avcodec I/O + CPU → ThreadPool
         return Task.Run(() => OpenCore(filePath, streamIndex), ct);
     }
+
+    /// <summary>URL 스킴을 보고 네트워크 소스 여부를 판별합니다.</summary>
+    private static bool IsNetworkUrl(string source)
+        => source.StartsWith("rtsp://",  StringComparison.OrdinalIgnoreCase)
+        || source.StartsWith("rtp://",   StringComparison.OrdinalIgnoreCase)
+        || source.StartsWith("udp://",   StringComparison.OrdinalIgnoreCase)
+        || source.StartsWith("srt://",   StringComparison.OrdinalIgnoreCase)
+        || source.StartsWith("rtmp://",  StringComparison.OrdinalIgnoreCase)
+        || source.StartsWith("rtmps://", StringComparison.OrdinalIgnoreCase)
+        || source.StartsWith("http://",  StringComparison.OrdinalIgnoreCase)
+        || source.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
 
     /// <inheritdoc/>
     public async IAsyncEnumerable<VideoFrame> DecodeAsync(
@@ -93,9 +106,23 @@ public sealed class VideoDecoder : IVideoDecoder
             throw new InvalidOperationException(
                 "디코더가 열려 있지 않습니다. OpenAsync()를 먼저 호출하세요.");
 
-        // 백그라운드 디코딩과 소비자 사이에 백프레셔 채널 (최대 8 프레임 버퍼)
+        // ── 디코드 채널 ────────────────────────────────────────────────
+        // 라이브/파일 모두 Wait 모드: 소비자(ViewModel)가 PTS 속도로 소비하므로
+        // 디코더는 8프레임 선행 후 자연스럽게 백프레셔를 받습니다.
+        // DropOldest를 사용하면 네트워크 버스트 시 프레임이 유실되어 시각적 점프가 발생합니다.
+        //
+        // 용량 8프레임:
+        //  - 라이브 25fps → 320ms 지터 버퍼
+        //  - 라이브 30fps → 267ms 지터 버퍼
+        //  - 파일: PTS 타이밍 백프레셔 완충
+        bool isLive = Duration == TimeSpan.Zero;
         var channel = Channel.CreateBounded<VideoFrame>(
-            new BoundedChannelOptions(8) { FullMode = BoundedChannelFullMode.Wait });
+            new BoundedChannelOptions(8)
+            {
+                FullMode     = BoundedChannelFullMode.Wait,
+                SingleReader = true,
+                SingleWriter = true,
+            });
 
         var decodeTask = Task.Run(async () =>
         {
@@ -258,18 +285,60 @@ public sealed class VideoDecoder : IVideoDecoder
     {
         ReleaseContext();   // 이전 컨텍스트 정리
 
-        AVFormatContext* fmtCtx = null;
+        bool isNetwork = IsNetworkUrl(filePath);
 
-        // 1. avformat_open_input
-        int ret = ffmpeg.avformat_open_input(&fmtCtx, filePath, null, null);
+        // ── 1. avformat_open_input ────────────────────────────────────
+        AVFormatContext* fmtCtx   = null;
+        AVDictionary*   openOpts = null;
+
+        if (isNetwork)
+        {
+            // RTSP: UDP보다 TCP가 안정적 (방화벽/NAT 환경에서도 통과 우수)
+            if (filePath.StartsWith("rtsp://", StringComparison.OrdinalIgnoreCase))
+                ffmpeg.av_dict_set(&openOpts, "rtsp_transport", "tcp", 0);
+
+            // 소켓 I/O 타임아웃: 10초 (microseconds 단위)
+            // RTSP는 "stimeout", 나머지는 "timeout"
+            var timeoutKey = filePath.StartsWith("rtsp://", StringComparison.OrdinalIgnoreCase)
+                ? "stimeout" : "timeout";
+            ffmpeg.av_dict_set(&openOpts, timeoutKey, "10000000", 0);
+
+            // 스트림 정보 분석 시간/크기를 줄여 빠른 시작을 유도합니다.
+            // (라이브 스트림은 duration 파악이 불가능하므로 짧게 설정)
+            ffmpeg.av_dict_set(&openOpts, "probesize",       "500000", 0);  // 500 KB
+            ffmpeg.av_dict_set(&openOpts, "analyzeduration", "1000000", 0); // 1 초
+
+            // 입력 데이터를 내부 버퍼에 쌓지 않고 즉시 디코더로 전달합니다.
+            // 이 옵션 없이는 FFmpeg이 패킷을 모아서 버스트로 방출 → 버벅거림 원인
+            ffmpeg.av_dict_set(&openOpts, "fflags", "nobuffer", 0);
+
+            // 최대 A/V 디먹싱 지연: 0.5초로 제한 (기본값 700ms 이상)
+            ffmpeg.av_dict_set(&openOpts, "max_delay", "500000", 0); // microseconds
+        }
+
+        int ret = ffmpeg.avformat_open_input(&fmtCtx, filePath, null, &openOpts);
+        // 미사용 옵션 키가 있으면 dict에 남으므로 항상 해제
+        if (openOpts != null) ffmpeg.av_dict_free(&openOpts);
+
         if (ret < 0)
             throw new MediaReadException(
-                $"파일을 열 수 없습니다: {filePath}\n{GetErrorMessage(ret)}", ret);
+                $"소스를 열 수 없습니다: {filePath}\n{GetErrorMessage(ret)}", ret);
 
         _fmtCtxHandle = (nint)fmtCtx;
 
-        // 2. avformat_find_stream_info
-        ret = ffmpeg.avformat_find_stream_info(fmtCtx, null);
+        // ── 2. avformat_find_stream_info ─────────────────────────────
+        // 라이브 스트림은 스트림 정보 분석을 빠르게 끝내기 위해
+        // analyzeduration / probesize를 여기서도 제한합니다.
+        AVDictionary* findOpts = null;
+        if (isNetwork)
+        {
+            ffmpeg.av_dict_set(&findOpts, "probesize",       "500000", 0);
+            ffmpeg.av_dict_set(&findOpts, "analyzeduration", "1000000", 0);
+        }
+
+        ret = ffmpeg.avformat_find_stream_info(fmtCtx, findOpts != null ? &findOpts : null);
+        if (findOpts != null) ffmpeg.av_dict_free(&findOpts);
+
         if (ret < 0)
             throw new MediaReadException(
                 $"스트림 정보 추출 실패: {GetErrorMessage(ret)}", ret);
@@ -302,9 +371,21 @@ public sealed class VideoDecoder : IVideoDecoder
             throw new MediaReadException(
                 $"코덱 파라미터 복사 실패: {GetErrorMessage(ret)}", ret);
 
-        // 멀티스레드 프레임 디코딩 활성화
-        codecCtx->thread_count = Math.Min(Environment.ProcessorCount, 16);
-        codecCtx->thread_type  = ffmpeg.FF_THREAD_FRAME;
+        // ── 스레드 설정 ──────────────────────────────────────────────────
+        // 라이브 스트림: 단일 스레드 디코딩
+        //   FF_THREAD_FRAME은 N개 스레드 사용 시 최대 (N-1)프레임의 디코딩 지연을 유발합니다.
+        //   예) 8코어 → 7프레임 × 40ms = 280ms 추가 지연 → 라이브에 치명적
+        // 파일 재생: 다중 스레드로 처리량 극대화
+        if (isNetwork)
+        {
+            codecCtx->thread_count = 1;
+            codecCtx->thread_type  = ffmpeg.FF_THREAD_SLICE; // thread_count=1이면 무관하나 명시
+        }
+        else
+        {
+            codecCtx->thread_count = Math.Min(Environment.ProcessorCount, 16);
+            codecCtx->thread_type  = ffmpeg.FF_THREAD_FRAME;
+        }
 
         // 5. avcodec_open2
         ret = ffmpeg.avcodec_open2(codecCtx, codec, null);

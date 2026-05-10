@@ -70,6 +70,11 @@ public sealed class FFmpegInitializer : IFFmpegInitializer
             // av_log 콜백을 ILogger로 연결합니다.
             FFmpegLogBridge.Initialize(_logger);
 
+            // 네트워크 프로토콜(RTSP, RTP, UDP, HTTP 등)을 활성화합니다.
+            // 이 호출 없이는 rtsp:// · udp:// 등 URL을 avformat_open_input에 전달해도
+            // "Protocol not found" 오류가 발생합니다.
+            ffmpeg.avformat_network_init();
+
             // 상태 기록
             VersionInfo       = versionInfo;
             LoadedBinaryPath  = binaryPath;

@@ -110,8 +110,32 @@
                     Foreground="{DynamicResource TextFillColorDisabledBrush}"
                     HorizontalAlignment="Center" />
 
+                <TextBlock
+                    Text="또는 스트리밍 버튼으로 RTSP · RTP · UDP 주소 입력"
+                    FontSize="12"
+                    Margin="0,4,0,0"
+                    Foreground="{DynamicResource TextFillColorDisabledBrush}"
+                    HorizontalAlignment="Center" />
+
             </StackPanel>
         </Grid>
+
+        <!-- ══ LIVE 배지 (라이브 스트림 재생 중) ══════════════════════════ -->
+        <Border
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Margin="12,12,0,0"
+            Background="#CCDD2222"
+            CornerRadius="4"
+            Padding="7,3"
+            Visibility="{Binding IsLiveStream, Converter={StaticResource BoolToVis}}">
+            <TextBlock
+                Text="● LIVE"
+                FontSize="12"
+                FontWeight="SemiBold"
+                Foreground="White"
+                VerticalAlignment="Center" />
+        </Border>
 
         <!-- ══ 자막 오버레이 ═══════════════════════════════════════════
              컨트롤 바 위에 표시. IsSubtitleVisible=false 이면 Collapsed.
@@ -152,14 +176,14 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <!-- ── 시크 슬라이더 ─────────────────────────────── -->
+                <!-- ── 시크 슬라이더 (라이브 스트림 중에는 비활성화) ────── -->
                 <Slider
                     Grid.Row="0"
                     Margin="0,0,0,8"
                     Minimum="0"
                     Maximum="{Binding DurationSeconds}"
                     Value="{Binding PositionSeconds, Mode=TwoWay}"
-                    IsEnabled="{Binding IsFileOpen}"
+                    IsEnabled="{Binding CanSeek}"
                     TickFrequency="1"
                     SmallChange="1"
                     LargeChange="10" />
@@ -183,10 +207,22 @@
                             Margin="0,0,2,0"
                             Command="{Binding OpenFileCommand}"
                             Appearance="Secondary"
-                            ToolTip="파일 열기">
+                            ToolTip="미디어 파일 열기">
                             <StackPanel Orientation="Horizontal">
                                 <ui:SymbolIcon Symbol="FolderOpen24" FontSize="14" Margin="0,0,6,0" />
                                 <TextBlock Text="열기" />
+                            </StackPanel>
+                        </ui:Button>
+
+                        <!-- 스트리밍 URL 열기 -->
+                        <ui:Button
+                            Margin="0,0,6,0"
+                            Command="{Binding OpenStreamCommand}"
+                            Appearance="Secondary"
+                            ToolTip="RTSP / RTP / UDP 스트리밍 주소 입력">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="Stream24" FontSize="14" Margin="0,0,6,0" />
+                                <TextBlock Text="스트리밍" />
                             </StackPanel>
                         </ui:Button>
 

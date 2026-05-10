@@ -463,7 +463,29 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
         // ── 오디오 스트림 열기 (없어도 계속 진행) ────────────────────
         await TryOpenAudioAsync(filePath);
 
+        // ── 동일 이름 자막 파일 자동 로드 (.srt 우선, 없으면 .vtt) ──
+        await TryAutoLoadSubtitleAsync(filePath);
+
         UpdateStatus("준비");
+    }
+
+    private async Task TryAutoLoadSubtitleAsync(string filePath)
+    {
+        var dir  = Path.GetDirectoryName(filePath) ?? string.Empty;
+        var stem = Path.GetFileNameWithoutExtension(filePath);
+
+        // .srt 우선, 없으면 .vtt 탐색
+        string? subtitlePath = null;
+        foreach (var ext in new[] { ".srt", ".vtt" })
+        {
+            var candidate = Path.Combine(dir, stem + ext);
+            if (File.Exists(candidate)) { subtitlePath = candidate; break; }
+        }
+
+        if (subtitlePath == null) return;
+
+        await LoadSubtitleFromPathAsync(subtitlePath);
+        _logger.LogInformation("자막 자동 로드: {File}", Path.GetFileName(subtitlePath));
     }
 
     private async Task TryOpenAudioAsync(string filePath)

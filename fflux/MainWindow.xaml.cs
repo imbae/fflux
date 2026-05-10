@@ -10,7 +10,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Wpf.Ui.Appearance;
 
-namespace fflux
+namespace fflux.UI
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml

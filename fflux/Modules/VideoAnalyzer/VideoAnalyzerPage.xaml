@@ -27,14 +27,14 @@
                 FontSize="24"
                 FontWeight="SemiBold"
                 Margin="0,16,0,0"
-                Foreground="{DynamicResource FFluxTextPrimaryBrush}"
+                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
                 HorizontalAlignment="Center" />
 
             <TextBlock
                 Text="Phase 6에서 장면 감지, 비트레이트 분석, 품질 그래프가 구현됩니다."
                 FontSize="13"
                 Margin="0,8,0,0"
-                Foreground="{DynamicResource FFluxTextSecondaryBrush}"
+                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                 HorizontalAlignment="Center" />
         </StackPanel>
     </Grid>

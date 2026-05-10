@@ -4,8 +4,11 @@ using System.Threading.Tasks;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using fflux.Core.Abstractions;
+using fflux.Core.Exceptions;
 using fflux.UI.Shared.Models;
 using fflux.UI.Shared.Services;
+using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using Wpf.Ui;
 using Wpf.Ui.Appearance;
@@ -18,6 +21,8 @@ public sealed partial class SettingsViewModel : ObservableObject
     private readonly ISettingsService _settingsService;
     private readonly IDialogService _dialogService;
     private readonly ISnackbarService _snackbarService;
+    private readonly IFFmpegInitializer _ffmpegInitializer;
+    private readonly ILogger<SettingsViewModel> _logger;
 
     // ── FFmpeg 경로 ──────────────────────────────────────────
     [ObservableProperty]
@@ -101,11 +106,15 @@ public sealed partial class SettingsViewModel : ObservableObject
     public SettingsViewModel(
         ISettingsService settingsService,
         IDialogService dialogService,
-        ISnackbarService snackbarService)
+        ISnackbarService snackbarService,
+        IFFmpegInitializer ffmpegInitializer,
+        ILogger<SettingsViewModel> logger)
     {
-        _settingsService = settingsService;
-        _dialogService   = dialogService;
-        _snackbarService = snackbarService;
+        _settingsService    = settingsService;
+        _dialogService      = dialogService;
+        _snackbarService    = snackbarService;
+        _ffmpegInitializer  = ffmpegInitializer;
+        _logger             = logger;
 
         LoadFromSettings(_settingsService.Current);
     }
@@ -154,6 +163,8 @@ public sealed partial class SettingsViewModel : ObservableObject
     {
         try
         {
+            var prevPath = _settingsService.Current.FFmpegBinaryPath;
+
             var newSettings = new AppSettings
             {
                 FFmpegBinaryPath    = FFmpegBinaryPath,
@@ -165,6 +176,13 @@ public sealed partial class SettingsViewModel : ObservableObject
             await _settingsService.SaveAsync(newSettings);
             OnPropertyChanged(nameof(HasUnsavedChanges));
 
+            // FFmpeg 경로가 변경되고 비어 있지 않으면 재초기화 시도
+            var pathChanged = !string.Equals(
+                prevPath, FFmpegBinaryPath, StringComparison.OrdinalIgnoreCase);
+
+            if (pathChanged && !string.IsNullOrWhiteSpace(FFmpegBinaryPath))
+                await TryReinitializeFFmpegAsync();
+
             _snackbarService.Show(
                 "저장 완료",
                 "설정이 저장되었습니다.",
@@ -175,6 +193,30 @@ public sealed partial class SettingsViewModel : ObservableObject
         catch (Exception ex)
         {
             await _dialogService.ShowErrorAsync("저장 실패", "설정 저장 중 오류가 발생했습니다.", ex);
+        }
+    }
+
+    // ── FFmpeg 재초기화 (경로 변경 시) ───────────────────────
+    private async Task TryReinitializeFFmpegAsync()
+    {
+        try
+        {
+            await _ffmpegInitializer.InitializeAsync(FFmpegBinaryPath);
+
+            _snackbarService.Show(
+                "FFmpeg 로드 완료",
+                $"FFmpeg {_ffmpegInitializer.VersionInfo?.AvcodecVersion} 초기화 성공",
+                ControlAppearance.Success,
+                new SymbolIcon(SymbolRegular.Checkmark24),
+                TimeSpan.FromSeconds(4));
+        }
+        catch (FFmpegInitializationException ex)
+        {
+            _logger.LogError(ex, "FFmpeg 재초기화 실패");
+            await _dialogService.ShowErrorAsync(
+                "FFmpeg 초기화 실패",
+                "FFmpeg 바이너리를 로드할 수 없습니다.\n경로를 확인해 주세요.",
+                ex);
         }
     }
 

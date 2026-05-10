@@ -27,14 +27,14 @@
                 FontSize="24"
                 FontWeight="SemiBold"
                 Margin="0,16,0,0"
-                Foreground="{DynamicResource FFluxTextPrimaryBrush}"
+                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
                 HorizontalAlignment="Center" />
 
             <TextBlock
                 Text="Phase 5에서 FFmpeg 옵션 GUI 빌더 및 커맨드 생성기가 구현됩니다."
                 FontSize="13"
                 Margin="0,8,0,0"
-                Foreground="{DynamicResource FFluxTextSecondaryBrush}"
+                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                 HorizontalAlignment="Center" />
         </StackPanel>
     </Grid>

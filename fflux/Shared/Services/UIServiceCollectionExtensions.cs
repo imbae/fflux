@@ -36,6 +36,7 @@ public static class UIServiceCollectionExtensions
 
         // ── ViewModels (Page별) ──────────────────────────────
         services.AddSingleton<SettingsViewModel>();
+        services.AddSingleton<PlayerViewModel>();
 
         return services;
     }

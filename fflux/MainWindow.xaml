@@ -9,6 +9,9 @@
     xmlns:player="clr-namespace:fflux.UI.Modules.Player"
     xmlns:explorer="clr-namespace:fflux.UI.Modules.FFmpegExplorer"
     xmlns:analyzer="clr-namespace:fflux.UI.Modules.VideoAnalyzer"
+    xmlns:batch="clr-namespace:fflux.UI.Modules.BatchQueue"
+    xmlns:scene="clr-namespace:fflux.UI.Modules.SceneDetector"
+    xmlns:bitrate="clr-namespace:fflux.UI.Modules.BitrateAnalyzer"
     xmlns:settings="clr-namespace:fflux.UI.Modules.Settings"
     mc:Ignorable="d"
     Title="fflux"
@@ -38,7 +41,7 @@
         <ui:NavigationView
             Grid.Row="1"
             x:Name="RootNavigation"
-            PaneDisplayMode="LeftFluent"
+            PaneDisplayMode="Left"
             IsBackButtonVisible="Collapsed"
             IsPaneToggleVisible="True"
             OpenPaneLength="220">
@@ -67,6 +70,33 @@
                 <ui:NavigationViewItem
                     Content="Video Analyzer"
                     TargetPageType="{x:Type analyzer:VideoAnalyzerPage}">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="DataTrending24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+
+                <!-- 📋 Batch Queue -->
+                <ui:NavigationViewItem
+                    Content="Batch Queue"
+                    TargetPageType="{x:Type batch:BatchQueuePage}">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="StackStar24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+
+                <!-- 🎬 Scene Detector -->
+                <ui:NavigationViewItem
+                    Content="Scene Detector"
+                    TargetPageType="{x:Type scene:SceneDetectorPage}">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="Filmstrip24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+
+                <!-- 📈 Bitrate Analyzer -->
+                <ui:NavigationViewItem
+                    Content="Bitrate Analyzer"
+                    TargetPageType="{x:Type bitrate:BitrateAnalyzerPage}">
                     <ui:NavigationViewItem.Icon>
                         <ui:SymbolIcon Symbol="DataTrending24" />
                     </ui:NavigationViewItem.Icon>

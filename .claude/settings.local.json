@@ -31,7 +31,11 @@
       "Bash(unzip -p wpfui.zip \"lib/net10.0-windows7.0/Wpf.Ui.xml\")",
       "Bash(dotnet-script /tmp/SymbolTest.cs)",
       "Bash(dotnet run *)",
-      "Bash(cd C:/Users/ImFlo/AppData/Local/Temp/symtest && dotnet run 2>&1 | grep -v \"^Desktop\\\\|^Dual\\\\|^Phone\" | head -30)"
+      "Bash(cd C:/Users/ImFlo/AppData/Local/Temp/symtest && dotnet run 2>&1 | grep -v \"^Desktop\\\\|^Dual\\\\|^Phone\" | head -30)",
+      "Bash(dotnet add *)",
+      "WebFetch(domain:github.com)",
+      "WebSearch",
+      "WebFetch(domain:wpfui.lepo.co)"
     ]
   }
 }

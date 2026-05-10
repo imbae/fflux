@@ -36,6 +36,14 @@ public static class CoreServiceCollectionExtensions
         // Singleton: 상태 없음.
         services.AddSingleton<IFFmpegCommandService, FFmpegCommandService>();
 
+        // ── 장면 감지 서비스 ──────────────────────────────────────────
+        // Singleton: 상태 없음. 실행마다 새 Process를 생성합니다.
+        services.AddSingleton<ISceneDetectionService, SceneDetectionService>();
+
+        // ── 비트레이트 분석 서비스 ────────────────────────────────────
+        // Singleton: 상태 없음. ffprobe 프로세스를 생성합니다.
+        services.AddSingleton<IBitrateAnalysisService, BitrateAnalysisService>();
+
         return services;
     }
 }

@@ -1,5 +1,8 @@
+using fflux.UI.Modules.BatchQueue;
+using fflux.UI.Modules.BitrateAnalyzer;
 using fflux.UI.Modules.FFmpegExplorer;
 using fflux.UI.Modules.Player;
+using fflux.UI.Modules.SceneDetector;
 using fflux.UI.Modules.Settings;
 using fflux.UI.Modules.VideoAnalyzer;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,6 +35,9 @@ public static class UIServiceCollectionExtensions
         services.AddSingleton<PlayerPage>();
         services.AddSingleton<FFmpegExplorerPage>();
         services.AddSingleton<VideoAnalyzerPage>();
+        services.AddSingleton<BatchQueuePage>();
+        services.AddSingleton<SceneDetectorPage>();
+        services.AddSingleton<BitrateAnalyzerPage>();
         services.AddSingleton<SettingsPage>();
 
         // ── ViewModels (Page별) ──────────────────────────────
@@ -39,6 +45,9 @@ public static class UIServiceCollectionExtensions
         services.AddSingleton<PlayerViewModel>();
         services.AddSingleton<FFmpegExplorerViewModel>();
         services.AddSingleton<VideoAnalyzerViewModel>();
+        services.AddSingleton<BatchQueueViewModel>();
+        services.AddSingleton<SceneDetectorViewModel>();
+        services.AddSingleton<BitrateAnalyzerViewModel>();
 
         return services;
     }

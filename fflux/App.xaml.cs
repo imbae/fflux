@@ -8,6 +8,8 @@ using fflux.Core.Abstractions;
 using fflux.Core.Exceptions;
 using fflux.UI.Shared.Models;
 using fflux.UI.Shared.Services;
+using LiveChartsCore;
+using LiveChartsCore.SkiaSharpView;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -24,6 +26,12 @@ public partial class App : Application
 
     public App()
     {
+        // ── LiveChartsCore 초기화 ─────────────────────────────────────
+        LiveCharts.Configure(config => config
+            .AddSkiaSharp()
+            .AddDefaultMappers()
+            .AddDarkTheme());
+
         // ── 전역 ScrollViewer 마우스 휠 핸들러 등록 ─────────────────
         // WPF-UI NavigationView 내 Page의 ScrollViewer는 포커스가 없어도
         // PreviewMouseWheel(터널링) 이벤트를 통해 스크롤이 동작하도록 합니다.

@@ -1,6 +1,7 @@
 using fflux.Core.Abstractions;
 using fflux.Core.Decoders;
 using fflux.Core.Demuxers;
+using fflux.Core.Parsers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace fflux.Core;
@@ -24,6 +25,11 @@ public static class CoreServiceCollectionExtensions
         // ── 오디오 디코더 ────────────────────────────────────────────
         // Transient: 각 재생 세션마다 독립적인 AVFormatContext + AVCodecContext + SwrContext를 가집니다.
         services.AddTransient<IAudioDecoder, AudioDecoder>();
+
+        // ── 자막 파서 ────────────────────────────────────────────────
+        // Singleton: 상태 없음. 확장자 키로 구분합니다.
+        services.AddKeyedSingleton<ISubtitleParser, SrtParser>("srt");
+        services.AddKeyedSingleton<ISubtitleParser, VttParser>("vtt");
 
         return services;
     }

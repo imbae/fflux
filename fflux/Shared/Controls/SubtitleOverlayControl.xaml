@@ -1,0 +1,52 @@
+<UserControl
+    x:Class="fflux.UI.Shared.Controls.SubtitleOverlayControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:conv="clr-namespace:fflux.UI.Shared.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    d:DesignWidth="640"
+    d:DesignHeight="360"
+    IsHitTestVisible="False"
+    VerticalAlignment="Bottom"
+    HorizontalAlignment="Center">
+
+    <UserControl.Resources>
+        <conv:StringToVisibilityConverter x:Key="StrToVis" />
+    </UserControl.Resources>
+
+    <!--
+        텍스트가 비어 있으면 Border 자체를 Collapsed 처리합니다.
+        Visibility 속성은 부모(PlayerPage)가 IsSubtitleVisible 바인딩으로 제어합니다.
+    -->
+    <Border
+        MaxWidth="720"
+        Padding="14,7"
+        CornerRadius="4"
+        Background="#BB000000"
+        Margin="0,0,0,0"
+        Visibility="{Binding SubtitleText,
+                              RelativeSource={RelativeSource AncestorType=UserControl},
+                              Converter={StaticResource StrToVis}}">
+
+        <TextBlock
+            Text="{Binding SubtitleText, RelativeSource={RelativeSource AncestorType=UserControl}}"
+            FontSize="{Binding SubtitleFontSize, RelativeSource={RelativeSource AncestorType=UserControl}}"
+            Foreground="{Binding SubtitleColor, RelativeSource={RelativeSource AncestorType=UserControl}}"
+            FontWeight="SemiBold"
+            TextAlignment="Center"
+            TextWrapping="Wrap"
+            LineHeight="1.4">
+
+            <!-- 밝은 배경에서도 읽기 쉽도록 텍스트 그림자 적용 -->
+            <TextBlock.Effect>
+                <DropShadowEffect
+                    Color="Black"
+                    BlurRadius="4"
+                    ShadowDepth="1"
+                    Opacity="0.85" />
+            </TextBlock.Effect>
+        </TextBlock>
+    </Border>
+</UserControl>

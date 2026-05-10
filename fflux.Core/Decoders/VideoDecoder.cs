@@ -137,6 +137,115 @@ public sealed class VideoDecoder : IVideoDecoder
         return ValueTask.CompletedTask;
     }
 
+    // ── SeekAndDecodeAtAsync / DecodeNextFrameAfterAsync ─────────────
+
+    /// <inheritdoc/>
+    public Task<VideoFrame?> DecodeNextFrameAfterAsync(TimeSpan currentPosition, CancellationToken ct = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        if (!IsOpen)
+            throw new InvalidOperationException(
+                "디코더가 열려 있지 않습니다. OpenAsync()를 먼저 호출하세요.");
+
+        return Task.Run(() => DecodeNextFrameAfter(currentPosition), ct);
+    }
+
+    /// <summary>
+    /// backward seek 후 <paramref name="currentPosition"/>보다 큰 PTS를 가진 첫 프레임을 반환합니다.
+    /// </summary>
+    private VideoFrame? DecodeNextFrameAfter(TimeSpan currentPosition)
+    {
+        SeekCore(currentPosition); // 현재 위치 이전 키프레임으로 이동
+
+        const int maxFrames = 2000;
+        for (int i = 0; i < maxFrames && !_disposed; i++)
+        {
+            var frame = DecodeOneFrame();
+            if (frame is null) break;
+
+            if (frame.Timestamp > currentPosition)
+                return frame; // 현재 위치 이후 첫 프레임
+        }
+
+        return null;
+    }
+
+    /// <inheritdoc/>
+    public Task<VideoFrame?> SeekAndDecodeAtAsync(TimeSpan target, CancellationToken ct = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        if (!IsOpen)
+            throw new InvalidOperationException(
+                "디코더가 열려 있지 않습니다. OpenAsync()를 먼저 호출하세요.");
+
+        return Task.Run(() => SeekAndDecodeAt(target), ct);
+    }
+
+    /// <summary>
+    /// backward seek 후 목표 PTS에 가장 가까운(≤ target) 프레임을 찾아 반환합니다.
+    /// seek → keyframe K (K.pts ≤ target) → K 이후 프레임들을 디코딩하며 target에 도달.
+    /// </summary>
+    private VideoFrame? SeekAndDecodeAt(TimeSpan target)
+    {
+        SeekCore(target); // backward seek → 목표 이전 키프레임으로 이동
+
+        VideoFrame? best  = null;
+        const int maxFrames = 2000; // 약 ~60fps × 30초 GOP 상한
+
+        for (int i = 0; i < maxFrames && !_disposed; i++)
+        {
+            var frame = DecodeOneFrame();
+            if (frame is null) break;
+
+            if (frame.Timestamp > target)
+                break; // 목표를 지나침 — best(직전 프레임)가 정답
+
+            best = frame; // 목표 이하의 프레임을 계속 갱신
+
+            // 타임스탬프가 정확히 일치하면 더 볼 필요 없음
+            if (Math.Abs((frame.Timestamp - target).TotalMilliseconds) < 1.0)
+                break;
+        }
+
+        return best;
+    }
+
+    /// <summary>
+    /// seek 없이 디코더 현재 위치에서 다음 프레임 하나를 읽어 반환합니다.
+    /// <see cref="ReceiveNextFrame"/>을 먼저 시도하고, 버퍼가 비어 있으면 패킷을 읽습니다.
+    /// </summary>
+    private VideoFrame? DecodeOneFrame()
+    {
+        // 코덱 내부 버퍼에 남은 프레임 먼저 소비
+        var frame = ReceiveNextFrame();
+        if (frame is not null) return frame;
+
+        const int maxPackets = 1000;
+        for (int i = 0; i < maxPackets && !_disposed; i++)
+        {
+            var result = ReadNextPacket();
+
+            if (result == ReadPacketResult.EndOfFile)
+                return null;
+
+            if (result == ReadPacketResult.VideoPacket)
+            {
+                SendPacket(flush: false);
+                UnrefPacket();
+                frame = ReceiveNextFrame();
+                if (frame is not null) return frame;
+            }
+            else
+            {
+                UnrefPacket(); // 오디오/자막 등 비디오 외 패킷 무시
+            }
+        }
+
+        return null;
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     // unsafe 헬퍼: 포인터 접근이 필요한 sync 메서드들
     // async 메서드에서는 await를 사용하므로 unsafe 블록/메서드를 직접 쓸 수 없음.

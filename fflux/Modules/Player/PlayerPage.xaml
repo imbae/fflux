@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:conv="clr-namespace:fflux.UI.Shared.Converters"
+    xmlns:ctrl="clr-namespace:fflux.UI.Shared.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:local="clr-namespace:fflux.UI.Modules.Player"
@@ -16,24 +17,59 @@
     <Page.Resources>
         <conv:InverseBoolToVisibilityConverter x:Key="InvBoolToVis" />
         <BooleanToVisibilityConverter          x:Key="BoolToVis" />
+
+        <!-- 프레임 스텝 버튼: hold-to-repeat을 위해 RepeatButton 사용 -->
+        <Style x:Key="FrameStepStyle" TargetType="RepeatButton">
+            <Setter Property="Background"       Value="Transparent" />
+            <Setter Property="BorderThickness"  Value="0" />
+            <Setter Property="Padding"          Value="0" />
+            <Setter Property="Width"            Value="32" />
+            <Setter Property="Height"           Value="32" />
+            <Setter Property="Cursor"           Value="Hand" />
+            <Setter Property="Foreground"       Value="{DynamicResource TextFillColorPrimaryBrush}" />
+            <Setter Property="Delay"            Value="400" />
+            <Setter Property="Interval"         Value="80" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Border
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="4">
+                            <ContentPresenter
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#22FFFFFF" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#44FFFFFF" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.35" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Page.Resources>
 
+    <!--
+        RootGrid — 단일 셀: 비디오, 드롭 힌트, 컨트롤 바가 모두 같은 셀에 오버레이됩니다.
+        MouseMove / MouseLeave 이벤트로 컨트롤 바 자동 숨김을 제어합니다.
+    -->
     <Grid
         x:Name="RootGrid"
+        Background="Black"
         Focusable="True"
-        KeyDown="OnKeyDown">
-
-        <Grid.RowDefinitions>
-            <!-- 비디오 영역 -->
-            <RowDefinition Height="*" />
-            <!-- 컨트롤 바 -->
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+        KeyDown="OnKeyDown"
+        MouseMove="OnMouseMove"
+        MouseLeave="OnMouseLeave">
 
         <!-- ══ 비디오 영역 ══════════════════════════════════════════════ -->
         <Border
-            Grid.Row="0"
-            Background="Black"
             AllowDrop="True"
             Drop="OnVideoDrop"
             DragOver="OnVideoDragOver">
@@ -45,9 +81,8 @@
 
         </Border>
 
-        <!-- 파일 드롭 힌트 (파일 미열기 상태) -->
+        <!-- ══ 드롭 힌트 (파일 미열기 상태) ══════════════════════════════ -->
         <Grid
-            Grid.Row="0"
             IsHitTestVisible="False"
             Visibility="{Binding IsFileOpen, Converter={StaticResource InvBoolToVis}}">
 
@@ -78,19 +113,42 @@
             </StackPanel>
         </Grid>
 
-        <!-- ══ 컨트롤 바 ════════════════════════════════════════════════ -->
+        <!-- ══ 자막 오버레이 ═══════════════════════════════════════════
+             컨트롤 바 위에 표시. IsSubtitleVisible=false 이면 Collapsed.
+             텍스트가 빈 경우 내부 Border가 자동으로 숨겨집니다.
+        ════════════════════════════════════════════════════════════════ -->
+        <ctrl:SubtitleOverlayControl
+            SubtitleText="{Binding SubtitleText}"
+            SubtitleFontSize="{Binding SubtitleFontSize}"
+            SubtitleColor="{Binding SubtitleColor}"
+            VerticalAlignment="Bottom"
+            HorizontalAlignment="Center"
+            Margin="80,0,80,112"
+            Visibility="{Binding IsSubtitleVisible, Converter={StaticResource BoolToVis}}" />
+
+        <!-- ══ 오버레이 컨트롤 바 ═══════════════════════════════════════
+             VerticalAlignment="Bottom" 으로 하단에 고정.
+             코드-비하인드에서 Opacity 애니메이션으로 자동 숨김을 구현합니다.
+        ════════════════════════════════════════════════════════════════ -->
         <Border
-            Grid.Row="1"
-            BorderThickness="0,1,0,0"
-            BorderBrush="{DynamicResource FFluxBorderBrush}"
-            Background="{DynamicResource FFluxSurfaceVariantBrush}"
-            Padding="16,10,16,12">
+            x:Name="ControlBar"
+            VerticalAlignment="Bottom"
+            Padding="16,32,16,12">
+
+            <!-- 투명 → 반투명 퍼플 그라디언트 배경 -->
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="Transparent"  Offset="0.0" />
+                    <GradientStop Color="#BB1A1428"    Offset="0.45" />
+                    <GradientStop Color="#F51A1428"    Offset="1.0" />
+                </LinearGradientBrush>
+            </Border.Background>
 
             <Grid>
                 <Grid.RowDefinitions>
                     <!-- 시크 슬라이더 -->
                     <RowDefinition Height="Auto" />
-                    <!-- 버튼 + 상태 + 볼륨/속도/타임코드 -->
+                    <!-- 버튼 행 -->
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
@@ -114,25 +172,69 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <!-- 트랜스포트 버튼 -->
+                    <!-- 좌측: 트랜스포트 버튼 -->
                     <StackPanel
                         Grid.Column="0"
                         Orientation="Horizontal"
                         VerticalAlignment="Center">
 
+                        <!-- 파일 열기 -->
                         <ui:Button
-                            Margin="0,0,6,0"
+                            Margin="0,0,2,0"
                             Command="{Binding OpenFileCommand}"
                             Appearance="Secondary"
-                            ToolTip="파일 열기 (지원: MP4, MKV, AVI, MOV, WebM …)">
+                            ToolTip="파일 열기">
                             <StackPanel Orientation="Horizontal">
                                 <ui:SymbolIcon Symbol="FolderOpen24" FontSize="14" Margin="0,0,6,0" />
                                 <TextBlock Text="열기" />
                             </StackPanel>
                         </ui:Button>
 
+                        <!-- 자막 열기 -->
                         <ui:Button
-                            Margin="0,0,4,0"
+                            Margin="0,0,2,0"
+                            Command="{Binding LoadSubtitleCommand}"
+                            Appearance="Secondary"
+                            ToolTip="자막 파일 열기 (SRT / VTT)">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="Subtitles24" FontSize="14" Margin="0,0,6,0" />
+                                <TextBlock Text="자막" />
+                            </StackPanel>
+                        </ui:Button>
+
+                        <!-- 자막 표시 토글 -->
+                        <ui:Button
+                            Margin="0,0,6,0"
+                            Width="32" Height="32"
+                            Command="{Binding ToggleSubtitleCommand}"
+                            Appearance="Secondary"
+                            ToolTip="자막 표시/숨김 (V)">
+                            <ui:SymbolIcon FontSize="14">
+                                <ui:SymbolIcon.Style>
+                                    <Style TargetType="ui:SymbolIcon">
+                                        <Setter Property="Symbol" Value="Subtitles24" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsSubtitleVisible}" Value="False">
+                                                <Setter Property="Symbol" Value="Subtitles24" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ui:SymbolIcon.Style>
+                            </ui:SymbolIcon>
+                        </ui:Button>
+
+                        <!-- 프레임 뒤로 (hold-to-repeat) -->
+                        <RepeatButton
+                            Margin="0,0,2,0"
+                            Style="{StaticResource FrameStepStyle}"
+                            Command="{Binding StepFrameBackwardCommand}"
+                            ToolTip="이전 프레임 (Ctrl+←)">
+                            <ui:SymbolIcon Symbol="PreviousFrame24" FontSize="14" />
+                        </RepeatButton>
+
+                        <!-- 재생 -->
+                        <ui:Button
+                            Margin="0,0,2,0"
                             Width="36" Height="36"
                             Command="{Binding PlayCommand}"
                             Appearance="Primary"
@@ -140,8 +242,9 @@
                             <ui:SymbolIcon Symbol="Play24" FontSize="14" />
                         </ui:Button>
 
+                        <!-- 일시정지 -->
                         <ui:Button
-                            Margin="0,0,4,0"
+                            Margin="0,0,2,0"
                             Width="36" Height="36"
                             Command="{Binding PauseCommand}"
                             Appearance="Secondary"
@@ -149,7 +252,9 @@
                             <ui:SymbolIcon Symbol="Pause24" FontSize="14" />
                         </ui:Button>
 
+                        <!-- 정지 -->
                         <ui:Button
+                            Margin="0,0,2,0"
                             Width="36" Height="36"
                             Command="{Binding StopCommand}"
                             Appearance="Secondary"
@@ -157,9 +262,17 @@
                             <ui:SymbolIcon Symbol="Stop24" FontSize="14" />
                         </ui:Button>
 
+                        <!-- 프레임 앞으로 (hold-to-repeat) -->
+                        <RepeatButton
+                            Style="{StaticResource FrameStepStyle}"
+                            Command="{Binding StepFrameForwardCommand}"
+                            ToolTip="다음 프레임 (Ctrl+→)">
+                            <ui:SymbolIcon Symbol="NextFrame24" FontSize="14" />
+                        </RepeatButton>
+
                     </StackPanel>
 
-                    <!-- 상태 텍스트 (중앙) -->
+                    <!-- 중앙: 상태 텍스트 -->
                     <TextBlock
                         Grid.Column="1"
                         Text="{Binding StatusText}"
@@ -168,22 +281,20 @@
                         HorizontalAlignment="Center"
                         Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
 
-                    <!-- 우측: 볼륨 + 속도 + 타임코드 -->
+                    <!-- 우측: 볼륨 + 속도 + 타임코드 + 풀스크린 -->
                     <StackPanel
                         Grid.Column="2"
                         Orientation="Horizontal"
                         VerticalAlignment="Center">
 
-                        <!-- 음소거 토글 버튼 -->
+                        <!-- 음소거 버튼 -->
                         <ui:Button
                             Margin="0,0,2,0"
                             Width="32" Height="32"
                             Command="{Binding ToggleMuteCommand}"
                             Appearance="Transparent"
                             ToolTip="음소거 (M)">
-                            <ui:SymbolIcon
-                                FontSize="14"
-                                Symbol="{Binding VolumeSymbol}" />
+                            <ui:SymbolIcon FontSize="14" Symbol="{Binding VolumeSymbol}" />
                         </ui:Button>
 
                         <!-- 볼륨 슬라이더 -->
@@ -222,11 +333,32 @@
 
                         <!-- 타임코드 -->
                         <TextBlock
+                            Margin="0,0,8,0"
                             Text="{Binding TimecodeText}"
                             FontSize="12"
                             VerticalAlignment="Center"
                             FontFamily="Consolas, Courier New"
                             Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+
+                        <!-- 풀스크린 버튼 -->
+                        <ui:Button
+                            Width="32" Height="32"
+                            Command="{Binding ToggleFullscreenCommand}"
+                            Appearance="Transparent"
+                            ToolTip="전체 화면 (F)">
+                            <ui:SymbolIcon FontSize="14">
+                                <ui:SymbolIcon.Style>
+                                    <Style TargetType="ui:SymbolIcon">
+                                        <Setter Property="Symbol" Value="FullScreenMaximize24" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsFullscreen}" Value="True">
+                                                <Setter Property="Symbol" Value="FullScreenMinimize24" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ui:SymbolIcon.Style>
+                            </ui:SymbolIcon>
+                        </ui:Button>
 
                     </StackPanel>
 

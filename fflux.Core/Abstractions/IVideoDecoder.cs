@@ -54,6 +54,20 @@ public interface IVideoDecoder : IAsyncDisposable
     IAsyncEnumerable<VideoFrame> DecodeAsync(CancellationToken ct = default);
 
     /// <summary>
+    /// 지정한 목표 타임스탬프에 가장 가까운(≤ target) 프레임을 반환합니다.
+    /// backward seek 후 목표 PTS를 초과하기 직전까지 전진 디코딩합니다.
+    /// 재생 루프가 중단된 상태에서만 호출해야 합니다.
+    /// </summary>
+    Task<VideoFrame?> SeekAndDecodeAtAsync(TimeSpan target, CancellationToken ct = default);
+
+    /// <summary>
+    /// <paramref name="currentPosition"/> 이후의 첫 번째 프레임을 반환합니다.
+    /// backward seek → 현재 위치까지 스킵 → 다음 프레임 반환 순서로 동작합니다.
+    /// 앞으로 1프레임 이동에 사용합니다.
+    /// </summary>
+    Task<VideoFrame?> DecodeNextFrameAfterAsync(TimeSpan currentPosition, CancellationToken ct = default);
+
+    /// <summary>
     /// 지정한 위치로 시크합니다. 코덱 버퍼도 함께 플러시됩니다.
     /// </summary>
     /// <param name="position">이동할 시각 (영상 시작 기준)</param>

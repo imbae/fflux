@@ -40,10 +40,15 @@
             Margin="0,8,0,0"
             Foreground="{DynamicResource TextFillColorSecondaryBrush}">
             <TextBlock.Style>
-                <Style TargetType="TextBlock">
+                <Style
+                    TargetType="TextBlock">
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding Description, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="">
-                            <Setter Property="Visibility" Value="Collapsed" />
+                        <DataTrigger
+                            Binding="{Binding Description, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            Value="">
+                            <Setter
+                                Property="Visibility"
+                                Value="Collapsed" />
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>
@@ -58,10 +63,16 @@
             HorizontalAlignment="Center"
             Margin="0,20,0,0">
             <ui:Button.Style>
-                <Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+                <Style
+                    TargetType="ui:Button"
+                    BasedOn="{StaticResource {x:Type ui:Button}}">
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding ActionText, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="">
-                            <Setter Property="Visibility" Value="Collapsed" />
+                        <DataTrigger
+                            Binding="{Binding ActionText, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            Value="">
+                            <Setter
+                                Property="Visibility"
+                                Value="Collapsed" />
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>

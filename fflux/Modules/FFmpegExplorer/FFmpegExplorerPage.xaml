@@ -14,82 +14,159 @@
     Title="FFmpeg Explorer">
 
     <Page.Resources>
-        <BooleanToVisibilityConverter          x:Key="BoolToVis" />
-        <conv:InverseBoolToVisibilityConverter x:Key="InvBoolToVis" />
+        <BooleanToVisibilityConverter
+            x:Key="BoolToVis" />
+        <conv:InverseBoolToVisibilityConverter
+            x:Key="InvBoolToVis" />
 
-        <Style x:Key="FormLabel" TargetType="TextBlock">
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="Foreground"        Value="{DynamicResource TextFillColorSecondaryBrush}" />
-            <Setter Property="FontSize"          Value="13" />
-            <Setter Property="Margin"            Value="0,0,12,0" />
+        <Style
+            x:Key="FormLabel"
+            TargetType="TextBlock">
+            <Setter
+                Property="VerticalAlignment"
+                Value="Center" />
+            <Setter
+                Property="Foreground"
+                Value="{DynamicResource TextFillColorSecondaryBrush}" />
+            <Setter
+                Property="FontSize"
+                Value="13" />
+            <Setter
+                Property="Margin"
+                Value="0,0,12,0" />
         </Style>
 
-        <Style x:Key="SectionTitle" TargetType="TextBlock">
-            <Setter Property="FontSize"   Value="13" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
-            <Setter Property="Margin"     Value="0,0,0,12" />
+        <Style
+            x:Key="SectionTitle"
+            TargetType="TextBlock">
+            <Setter
+                Property="FontSize"
+                Value="13" />
+            <Setter
+                Property="FontWeight"
+                Value="SemiBold" />
+            <Setter
+                Property="Foreground"
+                Value="{DynamicResource TextFillColorSecondaryBrush}" />
+            <Setter
+                Property="Margin"
+                Value="0,0,0,12" />
         </Style>
 
-        <Style x:Key="HintText" TargetType="TextBlock">
-            <Setter Property="FontSize"    Value="11" />
-            <Setter Property="Foreground"  Value="{DynamicResource TextFillColorDisabledBrush}" />
-            <Setter Property="TextWrapping" Value="Wrap" />
-            <Setter Property="Margin"      Value="0,4,0,0" />
+        <Style
+            x:Key="HintText"
+            TargetType="TextBlock">
+            <Setter
+                Property="FontSize"
+                Value="11" />
+            <Setter
+                Property="Foreground"
+                Value="{DynamicResource TextFillColorDisabledBrush}" />
+            <Setter
+                Property="TextWrapping"
+                Value="Wrap" />
+            <Setter
+                Property="Margin"
+                Value="0,4,0,0" />
         </Style>
 
         <!-- 폼 한 행: 레이블(130px) + 입력(*) -->
-        <Style x:Key="FormRow" TargetType="Grid">
-            <Setter Property="Margin" Value="0,0,0,10" />
+        <Style
+            x:Key="FormRow"
+            TargetType="Grid">
+            <Setter
+                Property="Margin"
+                Value="0,0,0,10" />
         </Style>
     </Page.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="24,20,24,24">
+    <ScrollViewer
+        VerticalScrollBarVisibility="Auto">
+        <StackPanel
+            Margin="24,20,24,24">
 
             <!-- ══ ① 파일 선택 ══════════════════════════════════════════ -->
-            <ui:Card Margin="0,0,0,12">
+            <ui:Card
+                Margin="0,0,0,12">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource SectionTitle}" Text="파일" />
+                    <TextBlock
+                        Style="{StaticResource SectionTitle}"
+                        Text="파일" />
 
                     <!-- 입력 파일 -->
-                    <Grid Style="{StaticResource FormRow}">
+                    <Grid
+                        Style="{StaticResource FormRow}">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="80" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition
+                                Width="80" />
+                            <ColumnDefinition
+                                Width="*" />
+                            <ColumnDefinition
+                                Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="입력 파일" Style="{StaticResource FormLabel}" />
-                        <TextBox   Grid.Column="1"
-                                   Text="{Binding InputFilePath, Mode=OneWay}"
-                                   IsReadOnly="True" FontSize="12" Padding="8,6" />
-                        <ui:Button Grid.Column="2" Margin="8,0,0,0"
-                                   Command="{Binding BrowseInputCommand}"
-                                   Appearance="Secondary" ToolTip="입력 파일 선택">
-                            <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon Symbol="FolderOpen24" FontSize="13" Margin="0,0,6,0" />
-                                <TextBlock Text="열기" />
+                        <TextBlock
+                            Grid.Column="0"
+                            Text="입력 파일"
+                            Style="{StaticResource FormLabel}" />
+                        <TextBox
+                            Grid.Column="1"
+                            Text="{Binding InputFilePath, Mode=OneWay}"
+                            IsReadOnly="True"
+                            FontSize="12"
+                            Padding="8,6" />
+                        <ui:Button
+                            Grid.Column="2"
+                            Margin="8,0,0,0"
+                            Command="{Binding BrowseInputCommand}"
+                            Appearance="Secondary"
+                            ToolTip="입력 파일 선택">
+                            <StackPanel
+                                Orientation="Horizontal">
+                                <ui:SymbolIcon
+                                    Symbol="FolderOpen24"
+                                    FontSize="13"
+                                    Margin="0,0,6,0" />
+                                <TextBlock
+                                    Text="열기" />
                             </StackPanel>
                         </ui:Button>
                     </Grid>
 
                     <!-- 출력 파일 -->
-                    <Grid Style="{StaticResource FormRow}" Margin="0">
+                    <Grid
+                        Style="{StaticResource FormRow}"
+                        Margin="0">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="80" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition
+                                Width="80" />
+                            <ColumnDefinition
+                                Width="*" />
+                            <ColumnDefinition
+                                Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="출력 파일" Style="{StaticResource FormLabel}" />
-                        <TextBox   Grid.Column="1"
-                                   Text="{Binding OutputFilePath, UpdateSourceTrigger=PropertyChanged}"
-                                   FontSize="12" Padding="8,6" />
-                        <ui:Button Grid.Column="2" Margin="8,0,0,0"
-                                   Command="{Binding BrowseOutputCommand}"
-                                   Appearance="Secondary" ToolTip="출력 파일 경로 지정">
-                            <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon Symbol="Save24" FontSize="13" Margin="0,0,6,0" />
-                                <TextBlock Text="저장" />
+                        <TextBlock
+                            Grid.Column="0"
+                            Text="출력 파일"
+                            Style="{StaticResource FormLabel}" />
+                        <TextBox
+                            Grid.Column="1"
+                            Text="{Binding OutputFilePath, UpdateSourceTrigger=PropertyChanged}"
+                            FontSize="12"
+                            Padding="8,6" />
+                        <ui:Button
+                            Grid.Column="2"
+                            Margin="8,0,0,0"
+                            Command="{Binding BrowseOutputCommand}"
+                            Appearance="Secondary"
+                            ToolTip="출력 파일 경로 지정">
+                            <StackPanel
+                                Orientation="Horizontal">
+                                <ui:SymbolIcon
+                                    Symbol="Save24"
+                                    FontSize="13"
+                                    Margin="0,0,6,0" />
+                                <TextBlock
+                                    Text="저장" />
                             </StackPanel>
                         </ui:Button>
                     </Grid>
@@ -97,264 +174,416 @@
             </ui:Card>
 
             <!-- ══ ② 옵션 탭 ════════════════════════════════════════════ -->
-            <TabControl Margin="0,0,0,12">
+            <TabControl
+                Margin="0,0,0,12">
 
                 <!-- ── 비디오 ─────────────────────────────────────────── -->
-                <TabItem Header="  비디오  ">
-                    <ui:Card Padding="16">
+                <TabItem
+                    Header="  비디오  ">
+                    <ui:Card
+                        Padding="16">
                         <StackPanel>
 
                             <!-- 코덱 -->
-                            <Grid Style="{StaticResource FormRow}">
+                            <Grid
+                                Style="{StaticResource FormRow}">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="130" />
-                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition
+                                        Width="130" />
+                                    <ColumnDefinition
+                                        Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="비디오 코덱" Style="{StaticResource FormLabel}" />
-                                <ComboBox  Grid.Column="1"
-                                           ItemsSource="{x:Static local:FFmpegExplorerViewModel.VideoCodecDisplayNames}"
-                                           SelectedIndex="{Binding VideoCodecIndex, Mode=TwoWay}"
-                                           FontSize="12" />
+                                <TextBlock
+                                    Grid.Column="0"
+                                    Text="비디오 코덱"
+                                    Style="{StaticResource FormLabel}" />
+                                <ComboBox
+                                    Grid.Column="1"
+                                    ItemsSource="{x:Static local:FFmpegExplorerViewModel.VideoCodecDisplayNames}"
+                                    SelectedIndex="{Binding VideoCodecIndex, Mode=TwoWay}"
+                                    FontSize="12" />
                             </Grid>
 
                             <!-- 품질 (CRF / 비트레이트) -->
-                            <Grid Style="{StaticResource FormRow}">
+                            <Grid
+                                Style="{StaticResource FormRow}">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="130" />
-                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition
+                                        Width="130" />
+                                    <ColumnDefinition
+                                        Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="품질" Style="{StaticResource FormLabel}"
-                                           VerticalAlignment="Top" Margin="0,4,12,0" />
-                                <StackPanel Grid.Column="1"
-                                            IsEnabled="{Binding IsVideoEncodeEnabled}">
+                                <TextBlock
+                                    Grid.Column="0"
+                                    Text="품질"
+                                    Style="{StaticResource FormLabel}"
+                                    VerticalAlignment="Top"
+                                    Margin="0,4,12,0" />
+                                <StackPanel
+                                    Grid.Column="1"
+                                    IsEnabled="{Binding IsVideoEncodeEnabled}">
 
                                     <!-- CRF / 비트레이트 토글 -->
                                     <CheckBox
                                         Content="CRF 사용  (값이 낮을수록 고품질 · 0 = 무손실 · 기본값 23)"
                                         IsChecked="{Binding UseCrf, Mode=TwoWay}"
-                                        FontSize="12" Margin="0,0,0,8" />
+                                        FontSize="12"
+                                        Margin="0,0,0,8" />
 
                                     <!-- CRF 슬라이더 (UseCrf=true) -->
-                                    <Grid Visibility="{Binding UseCrf, Converter={StaticResource BoolToVis}}">
+                                    <Grid
+                                        Visibility="{Binding UseCrf, Converter={StaticResource BoolToVis}}">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="48" />
+                                            <ColumnDefinition
+                                                Width="*" />
+                                            <ColumnDefinition
+                                                Width="48" />
                                         </Grid.ColumnDefinitions>
-                                        <Slider Grid.Column="0"
-                                                Minimum="0" Maximum="51"
-                                                Value="{Binding CrfValue, Mode=TwoWay}"
-                                                TickFrequency="1" IsSnapToTickEnabled="True"
-                                                VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="1"
-                                                   Text="{Binding CrfValue}"
-                                                   VerticalAlignment="Center"
-                                                   HorizontalAlignment="Center"
-                                                   FontSize="15" FontWeight="SemiBold" />
+                                        <Slider
+                                            Grid.Column="0"
+                                            Minimum="0"
+                                            Maximum="51"
+                                            Value="{Binding CrfValue, Mode=TwoWay}"
+                                            TickFrequency="1"
+                                            IsSnapToTickEnabled="True"
+                                            VerticalAlignment="Center" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            Text="{Binding CrfValue}"
+                                            VerticalAlignment="Center"
+                                            HorizontalAlignment="Center"
+                                            FontSize="15"
+                                            FontWeight="SemiBold" />
                                     </Grid>
 
                                     <!-- 비트레이트 (UseCrf=false) -->
-                                    <Grid Visibility="{Binding UseCrf, Converter={StaticResource InvBoolToVis}}">
+                                    <Grid
+                                        Visibility="{Binding UseCrf, Converter={StaticResource InvBoolToVis}}">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="120" />
-                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition
+                                                Width="120" />
+                                            <ColumnDefinition
+                                                Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <TextBox Grid.Column="0"
-                                                 Text="{Binding VideoBitrateText, UpdateSourceTrigger=PropertyChanged}"
-                                                 FontSize="12" Padding="8,6" />
-                                        <TextBlock Grid.Column="1" Text="kbps"
-                                                   VerticalAlignment="Center" Margin="8,0,0,0"
-                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                        <TextBox
+                                            Grid.Column="0"
+                                            Text="{Binding VideoBitrateText, UpdateSourceTrigger=PropertyChanged}"
+                                            FontSize="12"
+                                            Padding="8,6" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            Text="kbps"
+                                            VerticalAlignment="Center"
+                                            Margin="8,0,0,0"
+                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                                     </Grid>
                                 </StackPanel>
                             </Grid>
 
                             <!-- 프레임레이트 -->
-                            <Grid Style="{StaticResource FormRow}">
+                            <Grid
+                                Style="{StaticResource FormRow}">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="130" />
-                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition
+                                        Width="130" />
+                                    <ColumnDefinition
+                                        Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="프레임레이트" Style="{StaticResource FormLabel}" />
-                                <Grid Grid.Column="1" IsEnabled="{Binding IsVideoEncodeEnabled}">
+                                <TextBlock
+                                    Grid.Column="0"
+                                    Text="프레임레이트"
+                                    Style="{StaticResource FormLabel}" />
+                                <Grid
+                                    Grid.Column="1"
+                                    IsEnabled="{Binding IsVideoEncodeEnabled}">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="100" />
-                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition
+                                            Width="100" />
+                                        <ColumnDefinition
+                                            Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBox Grid.Column="0"
-                                             Text="{Binding FpsText, UpdateSourceTrigger=PropertyChanged}"
-                                             FontSize="12" Padding="8,6" />
-                                    <TextBlock Grid.Column="1" Text="fps"
-                                               VerticalAlignment="Center" Margin="8,0,0,0"
-                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                    <TextBox
+                                        Grid.Column="0"
+                                        Text="{Binding FpsText, UpdateSourceTrigger=PropertyChanged}"
+                                        FontSize="12"
+                                        Padding="8,6" />
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Text="fps"
+                                        VerticalAlignment="Center"
+                                        Margin="8,0,0,0"
+                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                                 </Grid>
                             </Grid>
 
                             <!-- 해상도 -->
-                            <Grid Margin="0">
+                            <Grid
+                                Margin="0">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="130" />
-                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition
+                                        Width="130" />
+                                    <ColumnDefinition
+                                        Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="해상도" Style="{StaticResource FormLabel}" />
-                                <ComboBox  Grid.Column="1"
-                                           ItemsSource="{x:Static local:FFmpegExplorerViewModel.ResolutionDisplayNames}"
-                                           SelectedIndex="{Binding ResolutionIndex, Mode=TwoWay}"
-                                           IsEnabled="{Binding IsVideoEncodeEnabled}"
-                                           FontSize="12" />
+                                <TextBlock
+                                    Grid.Column="0"
+                                    Text="해상도"
+                                    Style="{StaticResource FormLabel}" />
+                                <ComboBox
+                                    Grid.Column="1"
+                                    ItemsSource="{x:Static local:FFmpegExplorerViewModel.ResolutionDisplayNames}"
+                                    SelectedIndex="{Binding ResolutionIndex, Mode=TwoWay}"
+                                    IsEnabled="{Binding IsVideoEncodeEnabled}"
+                                    FontSize="12" />
                             </Grid>
 
-                            <TextBlock Style="{StaticResource HintText}"
-                                       Text="※ copy 선택 시 비디오 스트림을 재인코딩 없이 복사합니다." />
+                            <TextBlock
+                                Style="{StaticResource HintText}"
+                                Text="※ copy 선택 시 비디오 스트림을 재인코딩 없이 복사합니다." />
                         </StackPanel>
                     </ui:Card>
                 </TabItem>
 
                 <!-- ── 오디오 ─────────────────────────────────────────── -->
-                <TabItem Header="  오디오  ">
-                    <ui:Card Padding="16">
+                <TabItem
+                    Header="  오디오  ">
+                    <ui:Card
+                        Padding="16">
                         <StackPanel>
 
                             <!-- 코덱 -->
-                            <Grid Style="{StaticResource FormRow}">
+                            <Grid
+                                Style="{StaticResource FormRow}">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="130" />
-                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition
+                                        Width="130" />
+                                    <ColumnDefinition
+                                        Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="오디오 코덱" Style="{StaticResource FormLabel}" />
-                                <ComboBox  Grid.Column="1"
-                                           ItemsSource="{x:Static local:FFmpegExplorerViewModel.AudioCodecDisplayNames}"
-                                           SelectedIndex="{Binding AudioCodecIndex, Mode=TwoWay}"
-                                           FontSize="12" />
+                                <TextBlock
+                                    Grid.Column="0"
+                                    Text="오디오 코덱"
+                                    Style="{StaticResource FormLabel}" />
+                                <ComboBox
+                                    Grid.Column="1"
+                                    ItemsSource="{x:Static local:FFmpegExplorerViewModel.AudioCodecDisplayNames}"
+                                    SelectedIndex="{Binding AudioCodecIndex, Mode=TwoWay}"
+                                    FontSize="12" />
                             </Grid>
 
                             <!-- 비트레이트 -->
-                            <Grid Style="{StaticResource FormRow}">
+                            <Grid
+                                Style="{StaticResource FormRow}">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="130" />
-                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition
+                                        Width="130" />
+                                    <ColumnDefinition
+                                        Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="비트레이트" Style="{StaticResource FormLabel}" />
-                                <Grid Grid.Column="1" IsEnabled="{Binding IsAudioEncodeEnabled}">
+                                <TextBlock
+                                    Grid.Column="0"
+                                    Text="비트레이트"
+                                    Style="{StaticResource FormLabel}" />
+                                <Grid
+                                    Grid.Column="1"
+                                    IsEnabled="{Binding IsAudioEncodeEnabled}">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="100" />
-                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition
+                                            Width="100" />
+                                        <ColumnDefinition
+                                            Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBox Grid.Column="0"
-                                             Text="{Binding AudioBitrateText, UpdateSourceTrigger=PropertyChanged}"
-                                             FontSize="12" Padding="8,6" />
-                                    <TextBlock Grid.Column="1" Text="kbps"
-                                               VerticalAlignment="Center" Margin="8,0,0,0"
-                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                    <TextBox
+                                        Grid.Column="0"
+                                        Text="{Binding AudioBitrateText, UpdateSourceTrigger=PropertyChanged}"
+                                        FontSize="12"
+                                        Padding="8,6" />
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Text="kbps"
+                                        VerticalAlignment="Center"
+                                        Margin="8,0,0,0"
+                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                                 </Grid>
                             </Grid>
 
                             <!-- 샘플레이트 -->
-                            <Grid Style="{StaticResource FormRow}">
+                            <Grid
+                                Style="{StaticResource FormRow}">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="130" />
-                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition
+                                        Width="130" />
+                                    <ColumnDefinition
+                                        Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="샘플레이트" Style="{StaticResource FormLabel}" />
-                                <ComboBox  Grid.Column="1"
-                                           ItemsSource="{x:Static local:FFmpegExplorerViewModel.SampleRateDisplayNames}"
-                                           SelectedIndex="{Binding SampleRateIndex, Mode=TwoWay}"
-                                           IsEnabled="{Binding IsAudioEncodeEnabled}"
-                                           FontSize="12" />
+                                <TextBlock
+                                    Grid.Column="0"
+                                    Text="샘플레이트"
+                                    Style="{StaticResource FormLabel}" />
+                                <ComboBox
+                                    Grid.Column="1"
+                                    ItemsSource="{x:Static local:FFmpegExplorerViewModel.SampleRateDisplayNames}"
+                                    SelectedIndex="{Binding SampleRateIndex, Mode=TwoWay}"
+                                    IsEnabled="{Binding IsAudioEncodeEnabled}"
+                                    FontSize="12" />
                             </Grid>
 
                             <!-- 채널 -->
-                            <Grid Margin="0">
+                            <Grid
+                                Margin="0">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="130" />
-                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition
+                                        Width="130" />
+                                    <ColumnDefinition
+                                        Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="채널" Style="{StaticResource FormLabel}" />
-                                <ComboBox  Grid.Column="1"
-                                           ItemsSource="{x:Static local:FFmpegExplorerViewModel.ChannelDisplayNames}"
-                                           SelectedIndex="{Binding ChannelsIndex, Mode=TwoWay}"
-                                           IsEnabled="{Binding IsAudioEncodeEnabled}"
-                                           FontSize="12" />
+                                <TextBlock
+                                    Grid.Column="0"
+                                    Text="채널"
+                                    Style="{StaticResource FormLabel}" />
+                                <ComboBox
+                                    Grid.Column="1"
+                                    ItemsSource="{x:Static local:FFmpegExplorerViewModel.ChannelDisplayNames}"
+                                    SelectedIndex="{Binding ChannelsIndex, Mode=TwoWay}"
+                                    IsEnabled="{Binding IsAudioEncodeEnabled}"
+                                    FontSize="12" />
                             </Grid>
 
-                            <TextBlock Style="{StaticResource HintText}"
-                                       Text="※ copy 선택 시 오디오를 원본 그대로 복사합니다." />
+                            <TextBlock
+                                Style="{StaticResource HintText}"
+                                Text="※ copy 선택 시 오디오를 원본 그대로 복사합니다." />
                         </StackPanel>
                     </ui:Card>
                 </TabItem>
 
                 <!-- ── 필터 ───────────────────────────────────────────── -->
-                <TabItem Header="  필터  ">
-                    <ui:Card Padding="16">
+                <TabItem
+                    Header="  필터  ">
+                    <ui:Card
+                        Padding="16">
                         <StackPanel>
-                            <TextBlock Text="-vf  (비디오 필터)" Style="{StaticResource FormLabel}"
-                                       Margin="0,0,0,6" />
-                            <TextBox Text="{Binding VideoFilterText, UpdateSourceTrigger=PropertyChanged}"
-                                     FontFamily="Consolas, Courier New"
-                                     FontSize="12" Padding="8,8" MinHeight="56"
-                                     TextWrapping="Wrap" AcceptsReturn="True" />
-                            <TextBlock Style="{StaticResource HintText}" Margin="0,4,0,16"
-                                       Text="예)  scale=1280:720    crop=640:480:0:0    eq=brightness=0.1" />
+                            <TextBlock
+                                Text="-vf  (비디오 필터)"
+                                Style="{StaticResource FormLabel}"
+                                Margin="0,0,0,6" />
+                            <TextBox
+                                Text="{Binding VideoFilterText, UpdateSourceTrigger=PropertyChanged}"
+                                FontFamily="Consolas, Courier New"
+                                FontSize="12"
+                                Padding="8,8"
+                                MinHeight="56"
+                                TextWrapping="Wrap"
+                                AcceptsReturn="True" />
+                            <TextBlock
+                                Style="{StaticResource HintText}"
+                                Margin="0,4,0,16"
+                                Text="예)  scale=1280:720    crop=640:480:0:0    eq=brightness=0.1" />
 
-                            <TextBlock Text="-af  (오디오 필터)" Style="{StaticResource FormLabel}"
-                                       Margin="0,0,0,6" />
-                            <TextBox Text="{Binding AudioFilterText, UpdateSourceTrigger=PropertyChanged}"
-                                     FontFamily="Consolas, Courier New"
-                                     FontSize="12" Padding="8,8" MinHeight="56"
-                                     TextWrapping="Wrap" AcceptsReturn="True" />
-                            <TextBlock Style="{StaticResource HintText}"
-                                       Text="예)  volume=0.5    aresample=44100    dynaudnorm" />
+                            <TextBlock
+                                Text="-af  (오디오 필터)"
+                                Style="{StaticResource FormLabel}"
+                                Margin="0,0,0,6" />
+                            <TextBox
+                                Text="{Binding AudioFilterText, UpdateSourceTrigger=PropertyChanged}"
+                                FontFamily="Consolas, Courier New"
+                                FontSize="12"
+                                Padding="8,8"
+                                MinHeight="56"
+                                TextWrapping="Wrap"
+                                AcceptsReturn="True" />
+                            <TextBlock
+                                Style="{StaticResource HintText}"
+                                Text="예)  volume=0.5    aresample=44100    dynaudnorm" />
                         </StackPanel>
                     </ui:Card>
                 </TabItem>
 
                 <!-- ── 고급 ───────────────────────────────────────────── -->
-                <TabItem Header="  고급  ">
-                    <ui:Card Padding="16">
+                <TabItem
+                    Header="  고급  ">
+                    <ui:Card
+                        Padding="16">
                         <StackPanel>
-                            <TextBlock Text="추가 인수  (출력 파일 경로 바로 앞에 삽입됩니다)"
-                                       Style="{StaticResource FormLabel}" Margin="0,0,0,6" />
-                            <TextBox Text="{Binding ExtraArgsText, UpdateSourceTrigger=PropertyChanged}"
-                                     FontFamily="Consolas, Courier New"
-                                     FontSize="12" Padding="8,8" MinHeight="80"
-                                     TextWrapping="Wrap" AcceptsReturn="True" />
-                            <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
-                                       Text="예)  -map 0:v:0 -map 0:a:0    -movflags +faststart    -threads 4" />
+                            <TextBlock
+                                Text="추가 인수  (출력 파일 경로 바로 앞에 삽입됩니다)"
+                                Style="{StaticResource FormLabel}"
+                                Margin="0,0,0,6" />
+                            <TextBox
+                                Text="{Binding ExtraArgsText, UpdateSourceTrigger=PropertyChanged}"
+                                FontFamily="Consolas, Courier New"
+                                FontSize="12"
+                                Padding="8,8"
+                                MinHeight="80"
+                                TextWrapping="Wrap"
+                                AcceptsReturn="True" />
+                            <TextBlock
+                                Style="{StaticResource HintText}"
+                                TextWrapping="Wrap"
+                                Text="예)  -map 0:v:0 -map 0:a:0    -movflags +faststart    -threads 4" />
                         </StackPanel>
                     </ui:Card>
                 </TabItem>
             </TabControl>
 
             <!-- ══ ③ 커맨드 미리보기 ══════════════════════════════════════ -->
-            <ui:Card Margin="0,0,0,12">
+            <ui:Card
+                Margin="0,0,0,12">
                 <StackPanel>
-                    <DockPanel LastChildFill="False" Margin="0,0,0,10">
-                        <TextBlock DockPanel.Dock="Left"
-                                   Text="생성된 커맨드"
-                                   Style="{StaticResource SectionTitle}"
-                                   Margin="0" VerticalAlignment="Center" />
-                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                            <ui:Button Margin="0,0,6,0"
-                                       Command="{Binding CopyCommandCommand}"
-                                       Appearance="Secondary" ToolTip="클립보드에 복사">
-                                <StackPanel Orientation="Horizontal">
-                                    <ui:SymbolIcon Symbol="Copy24" FontSize="13" Margin="0,0,6,0" />
-                                    <TextBlock Text="복사" />
+                    <DockPanel
+                        LastChildFill="False"
+                        Margin="0,0,0,10">
+                        <TextBlock
+                            DockPanel.Dock="Left"
+                            Text="생성된 커맨드"
+                            Style="{StaticResource SectionTitle}"
+                            Margin="0"
+                            VerticalAlignment="Center" />
+                        <StackPanel
+                            DockPanel.Dock="Right"
+                            Orientation="Horizontal">
+                            <ui:Button
+                                Margin="0,0,6,0"
+                                Command="{Binding CopyCommandCommand}"
+                                Appearance="Secondary"
+                                ToolTip="클립보드에 복사">
+                                <StackPanel
+                                    Orientation="Horizontal">
+                                    <ui:SymbolIcon
+                                        Symbol="Copy24"
+                                        FontSize="13"
+                                        Margin="0,0,6,0" />
+                                    <TextBlock
+                                        Text="복사" />
                                 </StackPanel>
                             </ui:Button>
-                            <ui:Button Margin="0,0,6,0"
-                                       Command="{Binding ExecuteCommand}"
-                                       Appearance="Primary" ToolTip="FFmpeg 실행">
-                                <StackPanel Orientation="Horizontal">
-                                    <ui:SymbolIcon Symbol="Play24" FontSize="13" Margin="0,0,6,0" />
-                                    <TextBlock Text="실행" />
+                            <ui:Button
+                                Margin="0,0,6,0"
+                                Command="{Binding ExecuteCommand}"
+                                Appearance="Primary"
+                                ToolTip="FFmpeg 실행">
+                                <StackPanel
+                                    Orientation="Horizontal">
+                                    <ui:SymbolIcon
+                                        Symbol="Play24"
+                                        FontSize="13"
+                                        Margin="0,0,6,0" />
+                                    <TextBlock
+                                        Text="실행" />
                                 </StackPanel>
                             </ui:Button>
-                            <ui:Button Command="{Binding CancelCommand}"
-                                       Appearance="Secondary" ToolTip="실행 취소"
-                                       Visibility="{Binding IsRunning, Converter={StaticResource BoolToVis}}">
-                                <StackPanel Orientation="Horizontal">
-                                    <ui:SymbolIcon Symbol="Stop24" FontSize="13" Margin="0,0,6,0" />
-                                    <TextBlock Text="취소" />
+                            <ui:Button
+                                Command="{Binding CancelCommand}"
+                                Appearance="Secondary"
+                                ToolTip="실행 취소"
+                                Visibility="{Binding IsRunning, Converter={StaticResource BoolToVis}}">
+                                <StackPanel
+                                    Orientation="Horizontal">
+                                    <ui:SymbolIcon
+                                        Symbol="Stop24"
+                                        FontSize="13"
+                                        Margin="0,0,6,0" />
+                                    <TextBlock
+                                        Text="취소" />
                                 </StackPanel>
                             </ui:Button>
                         </StackPanel>
@@ -373,24 +602,31 @@
             </ui:Card>
 
             <!-- ══ ④ 실행 결과 / 로그 ════════════════════════════════════ -->
-            <ui:Card Visibility="{Binding ShowLog, Converter={StaticResource BoolToVis}}">
+            <ui:Card
+                Visibility="{Binding ShowLog, Converter={StaticResource BoolToVis}}">
                 <StackPanel>
-                    <DockPanel LastChildFill="False" Margin="0,0,0,8">
-                        <TextBlock DockPanel.Dock="Left"
-                                   Text="{Binding StatusText}"
-                                   FontSize="13" FontWeight="SemiBold"
-                                   VerticalAlignment="Center" />
-                        <TextBlock DockPanel.Dock="Right"
-                                   Text="{Binding ProgressText}"
-                                   FontSize="12"
-                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                   VerticalAlignment="Center" />
+                    <DockPanel
+                        LastChildFill="False"
+                        Margin="0,0,0,8">
+                        <TextBlock
+                            DockPanel.Dock="Left"
+                            Text="{Binding StatusText}"
+                            FontSize="13"
+                            FontWeight="SemiBold"
+                            VerticalAlignment="Center" />
+                        <TextBlock
+                            DockPanel.Dock="Right"
+                            Text="{Binding ProgressText}"
+                            FontSize="12"
+                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                            VerticalAlignment="Center" />
                     </DockPanel>
 
                     <ProgressBar
                         Height="5"
                         Margin="0,0,0,10"
-                        Minimum="0" Maximum="100"
+                        Minimum="0"
+                        Maximum="100"
                         Value="{Binding ProgressValue}" />
 
                     <TextBox
@@ -400,7 +636,8 @@
                         FontFamily="Consolas, Courier New"
                         FontSize="11"
                         Padding="8,8"
-                        MinHeight="120" MaxHeight="300"
+                        MinHeight="120"
+                        MaxHeight="300"
                         TextWrapping="NoWrap"
                         HorizontalScrollBarVisibility="Auto"
                         VerticalScrollBarVisibility="Auto" />

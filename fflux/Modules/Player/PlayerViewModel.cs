@@ -3,6 +3,7 @@ using System.Windows.Media;
 using fflux.Core.Abstractions;
 using fflux.Core.Exceptions;
 using fflux.Core.Models;
+using fflux.Core.Models.Options;
 using fflux.UI.Shared.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Win32;
@@ -22,6 +23,7 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
     private readonly IServiceProvider         _services;
     private readonly MainWindowViewModel      _mainVm;
     private readonly IContentDialogService    _dialogService;
+    private readonly ISettingsService         _settingsService;
     private readonly ILogger<PlayerViewModel> _logger;
 
     // ── FFmpeg 디코더 (파일 열기 시 교체) ────────────────────────────
@@ -150,12 +152,14 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
         IServiceProvider          services,
         MainWindowViewModel       mainVm,
         IContentDialogService     dialogService,
+        ISettingsService          settingsService,
         ILogger<PlayerViewModel>  logger)
     {
-        _services      = services;
-        _mainVm        = mainVm;
-        _dialogService = dialogService;
-        _logger        = logger;
+        _services        = services;
+        _mainVm          = mainVm;
+        _dialogService   = dialogService;
+        _settingsService = settingsService;
+        _logger          = logger;
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -562,7 +566,8 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
         try
         {
             StatusText = isLive ? "스트림 연결 중…" : "파일 열기 중…";
-            await _videoDecoder.OpenAsync(source);
+            var openOpts = BuildVideoOpenOptions(isLive);
+            await _videoDecoder.OpenAsync(source, options: openOpts);
 
             IsLiveStream    = isLive;
             IsFileOpen      = true;
@@ -620,6 +625,37 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
 
         await LoadSubtitleFromPathAsync(subtitlePath);
         _logger.LogInformation("자막 자동 로드: {File}", Path.GetFileName(subtitlePath));
+    }
+
+    /// <summary>현재 앱 설정으로부터 <see cref="VideoOpenOptions"/>를 생성합니다.</summary>
+    /// <param name="isLive">라이브 스트림이면 스트리밍 옵션을 채웁니다.</param>
+    private VideoOpenOptions BuildVideoOpenOptions(bool isLive)
+    {
+        var cur = _settingsService.Current;
+        var sd  = cur.Decoder;
+        var st  = cur.Streaming;
+
+        return new VideoOpenOptions
+        {
+            // ── 공통 디코더 옵션 ──────────────────────────────────────
+            HwAccel         = sd.HwAccel,
+            FileThreadCount = sd.FileThreadCount,
+            SkipLoopFilter  = sd.SkipLoopFilter,
+            SkipFrame       = sd.SkipFrame,
+
+            // ── 스트리밍 옵션 (라이브일 때만 의미 있음) ───────────────
+            RtspTransport            = st.RtspTransport,
+            TimeoutSeconds           = st.TimeoutSeconds,
+            ProbeSizeKb              = st.ProbeSizeKb,
+            AnalyzeDurationSeconds   = st.AnalyzeDurationSeconds,
+            NoBuffer                 = isLive && st.NoBuffer,
+            MaxDelayMs               = st.MaxDelayMs,
+            LiveThreadCount          = st.LiveThreadCount,
+            RecvBufferSizeKb         = st.RecvBufferSizeKb,
+            ReorderQueueSize         = st.ReorderQueueSize,
+            Reconnect                = isLive && st.Reconnect,
+            ReconnectDelayMaxSeconds = st.ReconnectDelayMaxSeconds,
+        };
     }
 
     private async Task TryOpenAudioAsync(string filePath)
@@ -772,24 +808,40 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
             {
                 // ── PTS 기반 타이밍 ────────────────────────────────────────────
                 //
-                // 첫 프레임을 기준점으로 로컬 Stopwatch와 PTS를 동기화합니다.
-                // 이후 각 프레임은 (PTS - firstPts) 만큼 경과하면 렌더 준비 완료.
+                // [버그 방어] firstPts를 TimeSpan.Zero 프레임에 앵커링하면 안 됩니다.
                 //
-                // timeBeginPeriod(1) 덕분에 Task.Delay가 1ms 해상도로 동작합니다.
-                // 라이브 스트림: 8프레임 채널 버퍼가 네트워크 지터를 흡수하고,
-                //                PTS 타이밍이 버스트 프레임을 올바른 속도로 소비합니다.
+                // 일부 컨테이너(AVI, 불량 MP4 등)는 초반 N개 프레임의 pts가
+                // AV_NOPTS_VALUE이거나 0입니다. 이 프레임들의 Timestamp = Zero.
+                // Zero로 앵커링하면 이후 진짜 PTS(예: 2.5s)를 가진 프레임에서
+                // delayMs = 2500ms - 경과(50ms) = 2450ms → 긴 멈춤이 발생합니다.
+                //
+                // 해결: Zero-PTS 프레임은 frameRate 기반으로 속도를 제한하고,
+                //       firstPts는 처음으로 양수 PTS를 가진 프레임에서 앵커링합니다.
 
-                if (firstPts == TimeSpan.MinValue)
+                if (frame.Timestamp > TimeSpan.Zero)
                 {
-                    firstPts = frame.Timestamp;
-                    sw.Restart();
+                    if (firstPts == TimeSpan.MinValue)
+                    {
+                        firstPts = frame.Timestamp;
+                        sw.Restart();
+                    }
+
+                    var targetMs = (frame.Timestamp - firstPts).TotalMilliseconds / _playbackSpeed;
+                    var delayMs  = targetMs - sw.Elapsed.TotalMilliseconds;
+
+                    if (delayMs > 2.0)
+                        await Task.Delay((int)delayMs, ct);
                 }
-
-                var targetMs = (frame.Timestamp - firstPts).TotalMilliseconds / _playbackSpeed;
-                var delayMs  = targetMs - sw.Elapsed.TotalMilliseconds;
-
-                if (delayMs > 2.0)
-                    await Task.Delay((int)delayMs, ct);
+                else
+                {
+                    // PTS 없는 프레임: 선언된 frameRate로 속도 제한 (최소 1ms)
+                    // best_effort_timestamp 폴백 후에도 Zero면 컨테이너에 PTS 정보 없음
+                    var frameDurMs = _frameRate > 1.0
+                        ? (int)(1000.0 / _frameRate / _playbackSpeed)
+                        : 33; // 기본 ~30fps
+                    if (frameDurMs > 1)
+                        await Task.Delay(frameDurMs, ct);
+                }
 
                 // ── 비블로킹 렌더 전달 ────────────────────────────────────────
                 // UI 스레드를 기다리지 않고 _pendingFrame에 원자적으로 교체합니다.

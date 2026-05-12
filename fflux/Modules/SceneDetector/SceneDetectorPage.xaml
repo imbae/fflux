@@ -15,266 +15,377 @@
     Title="Scene Detector">
 
     <Page.Resources>
-        <BooleanToVisibilityConverter          x:Key="BoolToVis"    />
-        <conv:InverseBoolToVisibilityConverter x:Key="InvBoolToVis" />
+        <BooleanToVisibilityConverter
+            x:Key="BoolToVis" />
+        <conv:InverseBoolToVisibilityConverter
+            x:Key="InvBoolToVis" />
 
-        <Style x:Key="FormLabel" TargetType="TextBlock">
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="Foreground"        Value="{DynamicResource TextFillColorSecondaryBrush}" />
-            <Setter Property="FontSize"          Value="13" />
-            <Setter Property="Margin"            Value="0,0,12,0" />
+        <Style
+            x:Key="FormLabel"
+            TargetType="TextBlock">
+            <Setter
+                Property="VerticalAlignment"
+                Value="Center" />
+            <Setter
+                Property="Foreground"
+                Value="{DynamicResource TextFillColorSecondaryBrush}" />
+            <Setter
+                Property="FontSize"
+                Value="13" />
+            <Setter
+                Property="Margin"
+                Value="0,0,12,0" />
         </Style>
     </Page.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />   <!-- ① 입력 패널 -->
-            <RowDefinition Height="Auto" />   <!-- ② 상태 + 진행 바 -->
-            <RowDefinition Height="*"    />   <!-- ③ 결과 / 빈 상태 -->
+            <RowDefinition
+                Height="Auto" />
+            <!-- ① 입력 패널 -->
+            <RowDefinition
+                Height="Auto" />
+            <!-- ② 상태 + 진행 바 -->
+            <RowDefinition
+                Height="*" />
+            <!-- ③ 결과 / 빈 상태 -->
         </Grid.RowDefinitions>
 
         <!-- ══ ① 입력 패널 ═══════════════════════════════════════════ -->
-        <Border Grid.Row="0"
-                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                BorderThickness="0,0,0,1"
-                Padding="20,14">
+        <Border
+            Grid.Row="0"
+            Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+            BorderThickness="0,0,0,1"
+            Padding="20,14">
             <StackPanel>
 
                 <!-- 파일 선택 행 -->
-                <Grid Margin="0,0,0,12">
+                <Grid
+                    Margin="0,0,0,12">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"    />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition
+                            Width="*" />
+                        <ColumnDefinition
+                            Width="Auto" />
+                        <ColumnDefinition
+                            Width="Auto" />
+                        <ColumnDefinition
+                            Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <ui:TextBox Grid.Column="0"
-                                PlaceholderText="미디어 파일 경로 (드래그 또는 열기)"
-                                Text="{Binding FilePath, Mode=OneWay}"
-                                IsReadOnly="True"
-                                VerticalAlignment="Center"
-                                Margin="0,0,8,0" />
+                    <ui:TextBox
+                        Grid.Column="0"
+                        PlaceholderText="미디어 파일 경로 (드래그 또는 열기)"
+                        Text="{Binding FilePath, Mode=OneWay}"
+                        IsReadOnly="True"
+                        VerticalAlignment="Center"
+                        Margin="0,0,8,0" />
 
-                    <ui:Button Grid.Column="1"
-                               Content="열기"
-                               Command="{Binding BrowseFileCommand}"
-                               Margin="0,0,8,0" />
+                    <ui:Button
+                        Grid.Column="1"
+                        Content="열기"
+                        Command="{Binding BrowseFileCommand}"
+                        Margin="0,0,8,0" />
 
-                    <ui:Button Grid.Column="2"
-                               Content="감지 시작"
-                               Appearance="Primary"
-                               Icon="{ui:SymbolIcon Symbol=Search24}"
-                               Command="{Binding DetectCommand}"
-                               Visibility="{Binding IsDetecting, Converter={StaticResource InvBoolToVis}}"
-                               Margin="0,0,8,0" />
+                    <ui:Button
+                        Grid.Column="2"
+                        Content="감지 시작"
+                        Appearance="Primary"
+                        Icon="{ui:SymbolIcon Symbol=Search24}"
+                        Command="{Binding DetectCommand}"
+                        Visibility="{Binding IsDetecting, Converter={StaticResource InvBoolToVis}}"
+                        Margin="0,0,8,0" />
 
-                    <ui:Button Grid.Column="3"
-                               Content="취소"
-                               Appearance="Danger"
-                               Command="{Binding CancelCommand}"
-                               Visibility="{Binding IsDetecting, Converter={StaticResource BoolToVis}}" />
+                    <ui:Button
+                        Grid.Column="3"
+                        Content="취소"
+                        Appearance="Danger"
+                        Command="{Binding CancelCommand}"
+                        Visibility="{Binding IsDetecting, Converter={StaticResource BoolToVis}}" />
                 </Grid>
 
                 <!-- 임계값 슬라이더 행 -->
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="240"  />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*"    />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition
+                            Width="Auto" />
+                        <ColumnDefinition
+                            Width="240" />
+                        <ColumnDefinition
+                            Width="Auto" />
+                        <ColumnDefinition
+                            Width="*" />
+                        <ColumnDefinition
+                            Width="Auto" />
+                        <ColumnDefinition
+                            Width="Auto" />
+                        <ColumnDefinition
+                            Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Grid.Column="0" Text="감지 임계값" Style="{StaticResource FormLabel}" />
+                    <TextBlock
+                        Grid.Column="0"
+                        Text="감지 임계값"
+                        Style="{StaticResource FormLabel}" />
 
-                    <Slider Grid.Column="1"
-                            Minimum="0.05" Maximum="0.95"
-                            Value="{Binding Threshold}"
-                            SmallChange="0.05" LargeChange="0.1"
-                            TickFrequency="0.1"
-                            VerticalAlignment="Center" />
+                    <Slider
+                        Grid.Column="1"
+                        Minimum="0.05"
+                        Maximum="0.95"
+                        Value="{Binding Threshold}"
+                        SmallChange="0.05"
+                        LargeChange="0.1"
+                        TickFrequency="0.1"
+                        VerticalAlignment="Center" />
 
-                    <TextBlock Grid.Column="2"
-                               Text="{Binding Threshold, StringFormat={}{0:F2}}"
-                               FontSize="13" FontWeight="SemiBold"
-                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                               VerticalAlignment="Center"
-                               Margin="8,0,16,0" />
+                    <TextBlock
+                        Grid.Column="2"
+                        Text="{Binding Threshold, StringFormat={}{0:F2}}"
+                        FontSize="13"
+                        FontWeight="SemiBold"
+                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                        VerticalAlignment="Center"
+                        Margin="8,0,16,0" />
 
-                    <TextBlock Grid.Column="3"
-                               Text="낮을수록 민감 (권장: 0.30 ~ 0.50)"
-                               FontSize="11"
-                               Foreground="{DynamicResource TextFillColorDisabledBrush}"
-                               VerticalAlignment="Center" />
+                    <TextBlock
+                        Grid.Column="3"
+                        Text="낮을수록 민감 (권장: 0.30 ~ 0.50)"
+                        FontSize="11"
+                        Foreground="{DynamicResource TextFillColorDisabledBrush}"
+                        VerticalAlignment="Center" />
 
                     <!-- 내보내기 버튼 (결과 있을 때만) -->
-                    <ui:Button Grid.Column="4"
-                               Content="FFmetadata"
-                               Icon="{ui:SymbolIcon Symbol=DocumentSave24}"
-                               Command="{Binding ExportFfmetadataCommand}"
-                               ToolTip="FFmpeg 챕터 메타데이터 파일로 저장"
-                               Margin="0,0,8,0"
-                               Visibility="{Binding HasResult, Converter={StaticResource BoolToVis}}" />
+                    <ui:Button
+                        Grid.Column="4"
+                        Content="FFmetadata"
+                        Icon="{ui:SymbolIcon Symbol=DocumentSave24}"
+                        Command="{Binding ExportFfmetadataCommand}"
+                        ToolTip="FFmpeg 챕터 메타데이터 파일로 저장"
+                        Margin="0,0,8,0"
+                        Visibility="{Binding HasResult, Converter={StaticResource BoolToVis}}" />
 
-                    <ui:Button Grid.Column="5"
-                               Content="텍스트"
-                               Icon="{ui:SymbolIcon Symbol=DocumentText24}"
-                               Command="{Binding ExportTextCommand}"
-                               ToolTip="간단한 타임스탬프 텍스트로 저장"
-                               Margin="0,0,8,0"
-                               Visibility="{Binding HasResult, Converter={StaticResource BoolToVis}}" />
+                    <ui:Button
+                        Grid.Column="5"
+                        Content="텍스트"
+                        Icon="{ui:SymbolIcon Symbol=DocumentText24}"
+                        Command="{Binding ExportTextCommand}"
+                        ToolTip="간단한 타임스탬프 텍스트로 저장"
+                        Margin="0,0,8,0"
+                        Visibility="{Binding HasResult, Converter={StaticResource BoolToVis}}" />
 
-                    <ui:Button Grid.Column="6"
-                               Content="복사"
-                               Icon="{ui:SymbolIcon Symbol=Copy24}"
-                               Command="{Binding CopyToClipboardCommand}"
-                               ToolTip="FFmetadata를 클립보드에 복사"
-                               Visibility="{Binding HasResult, Converter={StaticResource BoolToVis}}" />
+                    <ui:Button
+                        Grid.Column="6"
+                        Content="복사"
+                        Icon="{ui:SymbolIcon Symbol=Copy24}"
+                        Command="{Binding CopyToClipboardCommand}"
+                        ToolTip="FFmetadata를 클립보드에 복사"
+                        Visibility="{Binding HasResult, Converter={StaticResource BoolToVis}}" />
                 </Grid>
             </StackPanel>
         </Border>
 
         <!-- ══ ② 상태 + 진행 바 ════════════════════════════════════════ -->
-        <StackPanel Grid.Row="1">
-            <Grid Margin="20,8,20,4">
+        <StackPanel
+            Grid.Row="1">
+            <Grid
+                Margin="20,8,20,4">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"    />
-                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition
+                        Width="*" />
+                    <ColumnDefinition
+                        Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Column="0"
-                           Text="{Binding StatusText}"
-                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                           FontSize="12"
-                           VerticalAlignment="Center" />
+                <TextBlock
+                    Grid.Column="0"
+                    Text="{Binding StatusText}"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    FontSize="12"
+                    VerticalAlignment="Center" />
 
                 <!-- 감지 중: 장면 카운터 -->
-                <TextBlock Grid.Column="1"
-                           Visibility="{Binding IsDetecting, Converter={StaticResource BoolToVis}}"
-                           FontSize="12"
-                           Foreground="{DynamicResource SystemAccentColorPrimaryBrush}">
-                    <Run Text="{Binding ScenesFound, Mode=OneWay}" />
-                    <Run Text="개 발견됨" />
+                <TextBlock
+                    Grid.Column="1"
+                    Visibility="{Binding IsDetecting, Converter={StaticResource BoolToVis}}"
+                    FontSize="12"
+                    Foreground="{DynamicResource SystemAccentColorPrimaryBrush}">
+                    <Run
+                        Text="{Binding ScenesFound, Mode=OneWay}" />
+                    <Run
+                        Text="개 발견됨" />
                 </TextBlock>
             </Grid>
 
-            <ProgressBar IsIndeterminate="True"
-                         Height="2"
-                         Visibility="{Binding IsDetecting, Converter={StaticResource BoolToVis}}" />
+            <ProgressBar
+                IsIndeterminate="True"
+                Height="2"
+                Visibility="{Binding IsDetecting, Converter={StaticResource BoolToVis}}" />
         </StackPanel>
 
         <!-- ══ ③-A 결과 (HasResult=True) ═══════════════════════════════ -->
-        <Grid Grid.Row="2"
-              Visibility="{Binding HasResult, Converter={StaticResource BoolToVis}}">
+        <Grid
+            Grid.Row="2"
+            Visibility="{Binding HasResult, Converter={StaticResource BoolToVis}}">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*"    />
-                <RowDefinition Height="Auto" />
+                <RowDefinition
+                    Height="Auto" />
+                <RowDefinition
+                    Height="*" />
+                <RowDefinition
+                    Height="Auto" />
             </Grid.RowDefinitions>
 
             <!-- 결과 헤더 -->
-            <StackPanel Grid.Row="0"
-                        Orientation="Horizontal"
-                        Margin="20,10,20,6">
-                <ui:SymbolIcon Symbol="Filmstrip24"
-                               FontSize="16"
-                               Foreground="{DynamicResource SystemAccentColorPrimaryBrush}"
-                               Margin="0,0,8,0"
-                               VerticalAlignment="Center" />
-                <TextBlock FontSize="13" FontWeight="SemiBold"
-                           Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                           VerticalAlignment="Center">
-                    <Run Text="챕터 목록 — " />
-                    <Run Text="{Binding Chapters.Count, Mode=OneWay}" />
-                    <Run Text="개  (제목을 클릭하여 편집하세요)" />
+            <StackPanel
+                Grid.Row="0"
+                Orientation="Horizontal"
+                Margin="20,10,20,6">
+                <ui:SymbolIcon
+                    Symbol="Filmstrip24"
+                    FontSize="16"
+                    Foreground="{DynamicResource SystemAccentColorPrimaryBrush}"
+                    Margin="0,0,8,0"
+                    VerticalAlignment="Center" />
+                <TextBlock
+                    FontSize="13"
+                    FontWeight="SemiBold"
+                    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                    VerticalAlignment="Center">
+                    <Run
+                        Text="챕터 목록 — " />
+                    <Run
+                        Text="{Binding Chapters.Count, Mode=OneWay}" />
+                    <Run
+                        Text="개  (제목을 클릭하여 편집하세요)" />
                 </TextBlock>
             </StackPanel>
 
             <!-- 챕터 DataGrid -->
-            <DataGrid Grid.Row="1"
-                      ItemsSource="{Binding Chapters}"
-                      AutoGenerateColumns="False"
-                      CanUserAddRows="False"
-                      CanUserDeleteRows="False"
-                      CanUserReorderColumns="False"
-                      CanUserSortColumns="False"
-                      SelectionMode="Extended"
-                      GridLinesVisibility="Horizontal"
-                      HeadersVisibility="Column"
-                      Margin="20,0,20,0"
-                      BorderThickness="1"
-                      BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                      Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
-                      RowBackground="Transparent"
-                      AlternatingRowBackground="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                      HorizontalGridLinesBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                      FontSize="13">
+            <DataGrid
+                Grid.Row="1"
+                ItemsSource="{Binding Chapters}"
+                AutoGenerateColumns="False"
+                CanUserAddRows="False"
+                CanUserDeleteRows="False"
+                CanUserReorderColumns="False"
+                CanUserSortColumns="False"
+                SelectionMode="Extended"
+                GridLinesVisibility="Horizontal"
+                HeadersVisibility="Column"
+                Margin="20,0,20,0"
+                BorderThickness="1"
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
+                RowBackground="Transparent"
+                AlternatingRowBackground="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                HorizontalGridLinesBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                FontSize="13">
                 <DataGrid.Columns>
 
                     <!-- # -->
-                    <DataGridTextColumn Header="#"
-                                        Binding="{Binding Number}"
-                                        Width="50"
-                                        IsReadOnly="True">
+                    <DataGridTextColumn
+                        Header="#"
+                        Binding="{Binding Number}"
+                        Width="50"
+                        IsReadOnly="True">
                         <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
-                                <Setter Property="VerticalAlignment" Value="Center" />
-                                <Setter Property="Padding" Value="8,0" />
+                            <Style
+                                TargetType="TextBlock">
+                                <Setter
+                                    Property="Foreground"
+                                    Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                                <Setter
+                                    Property="VerticalAlignment"
+                                    Value="Center" />
+                                <Setter
+                                    Property="Padding"
+                                    Value="8,0" />
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
 
                     <!-- 타임스탬프 -->
-                    <DataGridTextColumn Header="타임스탬프"
-                                        Binding="{Binding TimestampText}"
-                                        Width="110"
-                                        IsReadOnly="True">
+                    <DataGridTextColumn
+                        Header="타임스탬프"
+                        Binding="{Binding TimestampText}"
+                        Width="110"
+                        IsReadOnly="True">
                         <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="{DynamicResource SystemAccentColorPrimaryBrush}" />
-                                <Setter Property="FontFamily" Value="Consolas, Courier New" />
-                                <Setter Property="VerticalAlignment" Value="Center" />
-                                <Setter Property="Padding" Value="8,0" />
+                            <Style
+                                TargetType="TextBlock">
+                                <Setter
+                                    Property="Foreground"
+                                    Value="{DynamicResource SystemAccentColorPrimaryBrush}" />
+                                <Setter
+                                    Property="FontFamily"
+                                    Value="Consolas, Courier New" />
+                                <Setter
+                                    Property="VerticalAlignment"
+                                    Value="Center" />
+                                <Setter
+                                    Property="Padding"
+                                    Value="8,0" />
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
 
                     <!-- 장면 점수 -->
-                    <DataGridTextColumn Header="점수"
-                                        Binding="{Binding ScoreText}"
-                                        Width="80"
-                                        IsReadOnly="True">
+                    <DataGridTextColumn
+                        Header="점수"
+                        Binding="{Binding ScoreText}"
+                        Width="80"
+                        IsReadOnly="True">
                         <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
-                                <Setter Property="HorizontalAlignment" Value="Right" />
-                                <Setter Property="VerticalAlignment" Value="Center" />
-                                <Setter Property="Padding" Value="8,0" />
+                            <Style
+                                TargetType="TextBlock">
+                                <Setter
+                                    Property="Foreground"
+                                    Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                                <Setter
+                                    Property="HorizontalAlignment"
+                                    Value="Right" />
+                                <Setter
+                                    Property="VerticalAlignment"
+                                    Value="Center" />
+                                <Setter
+                                    Property="Padding"
+                                    Value="8,0" />
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
 
                     <!-- 챕터 제목 (편집 가능) -->
-                    <DataGridTextColumn Header="챕터 제목"
-                                        Binding="{Binding Title, UpdateSourceTrigger=PropertyChanged}"
-                                        Width="*">
+                    <DataGridTextColumn
+                        Header="챕터 제목"
+                        Binding="{Binding Title, UpdateSourceTrigger=PropertyChanged}"
+                        Width="*">
                         <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
-                                <Setter Property="VerticalAlignment" Value="Center" />
-                                <Setter Property="Padding" Value="8,0" />
+                            <Style
+                                TargetType="TextBlock">
+                                <Setter
+                                    Property="Foreground"
+                                    Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                                <Setter
+                                    Property="VerticalAlignment"
+                                    Value="Center" />
+                                <Setter
+                                    Property="Padding"
+                                    Value="8,0" />
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                         <DataGridTextColumn.EditingElementStyle>
-                            <Style TargetType="TextBox">
-                                <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
-                                <Setter Property="BorderThickness" Value="0" />
-                                <Setter Property="Padding" Value="6,0" />
+                            <Style
+                                TargetType="TextBox">
+                                <Setter
+                                    Property="Foreground"
+                                    Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                                <Setter
+                                    Property="BorderThickness"
+                                    Value="0" />
+                                <Setter
+                                    Property="Padding"
+                                    Value="6,0" />
                             </Style>
                         </DataGridTextColumn.EditingElementStyle>
                     </DataGridTextColumn>
@@ -283,36 +394,44 @@
             </DataGrid>
 
             <!-- 하단 힌트 -->
-            <TextBlock Grid.Row="2"
-                       Margin="20,6,20,12"
-                       FontSize="11"
-                       Foreground="{DynamicResource TextFillColorDisabledBrush}">
+            <TextBlock
+                Grid.Row="2"
+                Margin="20,6,20,12"
+                FontSize="11"
+                Foreground="{DynamicResource TextFillColorDisabledBrush}">
                 💡 FFmetadata 내보내기 후:
-                <Run FontFamily="Consolas" Text="ffmpeg -i 원본.mp4 -i chapters.txt -map_metadata 1 -codec copy 출력.mp4" />
+                <Run
+                    FontFamily="Consolas"
+                    Text="ffmpeg -i 원본.mp4 -i chapters.txt -map_metadata 1 -codec copy 출력.mp4" />
             </TextBlock>
         </Grid>
 
         <!-- ══ ③-B 빈 상태 (HasResult=False) ══════════════════════════ -->
-        <StackPanel Grid.Row="2"
-                    VerticalAlignment="Center"
-                    HorizontalAlignment="Center"
-                    Visibility="{Binding HasResult, Converter={StaticResource InvBoolToVis}}">
+        <StackPanel
+            Grid.Row="2"
+            VerticalAlignment="Center"
+            HorizontalAlignment="Center"
+            Visibility="{Binding HasResult, Converter={StaticResource InvBoolToVis}}">
 
-            <ui:SymbolIcon Symbol="Filmstrip24"
-                           FontSize="64"
-                           Foreground="{DynamicResource TextFillColorDisabledBrush}"
-                           HorizontalAlignment="Center" />
+            <ui:SymbolIcon
+                Symbol="Filmstrip24"
+                FontSize="64"
+                Foreground="{DynamicResource TextFillColorDisabledBrush}"
+                HorizontalAlignment="Center" />
 
-            <TextBlock Text="영상 파일을 선택하고 감지 임계값을 조정한 후 '감지 시작'을 누르세요."
-                       FontSize="13"
-                       Margin="0,14,0,4"
-                       Foreground="{DynamicResource TextFillColorDisabledBrush}"
-                       HorizontalAlignment="Center" />
+            <TextBlock
+                Text="영상 파일을 선택하고 감지 임계값을 조정한 후 '감지 시작'을 누르세요."
+                FontSize="13"
+                Margin="0,14,0,4"
+                Foreground="{DynamicResource TextFillColorDisabledBrush}"
+                HorizontalAlignment="Center" />
 
-            <TextBlock FontSize="11"
-                       Foreground="{DynamicResource TextFillColorDisabledBrush}"
-                       HorizontalAlignment="Center">
-                <Run Text="임계값 권장: 0.30 (민감) ~ 0.50 (보통) ~ 0.70 (둔감)" />
+            <TextBlock
+                FontSize="11"
+                Foreground="{DynamicResource TextFillColorDisabledBrush}"
+                HorizontalAlignment="Center">
+                <Run
+                    Text="임계값 권장: 0.30 (민감) ~ 0.50 (보통) ~ 0.70 (둔감)" />
             </TextBlock>
         </StackPanel>
 

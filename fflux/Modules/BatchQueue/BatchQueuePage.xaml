@@ -15,41 +15,89 @@
     Title="Batch Queue">
 
     <Page.Resources>
-        <BooleanToVisibilityConverter          x:Key="BoolToVis"    />
-        <conv:InverseBoolToVisibilityConverter x:Key="InvBoolToVis" />
+        <BooleanToVisibilityConverter
+            x:Key="BoolToVis" />
+        <conv:InverseBoolToVisibilityConverter
+            x:Key="InvBoolToVis" />
 
-        <Style x:Key="FormLabel" TargetType="TextBlock">
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="Foreground"        Value="{DynamicResource TextFillColorSecondaryBrush}" />
-            <Setter Property="FontSize"          Value="12" />
-            <Setter Property="Margin"            Value="0,0,10,0" />
+        <Style
+            x:Key="FormLabel"
+            TargetType="TextBlock">
+            <Setter
+                Property="VerticalAlignment"
+                Value="Center" />
+            <Setter
+                Property="Foreground"
+                Value="{DynamicResource TextFillColorSecondaryBrush}" />
+            <Setter
+                Property="FontSize"
+                Value="12" />
+            <Setter
+                Property="Margin"
+                Value="0,0,10,0" />
         </Style>
 
-        <Style x:Key="SectionTitle" TargetType="TextBlock">
-            <Setter Property="FontSize"   Value="11" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
-            <Setter Property="Margin"     Value="0,14,0,8" />
+        <Style
+            x:Key="SectionTitle"
+            TargetType="TextBlock">
+            <Setter
+                Property="FontSize"
+                Value="11" />
+            <Setter
+                Property="FontWeight"
+                Value="SemiBold" />
+            <Setter
+                Property="Foreground"
+                Value="{DynamicResource TextFillColorSecondaryBrush}" />
+            <Setter
+                Property="Margin"
+                Value="0,14,0,8" />
         </Style>
 
         <!-- 작업 상태 배지 스타일 (색상은 DataTrigger로 지정) -->
-        <Style x:Key="StatusBadge" TargetType="TextBlock">
-            <Setter Property="FontSize"          Value="11" />
-            <Setter Property="FontWeight"        Value="SemiBold" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="Foreground"        Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        <Style
+            x:Key="StatusBadge"
+            TargetType="TextBlock">
+            <Setter
+                Property="FontSize"
+                Value="11" />
+            <Setter
+                Property="FontWeight"
+                Value="SemiBold" />
+            <Setter
+                Property="VerticalAlignment"
+                Value="Center" />
+            <Setter
+                Property="Foreground"
+                Value="{DynamicResource TextFillColorSecondaryBrush}" />
             <Style.Triggers>
-                <DataTrigger Binding="{Binding Status}" Value="{x:Static local:BatchJobStatus.Running}">
-                    <Setter Property="Foreground" Value="{DynamicResource SystemAccentColorPrimaryBrush}" />
+                <DataTrigger
+                    Binding="{Binding Status}"
+                    Value="{x:Static local:BatchJobStatus.Running}">
+                    <Setter
+                        Property="Foreground"
+                        Value="{DynamicResource SystemAccentColorPrimaryBrush}" />
                 </DataTrigger>
-                <DataTrigger Binding="{Binding Status}" Value="{x:Static local:BatchJobStatus.Done}">
-                    <Setter Property="Foreground" Value="#4CAF50" />
+                <DataTrigger
+                    Binding="{Binding Status}"
+                    Value="{x:Static local:BatchJobStatus.Done}">
+                    <Setter
+                        Property="Foreground"
+                        Value="#4CAF50" />
                 </DataTrigger>
-                <DataTrigger Binding="{Binding Status}" Value="{x:Static local:BatchJobStatus.Failed}">
-                    <Setter Property="Foreground" Value="#F44336" />
+                <DataTrigger
+                    Binding="{Binding Status}"
+                    Value="{x:Static local:BatchJobStatus.Failed}">
+                    <Setter
+                        Property="Foreground"
+                        Value="#F44336" />
                 </DataTrigger>
-                <DataTrigger Binding="{Binding Status}" Value="{x:Static local:BatchJobStatus.Cancelled}">
-                    <Setter Property="Foreground" Value="#FF9800" />
+                <DataTrigger
+                    Binding="{Binding Status}"
+                    Value="{x:Static local:BatchJobStatus.Cancelled}">
+                    <Setter
+                        Property="Foreground"
+                        Value="#FF9800" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -58,311 +106,409 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <!-- 좌: 인코딩 프리셋 -->
-            <ColumnDefinition Width="230" />
-            <ColumnDefinition Width="1"   />   <!-- Splitter -->
+            <ColumnDefinition
+                Width="230" />
+            <ColumnDefinition
+                Width="1" />
+            <!-- Splitter -->
             <!-- 우: 작업 목록 -->
-            <ColumnDefinition Width="*"   />
+            <ColumnDefinition
+                Width="*" />
         </Grid.ColumnDefinitions>
 
         <!-- ══════════════════════════════════════════════════════════ -->
         <!--  LEFT — 인코딩 프리셋                                      -->
         <!-- ══════════════════════════════════════════════════════════ -->
-        <ScrollViewer Grid.Column="0"
-                      VerticalScrollBarVisibility="Auto"
-                      Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
-            <StackPanel Margin="16,16,16,24">
+        <ScrollViewer
+            Grid.Column="0"
+            VerticalScrollBarVisibility="Auto"
+            Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
+            <StackPanel
+                Margin="16,16,16,24">
 
                 <!-- 헤더 -->
-                <TextBlock Text="인코딩 프리셋"
-                           FontSize="14"
-                           FontWeight="SemiBold"
-                           Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                           Margin="0,0,0,4" />
-                <TextBlock Text="큐의 모든 작업에 동일하게 적용됩니다."
-                           FontSize="11"
-                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                           TextWrapping="Wrap"
-                           Margin="0,0,0,8" />
+                <TextBlock
+                    Text="인코딩 프리셋"
+                    FontSize="14"
+                    FontWeight="SemiBold"
+                    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                    Margin="0,0,0,4" />
+                <TextBlock
+                    Text="큐의 모든 작업에 동일하게 적용됩니다."
+                    FontSize="11"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    TextWrapping="Wrap"
+                    Margin="0,0,0,8" />
 
                 <!-- ── 비디오 코덱 ─────────────────────────────── -->
-                <TextBlock Text="비디오 코덱" Style="{StaticResource SectionTitle}" Margin="0,8,0,6" />
-                <ComboBox ItemsSource="{Binding VideoCodecDisplayNames, Mode=OneTime}"
-                          SelectedIndex="{Binding VideoCodecIndex}"
-                          HorizontalAlignment="Stretch" />
+                <TextBlock
+                    Text="비디오 코덱"
+                    Style="{StaticResource SectionTitle}"
+                    Margin="0,8,0,6" />
+                <ComboBox
+                    ItemsSource="{Binding VideoCodecDisplayNames, Mode=OneTime}"
+                    SelectedIndex="{Binding VideoCodecIndex}"
+                    HorizontalAlignment="Stretch" />
 
                 <!-- CRF / 비트레이트 (코덱 copy 제외) -->
-                <StackPanel Visibility="{Binding IsVideoEncodeEnabled, Converter={StaticResource BoolToVis}}"
-                            Margin="0,8,0,0">
+                <StackPanel
+                    Visibility="{Binding IsVideoEncodeEnabled, Converter={StaticResource BoolToVis}}"
+                    Margin="0,8,0,0">
 
                     <!-- CRF / 비트레이트 전환 -->
-                    <CheckBox Content="CRF 품질 모드 사용"
-                              IsChecked="{Binding UseCrf}"
-                              Margin="0,0,0,8"
-                              Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                    <CheckBox
+                        Content="CRF 품질 모드 사용"
+                        IsChecked="{Binding UseCrf}"
+                        Margin="0,0,0,8"
+                        Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
 
                     <!-- CRF 슬라이더 -->
-                    <StackPanel Visibility="{Binding UseCrf, Converter={StaticResource BoolToVis}}">
-                        <Grid Margin="0,0,0,4">
+                    <StackPanel
+                        Visibility="{Binding UseCrf, Converter={StaticResource BoolToVis}}">
+                        <Grid
+                            Margin="0,0,0,4">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition
+                                    Width="*" />
+                                <ColumnDefinition
+                                    Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="CRF" Style="{StaticResource FormLabel}" />
-                            <TextBlock Grid.Column="1"
-                                       Text="{Binding CrfValue}"
-                                       FontSize="12" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            <TextBlock
+                                Grid.Column="0"
+                                Text="CRF"
+                                Style="{StaticResource FormLabel}" />
+                            <TextBlock
+                                Grid.Column="1"
+                                Text="{Binding CrfValue}"
+                                FontSize="12"
+                                FontWeight="SemiBold"
+                                Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                         </Grid>
-                        <Slider Minimum="0" Maximum="51"
-                                Value="{Binding CrfValue}"
-                                SmallChange="1" LargeChange="5"
-                                TickFrequency="5" TickPlacement="BottomRight" />
+                        <Slider
+                            Minimum="0"
+                            Maximum="51"
+                            Value="{Binding CrfValue}"
+                            SmallChange="1"
+                            LargeChange="5"
+                            TickFrequency="5"
+                            TickPlacement="BottomRight" />
                     </StackPanel>
 
                     <!-- 비트레이트 -->
-                    <StackPanel Visibility="{Binding UseCrf, Converter={StaticResource InvBoolToVis}}">
-                        <TextBlock Text="비트레이트 (kbps)" Style="{StaticResource FormLabel}" Margin="0,0,0,4" />
-                        <ui:TextBox PlaceholderText="예: 4000"
-                                    Text="{Binding VideoBitrateText, UpdateSourceTrigger=PropertyChanged}" />
+                    <StackPanel
+                        Visibility="{Binding UseCrf, Converter={StaticResource InvBoolToVis}}">
+                        <TextBlock
+                            Text="비트레이트 (kbps)"
+                            Style="{StaticResource FormLabel}"
+                            Margin="0,0,0,4" />
+                        <ui:TextBox
+                            PlaceholderText="예: 4000"
+                            Text="{Binding VideoBitrateText, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
 
                     <!-- 해상도 -->
-                    <TextBlock Text="출력 해상도" Style="{StaticResource FormLabel}" Margin="0,10,0,4" />
-                    <ComboBox ItemsSource="{Binding ResolutionDisplayNames, Mode=OneTime}"
-                              SelectedIndex="{Binding ResolutionIndex}"
-                              HorizontalAlignment="Stretch" />
+                    <TextBlock
+                        Text="출력 해상도"
+                        Style="{StaticResource FormLabel}"
+                        Margin="0,10,0,4" />
+                    <ComboBox
+                        ItemsSource="{Binding ResolutionDisplayNames, Mode=OneTime}"
+                        SelectedIndex="{Binding ResolutionIndex}"
+                        HorizontalAlignment="Stretch" />
                 </StackPanel>
 
                 <!-- ── 오디오 코덱 ─────────────────────────────── -->
-                <TextBlock Text="오디오 코덱" Style="{StaticResource SectionTitle}" />
-                <ComboBox ItemsSource="{Binding AudioCodecDisplayNames, Mode=OneTime}"
-                          SelectedIndex="{Binding AudioCodecIndex}"
-                          HorizontalAlignment="Stretch" />
+                <TextBlock
+                    Text="오디오 코덱"
+                    Style="{StaticResource SectionTitle}" />
+                <ComboBox
+                    ItemsSource="{Binding AudioCodecDisplayNames, Mode=OneTime}"
+                    SelectedIndex="{Binding AudioCodecIndex}"
+                    HorizontalAlignment="Stretch" />
 
-                <StackPanel Visibility="{Binding IsAudioEncodeEnabled, Converter={StaticResource BoolToVis}}"
-                            Margin="0,8,0,0">
-                    <TextBlock Text="오디오 비트레이트 (kbps)" Style="{StaticResource FormLabel}" Margin="0,0,0,4" />
-                    <ui:TextBox PlaceholderText="예: 192"
-                                Text="{Binding AudioBitrateText, UpdateSourceTrigger=PropertyChanged}" />
+                <StackPanel
+                    Visibility="{Binding IsAudioEncodeEnabled, Converter={StaticResource BoolToVis}}"
+                    Margin="0,8,0,0">
+                    <TextBlock
+                        Text="오디오 비트레이트 (kbps)"
+                        Style="{StaticResource FormLabel}"
+                        Margin="0,0,0,4" />
+                    <ui:TextBox
+                        PlaceholderText="예: 192"
+                        Text="{Binding AudioBitrateText, UpdateSourceTrigger=PropertyChanged}" />
                 </StackPanel>
 
             </StackPanel>
         </ScrollViewer>
 
         <!-- 구분선 -->
-        <Rectangle Grid.Column="1"
-                   Fill="{DynamicResource CardStrokeColorDefaultBrush}" />
+        <Rectangle
+            Grid.Column="1"
+            Fill="{DynamicResource CardStrokeColorDefaultBrush}" />
 
         <!-- ══════════════════════════════════════════════════════════ -->
         <!--  RIGHT — 작업 목록                                         -->
         <!-- ══════════════════════════════════════════════════════════ -->
-        <Grid Grid.Column="2">
+        <Grid
+            Grid.Column="2">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />   <!-- 툴바 -->
-                <RowDefinition Height="*"    />   <!-- 목록 -->
+                <RowDefinition
+                    Height="Auto" />
+                <!-- 툴바 -->
+                <RowDefinition
+                    Height="*" />
+                <!-- 목록 -->
             </Grid.RowDefinitions>
 
             <!-- ── 툴바 ────────────────────────────────────────────── -->
-            <Border Grid.Row="0"
-                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="0,0,0,1"
-                    Padding="16,10">
+            <Border
+                Grid.Row="0"
+                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                BorderThickness="0,0,0,1"
+                Padding="16,10">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*"    />
-                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition
+                            Width="Auto" />
+                        <ColumnDefinition
+                            Width="Auto" />
+                        <ColumnDefinition
+                            Width="Auto" />
+                        <ColumnDefinition
+                            Width="Auto" />
+                        <ColumnDefinition
+                            Width="*" />
+                        <ColumnDefinition
+                            Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <ui:Button Grid.Column="0"
-                               Content="파일 추가"
-                               Icon="{ui:SymbolIcon Symbol=Add24}"
-                               Command="{Binding AddFilesCommand}"
-                               Margin="0,0,8,0" />
+                    <ui:Button
+                        Grid.Column="0"
+                        Content="파일 추가"
+                        Icon="{ui:SymbolIcon Symbol=Add24}"
+                        Command="{Binding AddFilesCommand}"
+                        Margin="0,0,8,0" />
 
-                    <ui:Button Grid.Column="1"
-                               Content="큐 시작"
-                               Appearance="Primary"
-                               Icon="{ui:SymbolIcon Symbol=Play24}"
-                               Command="{Binding StartQueueCommand}"
-                               Visibility="{Binding IsRunning, Converter={StaticResource InvBoolToVis}}"
-                               Margin="0,0,8,0" />
+                    <ui:Button
+                        Grid.Column="1"
+                        Content="큐 시작"
+                        Appearance="Primary"
+                        Icon="{ui:SymbolIcon Symbol=Play24}"
+                        Command="{Binding StartQueueCommand}"
+                        Visibility="{Binding IsRunning, Converter={StaticResource InvBoolToVis}}"
+                        Margin="0,0,8,0" />
 
-                    <ui:Button Grid.Column="2"
-                               Content="중지"
-                               Appearance="Danger"
-                               Icon="{ui:SymbolIcon Symbol=Stop24}"
-                               Command="{Binding StopQueueCommand}"
-                               Visibility="{Binding IsRunning, Converter={StaticResource BoolToVis}}"
-                               Margin="0,0,8,0" />
+                    <ui:Button
+                        Grid.Column="2"
+                        Content="중지"
+                        Appearance="Danger"
+                        Icon="{ui:SymbolIcon Symbol=Stop24}"
+                        Command="{Binding StopQueueCommand}"
+                        Visibility="{Binding IsRunning, Converter={StaticResource BoolToVis}}"
+                        Margin="0,0,8,0" />
 
-                    <ui:Button Grid.Column="3"
-                               Content="완료 제거"
-                               Icon="{ui:SymbolIcon Symbol=Delete24}"
-                               Command="{Binding ClearDoneCommand}"
-                               Margin="0,0,8,0" />
+                    <ui:Button
+                        Grid.Column="3"
+                        Content="완료 제거"
+                        Icon="{ui:SymbolIcon Symbol=Delete24}"
+                        Command="{Binding ClearDoneCommand}"
+                        Margin="0,0,8,0" />
 
                     <!-- 요약 텍스트 -->
-                    <TextBlock Grid.Column="4"
-                               Text="{Binding SummaryText}"
-                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                               FontSize="12"
-                               VerticalAlignment="Center"
-                               HorizontalAlignment="Right"
-                               Margin="0,0,4,0" />
+                    <TextBlock
+                        Grid.Column="4"
+                        Text="{Binding SummaryText}"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        FontSize="12"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Right"
+                        Margin="0,0,4,0" />
 
                     <!-- 빈 상태 안내 -->
-                    <ProgressBar Grid.Column="5"
-                                 Width="80"
-                                 Height="4"
-                                 IsIndeterminate="True"
-                                 Visibility="{Binding IsRunning, Converter={StaticResource BoolToVis}}"
-                                 VerticalAlignment="Center" />
+                    <ProgressBar
+                        Grid.Column="5"
+                        Width="80"
+                        Height="4"
+                        IsIndeterminate="True"
+                        Visibility="{Binding IsRunning, Converter={StaticResource BoolToVis}}"
+                        VerticalAlignment="Center" />
                 </Grid>
             </Border>
 
             <!-- ── 작업 목록 ──────────────────────────────────────── -->
             <!-- 빈 상태 (목록 위에 겹치는 레이어) -->
-            <StackPanel Grid.Row="1"
-                        Visibility="{Binding Jobs.Count, Converter={StaticResource InvBoolToVis}}"
-                        VerticalAlignment="Center"
-                        HorizontalAlignment="Center"
-                        Panel.ZIndex="1">
-                <ui:SymbolIcon Symbol="DocumentMultiple24"
-                               FontSize="56"
-                               Foreground="{DynamicResource TextFillColorDisabledBrush}"
-                               HorizontalAlignment="Center" />
-                <TextBlock Text="파일을 드래그하거나 '파일 추가' 버튼을 누르세요."
-                           FontSize="13"
-                           Margin="0,12,0,0"
-                           Foreground="{DynamicResource TextFillColorDisabledBrush}"
-                           HorizontalAlignment="Center" />
+            <StackPanel
+                Grid.Row="1"
+                Visibility="{Binding Jobs.Count, Converter={StaticResource InvBoolToVis}}"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                Panel.ZIndex="1">
+                <ui:SymbolIcon
+                    Symbol="DocumentMultiple24"
+                    FontSize="56"
+                    Foreground="{DynamicResource TextFillColorDisabledBrush}"
+                    HorizontalAlignment="Center" />
+                <TextBlock
+                    Text="파일을 드래그하거나 '파일 추가' 버튼을 누르세요."
+                    FontSize="13"
+                    Margin="0,12,0,0"
+                    Foreground="{DynamicResource TextFillColorDisabledBrush}"
+                    HorizontalAlignment="Center" />
             </StackPanel>
 
-            <ScrollViewer Grid.Row="1"
-                          VerticalScrollBarVisibility="Auto">
+            <ScrollViewer
+                Grid.Row="1"
+                VerticalScrollBarVisibility="Auto">
                 <!-- 작업 카드 목록 -->
-                <ItemsControl ItemsSource="{Binding Jobs}"
-                              Margin="16,12,16,16"
-                              VirtualizingPanel.IsVirtualizing="True">
+                <ItemsControl
+                    ItemsSource="{Binding Jobs}"
+                    Margin="16,12,16,16"
+                    VirtualizingPanel.IsVirtualizing="True">
                     <ItemsControl.ItemTemplate>
-                        <DataTemplate DataType="{x:Type local:BatchJobViewModel}">
-                            <Border Margin="0,0,0,8"
-                                    Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
-                                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                                    BorderThickness="1"
-                                    CornerRadius="6"
-                                    Padding="14,10">
+                        <DataTemplate
+                            DataType="{x:Type local:BatchJobViewModel}">
+                            <Border
+                                Margin="0,0,0,8"
+                                Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
+                                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Padding="14,10">
                                 <StackPanel>
 
                                     <!-- 행 1: 파일명 + 상태 + 버튼 -->
                                     <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*"    />
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition
+                                                Width="Auto" />
+                                            <ColumnDefinition
+                                                Width="*" />
+                                            <ColumnDefinition
+                                                Width="Auto" />
+                                            <ColumnDefinition
+                                                Width="Auto" />
+                                            <ColumnDefinition
+                                                Width="Auto" />
                                         </Grid.ColumnDefinitions>
 
                                         <!-- 파일 아이콘 -->
-                                        <ui:SymbolIcon Grid.Column="0"
-                                                       Symbol="Document24"
-                                                       FontSize="15"
-                                                       Margin="0,0,8,0"
-                                                       VerticalAlignment="Center"
-                                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                        <ui:SymbolIcon
+                                            Grid.Column="0"
+                                            Symbol="Document24"
+                                            FontSize="15"
+                                            Margin="0,0,8,0"
+                                            VerticalAlignment="Center"
+                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
 
                                         <!-- 파일명 -->
-                                        <TextBlock Grid.Column="1"
-                                                   Text="{Binding FileName}"
-                                                   FontSize="13"
-                                                   FontWeight="SemiBold"
-                                                   VerticalAlignment="Center"
-                                                   TextTrimming="CharacterEllipsis"
-                                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            Text="{Binding FileName}"
+                                            FontSize="13"
+                                            FontWeight="SemiBold"
+                                            VerticalAlignment="Center"
+                                            TextTrimming="CharacterEllipsis"
+                                            Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
 
                                         <!-- 상태 배지 -->
-                                        <TextBlock Grid.Column="2"
-                                                   Text="{Binding StatusLabel}"
-                                                   Style="{StaticResource StatusBadge}"
-                                                   Margin="10,0" />
+                                        <TextBlock
+                                            Grid.Column="2"
+                                            Text="{Binding StatusLabel}"
+                                            Style="{StaticResource StatusBadge}"
+                                            Margin="10,0" />
 
                                         <!-- 로그 토글 -->
-                                        <ui:Button Grid.Column="3"
-                                                   Command="{Binding DataContext.ToggleLogCommand,
+                                        <ui:Button
+                                            Grid.Column="3"
+                                            Command="{Binding DataContext.ToggleLogCommand,
                                                        RelativeSource={RelativeSource AncestorType=Page}}"
-                                                   CommandParameter="{Binding}"
-                                                   Margin="0,0,4,0"
-                                                   Padding="6,2"
-                                                   ToolTip="로그 표시/숨김"
-                                                   Icon="{ui:SymbolIcon Symbol=TextBulletListSquare24}" />
+                                            CommandParameter="{Binding}"
+                                            Margin="0,0,4,0"
+                                            Padding="6,2"
+                                            ToolTip="로그 표시/숨김"
+                                            Icon="{ui:SymbolIcon Symbol=TextBulletListSquare24}" />
 
                                         <!-- 제거 버튼 -->
-                                        <ui:Button Grid.Column="4"
-                                                   Command="{Binding DataContext.RemoveJobCommand,
+                                        <ui:Button
+                                            Grid.Column="4"
+                                            Command="{Binding DataContext.RemoveJobCommand,
                                                        RelativeSource={RelativeSource AncestorType=Page}}"
-                                                   CommandParameter="{Binding}"
-                                                   Padding="6,2"
-                                                   ToolTip="작업 제거"
-                                                   Icon="{ui:SymbolIcon Symbol=Dismiss24}" />
+                                            CommandParameter="{Binding}"
+                                            Padding="6,2"
+                                            ToolTip="작업 제거"
+                                            Icon="{ui:SymbolIcon Symbol=Dismiss24}" />
                                     </Grid>
 
                                     <!-- 행 2: 출력 경로 -->
-                                    <Grid Margin="0,8,0,0">
+                                    <Grid
+                                        Margin="0,8,0,0">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="40"  />
-                                            <ColumnDefinition Width="*"   />
+                                            <ColumnDefinition
+                                                Width="40" />
+                                            <ColumnDefinition
+                                                Width="*" />
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0"
-                                                   Text="출력"
-                                                   FontSize="11"
-                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                                   VerticalAlignment="Center" />
-                                        <ui:TextBox Grid.Column="1"
-                                                    Text="{Binding OutputFilePath, UpdateSourceTrigger=PropertyChanged}"
-                                                    FontSize="11"
-                                                    PlaceholderText="출력 파일 경로" />
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            Text="출력"
+                                            FontSize="11"
+                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                            VerticalAlignment="Center" />
+                                        <ui:TextBox
+                                            Grid.Column="1"
+                                            Text="{Binding OutputFilePath, UpdateSourceTrigger=PropertyChanged}"
+                                            FontSize="11"
+                                            PlaceholderText="출력 파일 경로" />
                                     </Grid>
 
                                     <!-- 행 3: 진행 바 (실행 중일 때만) -->
-                                    <Grid Margin="0,8,0,0"
-                                          Visibility="{Binding IsRunning, Converter={StaticResource BoolToVis}}">
+                                    <Grid
+                                        Margin="0,8,0,0"
+                                        Visibility="{Binding IsRunning, Converter={StaticResource BoolToVis}}">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"    />
-                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition
+                                                Width="*" />
+                                            <ColumnDefinition
+                                                Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <ProgressBar Grid.Column="0"
-                                                     Value="{Binding Progress}"
-                                                     Height="6"
-                                                     VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="1"
-                                                   Text="{Binding Progress, StringFormat={}{0:F0}%}"
-                                                   FontSize="11"
-                                                   Margin="8,0,0,0"
-                                                   VerticalAlignment="Center"
-                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                        <ProgressBar
+                                            Grid.Column="0"
+                                            Value="{Binding Progress}"
+                                            Height="6"
+                                            VerticalAlignment="Center" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            Text="{Binding Progress, StringFormat={}{0:F0}%}"
+                                            FontSize="11"
+                                            Margin="8,0,0,0"
+                                            VerticalAlignment="Center"
+                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                                     </Grid>
 
                                     <!-- 행 4: 완료 진행 바 (완료/실패 시) -->
-                                    <ProgressBar Value="{Binding Progress}"
-                                                 Height="4"
-                                                 Margin="0,8,0,0"
-                                                 Visibility="{Binding IsFinished, Converter={StaticResource BoolToVis}}">
+                                    <ProgressBar
+                                        Value="{Binding Progress}"
+                                        Height="4"
+                                        Margin="0,8,0,0"
+                                        Visibility="{Binding IsFinished, Converter={StaticResource BoolToVis}}">
                                         <ProgressBar.Style>
-                                            <Style TargetType="ProgressBar">
+                                            <Style
+                                                TargetType="ProgressBar">
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding Status}"
-                                                                 Value="{x:Static local:BatchJobStatus.Done}">
-                                                        <Setter Property="Foreground" Value="#4CAF50" />
+                                                    <DataTrigger
+                                                        Binding="{Binding Status}"
+                                                        Value="{x:Static local:BatchJobStatus.Done}">
+                                                        <Setter
+                                                            Property="Foreground"
+                                                            Value="#4CAF50" />
                                                     </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Status}"
-                                                                 Value="{x:Static local:BatchJobStatus.Failed}">
-                                                        <Setter Property="Foreground" Value="#F44336" />
+                                                    <DataTrigger
+                                                        Binding="{Binding Status}"
+                                                        Value="{x:Static local:BatchJobStatus.Failed}">
+                                                        <Setter
+                                                            Property="Foreground"
+                                                            Value="#F44336" />
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
@@ -370,19 +516,20 @@
                                     </ProgressBar>
 
                                     <!-- 행 5: 로그 -->
-                                    <TextBox Text="{Binding LogText, Mode=OneWay}"
-                                             IsReadOnly="True"
-                                             FontFamily="Consolas, Courier New"
-                                             FontSize="11"
-                                             MaxHeight="160"
-                                             Margin="0,8,0,0"
-                                             Padding="8"
-                                             Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                                             Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                             BorderThickness="0"
-                                             TextWrapping="Wrap"
-                                             VerticalScrollBarVisibility="Auto"
-                                             Visibility="{Binding ShowLog, Converter={StaticResource BoolToVis}}" />
+                                    <TextBox
+                                        Text="{Binding LogText, Mode=OneWay}"
+                                        IsReadOnly="True"
+                                        FontFamily="Consolas, Courier New"
+                                        FontSize="11"
+                                        MaxHeight="160"
+                                        Margin="0,8,0,0"
+                                        Padding="8"
+                                        Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                        BorderThickness="0"
+                                        TextWrapping="Wrap"
+                                        VerticalScrollBarVisibility="Auto"
+                                        Visibility="{Binding ShowLog, Converter={StaticResource BoolToVis}}" />
 
                                 </StackPanel>
                             </Border>

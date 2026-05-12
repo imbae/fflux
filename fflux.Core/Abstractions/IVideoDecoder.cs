@@ -1,5 +1,6 @@
 using fflux.Core.Models;
 using fflux.Core.Models.StreamInfo;
+using fflux.Core.Models.Options;
 
 namespace fflux.Core.Abstractions;
 
@@ -34,11 +35,17 @@ public interface IVideoDecoder : IAsyncDisposable
     ///     사용할 비디오 스트림 인덱스.
     ///     -1이면 FFmpeg가 자동으로 최적 스트림을 선택합니다.
     /// </param>
+    /// <param name="options">
+    ///     재생 옵션 (공통 디코더 설정 + 스트리밍 전용 설정).
+    ///     null이면 기본값을 사용합니다.
+    /// </param>
     /// <param name="ct">취소 토큰</param>
     /// <exception cref="InvalidOperationException">FFmpeg가 초기화되지 않은 경우</exception>
     /// <exception cref="FileNotFoundException">파일이 존재하지 않는 경우</exception>
     /// <exception cref="Exceptions.MediaReadException">스트림 열기 또는 코덱 초기화 실패</exception>
-    Task OpenAsync(string filePath, int streamIndex = -1, CancellationToken ct = default);
+    Task OpenAsync(string filePath, int streamIndex = -1,
+                   VideoOpenOptions? options = null,
+                   CancellationToken ct = default);
 
     /// <summary>
     /// 비디오 프레임을 순서대로 디코딩하여 <see cref="VideoFrame"/>으로 반환합니다.

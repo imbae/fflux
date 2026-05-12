@@ -16,7 +16,7 @@
     mc:Ignorable="d"
     Title="fflux"
     Width="1280"
-    Height="800"
+    Height="900"
     MinWidth="960"
     MinHeight="600"
     WindowBackdropType="Mica"
@@ -25,11 +25,14 @@
     <Grid>
         <Grid.RowDefinitions>
             <!-- TitleBar -->
-            <RowDefinition Height="Auto" />
+            <RowDefinition
+                Height="Auto" />
             <!-- NavigationView + Content -->
-            <RowDefinition Height="*" />
+            <RowDefinition
+                Height="*" />
             <!-- StatusBar -->
-            <RowDefinition Height="Auto" />
+            <RowDefinition
+                Height="Auto" />
         </Grid.RowDefinitions>
 
         <!-- ══ TitleBar ════════════════════════════════════════════ -->
@@ -53,7 +56,8 @@
                     Content="Player"
                     TargetPageType="{x:Type player:PlayerPage}">
                     <ui:NavigationViewItem.Icon>
-                        <ui:SymbolIcon Symbol="Play24" />
+                        <ui:SymbolIcon
+                            Symbol="Play24" />
                     </ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
 
@@ -62,7 +66,8 @@
                     Content="FFmpeg Explorer"
                     TargetPageType="{x:Type explorer:FFmpegExplorerPage}">
                     <ui:NavigationViewItem.Icon>
-                        <ui:SymbolIcon Symbol="Wrench24" />
+                        <ui:SymbolIcon
+                            Symbol="Wrench24" />
                     </ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
 
@@ -71,7 +76,8 @@
                     Content="Video Analyzer"
                     TargetPageType="{x:Type analyzer:VideoAnalyzerPage}">
                     <ui:NavigationViewItem.Icon>
-                        <ui:SymbolIcon Symbol="DataTrending24" />
+                        <ui:SymbolIcon
+                            Symbol="DataTrending24" />
                     </ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
 
@@ -80,7 +86,8 @@
                     Content="Batch Queue"
                     TargetPageType="{x:Type batch:BatchQueuePage}">
                     <ui:NavigationViewItem.Icon>
-                        <ui:SymbolIcon Symbol="StackStar24" />
+                        <ui:SymbolIcon
+                            Symbol="StackStar24" />
                     </ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
 
@@ -89,7 +96,8 @@
                     Content="Scene Detector"
                     TargetPageType="{x:Type scene:SceneDetectorPage}">
                     <ui:NavigationViewItem.Icon>
-                        <ui:SymbolIcon Symbol="Filmstrip24" />
+                        <ui:SymbolIcon
+                            Symbol="Filmstrip24" />
                     </ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
 
@@ -98,7 +106,8 @@
                     Content="Bitrate Analyzer"
                     TargetPageType="{x:Type bitrate:BitrateAnalyzerPage}">
                     <ui:NavigationViewItem.Icon>
-                        <ui:SymbolIcon Symbol="DataTrending24" />
+                        <ui:SymbolIcon
+                            Symbol="DataTrending24" />
                     </ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
 
@@ -111,7 +120,8 @@
                     Content="Settings"
                     TargetPageType="{x:Type settings:SettingsPage}">
                     <ui:NavigationViewItem.Icon>
-                        <ui:SymbolIcon Symbol="Settings24" />
+                        <ui:SymbolIcon
+                            Symbol="Settings24" />
                     </ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
 
@@ -138,10 +148,14 @@
                 Height="26"
                 Margin="16,0">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition
+                        Width="*" />
+                    <ColumnDefinition
+                        Width="Auto" />
+                    <ColumnDefinition
+                        Width="Auto" />
+                    <ColumnDefinition
+                        Width="Auto" />
                 </Grid.ColumnDefinitions>
 
                 <!-- 파일명 -->
@@ -188,7 +202,9 @@
                 </StackPanel>
 
                 <!-- 우측 여백 -->
-                <Rectangle Grid.Column="3" Width="4" />
+                <Rectangle
+                    Grid.Column="3"
+                    Width="4" />
 
             </Grid>
         </Border>

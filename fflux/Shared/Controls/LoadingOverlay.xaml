@@ -12,13 +12,22 @@
 
     <!-- IsActive=False 이면 Collapsed -->
     <UserControl.Style>
-        <Style TargetType="UserControl">
+        <Style
+            TargetType="UserControl">
             <Style.Triggers>
-                <DataTrigger Binding="{Binding IsActive, RelativeSource={RelativeSource Self}}" Value="False">
-                    <Setter Property="Visibility" Value="Collapsed" />
+                <DataTrigger
+                    Binding="{Binding IsActive, RelativeSource={RelativeSource Self}}"
+                    Value="False">
+                    <Setter
+                        Property="Visibility"
+                        Value="Collapsed" />
                 </DataTrigger>
-                <DataTrigger Binding="{Binding IsActive, RelativeSource={RelativeSource Self}}" Value="True">
-                    <Setter Property="Visibility" Value="Visible" />
+                <DataTrigger
+                    Binding="{Binding IsActive, RelativeSource={RelativeSource Self}}"
+                    Value="True">
+                    <Setter
+                        Property="Visibility"
+                        Value="Visible" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -28,7 +37,8 @@
     <Grid>
 
         <!-- 반투명 배경 -->
-        <Rectangle Fill="#CC0D0D1A" />
+        <Rectangle
+            Fill="#CC0D0D1A" />
 
         <!-- 중앙 카드 -->
         <ui:Card
@@ -67,16 +77,23 @@
                     HorizontalAlignment="Center"
                     Margin="0,6,0,0">
                     <TextBlock.Style>
-                        <Style TargetType="TextBlock">
+                        <Style
+                            TargetType="TextBlock">
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsIndeterminate, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="True">
-                                    <Setter Property="Visibility" Value="Collapsed" />
+                                <DataTrigger
+                                    Binding="{Binding IsIndeterminate, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    Value="True">
+                                    <Setter
+                                        Property="Visibility"
+                                        Value="Collapsed" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
                     </TextBlock.Style>
-                    <Run Text="{Binding Progress, RelativeSource={RelativeSource AncestorType=UserControl}, StringFormat={}{0:F0}}" />
-                    <Run Text="%" />
+                    <Run
+                        Text="{Binding Progress, RelativeSource={RelativeSource AncestorType=UserControl}, StringFormat={}{0:F0}}" />
+                    <Run
+                        Text="%" />
                 </TextBlock>
 
                 <!-- 취소 버튼 -->
@@ -87,10 +104,16 @@
                     Margin="0,20,0,0"
                     Command="{Binding CancelCommand, RelativeSource={RelativeSource AncestorType=UserControl}}">
                     <ui:Button.Style>
-                        <Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+                        <Style
+                            TargetType="ui:Button"
+                            BasedOn="{StaticResource {x:Type ui:Button}}">
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding CanCancel, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="False">
-                                    <Setter Property="Visibility" Value="Collapsed" />
+                                <DataTrigger
+                                    Binding="{Binding CanCancel, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    Value="False">
+                                    <Setter
+                                        Property="Visibility"
+                                        Value="Collapsed" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>

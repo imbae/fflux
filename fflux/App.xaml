@@ -8,14 +8,17 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <!-- WPF-UI 다크 테마 -->
-                <ui:ThemesDictionary Theme="Dark" />
+                <ui:ThemesDictionary
+                    Theme="Dark" />
                 <ui:ControlsDictionary />
                 <!-- fflux 커스텀 색상 팔레트 -->
-                <ResourceDictionary Source="Shared/Themes/ColorPalette.xaml" />
+                <ResourceDictionary
+                    Source="Shared/Themes/ColorPalette.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <!-- 공용 컨버터 -->
-            <conv:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
+            <conv:StringToVisibilityConverter
+                x:Key="StringToVisibilityConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

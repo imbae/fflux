@@ -16,197 +16,310 @@
     Title="Bitrate Analyzer">
 
     <Page.Resources>
-        <BooleanToVisibilityConverter          x:Key="BoolToVis"    />
-        <conv:InverseBoolToVisibilityConverter x:Key="InvBoolToVis" />
+        <BooleanToVisibilityConverter
+            x:Key="BoolToVis" />
+        <conv:InverseBoolToVisibilityConverter
+            x:Key="InvBoolToVis" />
 
         <!-- 통계 카드 라벨 -->
-        <Style x:Key="StatLabel" TargetType="TextBlock">
-            <Setter Property="FontSize"   Value="11" />
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
-            <Setter Property="Margin"     Value="0,0,0,4" />
+        <Style
+            x:Key="StatLabel"
+            TargetType="TextBlock">
+            <Setter
+                Property="FontSize"
+                Value="11" />
+            <Setter
+                Property="Foreground"
+                Value="{DynamicResource TextFillColorSecondaryBrush}" />
+            <Setter
+                Property="Margin"
+                Value="0,0,0,4" />
         </Style>
 
         <!-- 통계 카드 값 -->
-        <Style x:Key="StatValue" TargetType="TextBlock">
-            <Setter Property="FontSize"   Value="18" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+        <Style
+            x:Key="StatValue"
+            TargetType="TextBlock">
+            <Setter
+                Property="FontSize"
+                Value="18" />
+            <Setter
+                Property="FontWeight"
+                Value="SemiBold" />
+            <Setter
+                Property="Foreground"
+                Value="{DynamicResource TextFillColorPrimaryBrush}" />
         </Style>
 
         <!-- 작은 통계 카드 값 -->
-        <Style x:Key="StatValueSm" TargetType="TextBlock">
-            <Setter Property="FontSize"   Value="14" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+        <Style
+            x:Key="StatValueSm"
+            TargetType="TextBlock">
+            <Setter
+                Property="FontSize"
+                Value="14" />
+            <Setter
+                Property="FontWeight"
+                Value="SemiBold" />
+            <Setter
+                Property="Foreground"
+                Value="{DynamicResource TextFillColorPrimaryBrush}" />
         </Style>
     </Page.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />   <!-- ① 파일 입력 바 -->
-            <RowDefinition Height="Auto" />   <!-- ② 상태 + 진행 바 -->
-            <RowDefinition Height="Auto" />   <!-- ③ 통계 카드 -->
-            <RowDefinition Height="*"    />   <!-- ④ 차트 + 빈 상태 -->
+            <RowDefinition
+                Height="Auto" />
+            <!-- ① 파일 입력 바 -->
+            <RowDefinition
+                Height="Auto" />
+            <!-- ② 상태 + 진행 바 -->
+            <RowDefinition
+                Height="Auto" />
+            <!-- ③ 통계 카드 -->
+            <RowDefinition
+                Height="*" />
+            <!-- ④ 차트 + 빈 상태 -->
         </Grid.RowDefinitions>
 
         <!-- ══ ① 파일 입력 바 ═══════════════════════════════════════ -->
-        <Border Grid.Row="0"
-                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                BorderThickness="0,0,0,1"
-                Padding="20,12">
+        <Border
+            Grid.Row="0"
+            Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+            BorderThickness="0,0,0,1"
+            Padding="20,12">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"    />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition
+                        Width="*" />
+                    <ColumnDefinition
+                        Width="Auto" />
+                    <ColumnDefinition
+                        Width="Auto" />
+                    <ColumnDefinition
+                        Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <ui:TextBox Grid.Column="0"
-                            PlaceholderText="미디어 파일 경로 (드래그 또는 열기)"
-                            Text="{Binding FilePath, Mode=OneWay}"
-                            IsReadOnly="True"
-                            VerticalAlignment="Center"
-                            Margin="0,0,8,0" />
+                <ui:TextBox
+                    Grid.Column="0"
+                    PlaceholderText="미디어 파일 경로 (드래그 또는 열기)"
+                    Text="{Binding FilePath, Mode=OneWay}"
+                    IsReadOnly="True"
+                    VerticalAlignment="Center"
+                    Margin="0,0,8,0" />
 
-                <ui:Button Grid.Column="1"
-                           Content="열기"
-                           Command="{Binding BrowseFileCommand}"
-                           Margin="0,0,8,0" />
+                <ui:Button
+                    Grid.Column="1"
+                    Content="열기"
+                    Command="{Binding BrowseFileCommand}"
+                    Margin="0,0,8,0" />
 
-                <ui:Button Grid.Column="2"
-                           Content="분석"
-                           Appearance="Primary"
-                           Icon="{ui:SymbolIcon Symbol=DataTrending24}"
-                           Command="{Binding AnalyzeCommand}"
-                           Visibility="{Binding IsAnalyzing, Converter={StaticResource InvBoolToVis}}"
-                           Margin="0,0,8,0" />
+                <ui:Button
+                    Grid.Column="2"
+                    Content="분석"
+                    Appearance="Primary"
+                    Icon="{ui:SymbolIcon Symbol=DataTrending24}"
+                    Command="{Binding AnalyzeCommand}"
+                    Visibility="{Binding IsAnalyzing, Converter={StaticResource InvBoolToVis}}"
+                    Margin="0,0,8,0" />
 
-                <ui:Button Grid.Column="3"
-                           Content="취소"
-                           Appearance="Danger"
-                           Command="{Binding CancelCommand}"
-                           Visibility="{Binding IsAnalyzing, Converter={StaticResource BoolToVis}}" />
+                <ui:Button
+                    Grid.Column="3"
+                    Content="취소"
+                    Appearance="Danger"
+                    Command="{Binding CancelCommand}"
+                    Visibility="{Binding IsAnalyzing, Converter={StaticResource BoolToVis}}" />
             </Grid>
         </Border>
 
         <!-- ══ ② 상태 + 진행 바 ════════════════════════════════════ -->
-        <StackPanel Grid.Row="1">
-            <Grid Margin="20,8,20,4">
+        <StackPanel
+            Grid.Row="1">
+            <Grid
+                Margin="20,8,20,4">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"    />
-                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition
+                        Width="*" />
+                    <ColumnDefinition
+                        Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Column="0"
-                           Text="{Binding StatusText}"
-                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                           FontSize="12" VerticalAlignment="Center" />
+                <TextBlock
+                    Grid.Column="0"
+                    Text="{Binding StatusText}"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    FontSize="12"
+                    VerticalAlignment="Center" />
 
                 <!-- 분석 중 카운터 -->
-                <StackPanel Grid.Column="1"
-                            Orientation="Horizontal"
-                            Visibility="{Binding IsAnalyzing, Converter={StaticResource BoolToVis}}">
-                    <TextBlock Text="{Binding StageText}"
-                               FontSize="12"
-                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                               VerticalAlignment="Center"
-                               Margin="0,0,8,0" />
-                    <TextBlock FontSize="12"
-                               Foreground="{DynamicResource SystemAccentColorPrimaryBrush}"
-                               VerticalAlignment="Center">
-                        <Run Text="{Binding FramesProcessed, Mode=OneWay, StringFormat={}{0:N0}}" />
-                        <Run Text=" 프레임" />
+                <StackPanel
+                    Grid.Column="1"
+                    Orientation="Horizontal"
+                    Visibility="{Binding IsAnalyzing, Converter={StaticResource BoolToVis}}">
+                    <TextBlock
+                        Text="{Binding StageText}"
+                        FontSize="12"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        VerticalAlignment="Center"
+                        Margin="0,0,8,0" />
+                    <TextBlock
+                        FontSize="12"
+                        Foreground="{DynamicResource SystemAccentColorPrimaryBrush}"
+                        VerticalAlignment="Center">
+                        <Run
+                            Text="{Binding FramesProcessed, Mode=OneWay, StringFormat={}{0:N0}}" />
+                        <Run
+                            Text=" 프레임" />
                     </TextBlock>
                 </StackPanel>
             </Grid>
 
-            <ProgressBar IsIndeterminate="True" Height="2"
-                         Visibility="{Binding IsAnalyzing, Converter={StaticResource BoolToVis}}" />
+            <ProgressBar
+                IsIndeterminate="True"
+                Height="2"
+                Visibility="{Binding IsAnalyzing, Converter={StaticResource BoolToVis}}" />
         </StackPanel>
 
         <!-- ══ ③ 통계 카드 (HasResult=True) ════════════════════════ -->
-        <Grid Grid.Row="2"
-              Margin="20,10,20,0"
-              Visibility="{Binding HasResult, Converter={StaticResource BoolToVis}}">
+        <Grid
+            Grid.Row="2"
+            Margin="20,10,20,0"
+            Visibility="{Binding HasResult, Converter={StaticResource BoolToVis}}">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition
+                    Width="*" />
+                <ColumnDefinition
+                    Width="*" />
+                <ColumnDefinition
+                    Width="*" />
+                <ColumnDefinition
+                    Width="*" />
+                <ColumnDefinition
+                    Width="*" />
+                <ColumnDefinition
+                    Width="*" />
             </Grid.ColumnDefinitions>
 
             <!-- 평균 비트레이트 -->
-            <Border Grid.Column="0"
-                    Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
-                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,8,0">
+            <Border
+                Grid.Column="0"
+                Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="6"
+                Padding="12,10"
+                Margin="0,0,8,0">
                 <StackPanel>
-                    <TextBlock Text="평균 비트레이트" Style="{StaticResource StatLabel}" />
-                    <TextBlock Text="{Binding AvgBitrateText}" Style="{StaticResource StatValue}" />
+                    <TextBlock
+                        Text="평균 비트레이트"
+                        Style="{StaticResource StatLabel}" />
+                    <TextBlock
+                        Text="{Binding AvgBitrateText}"
+                        Style="{StaticResource StatValue}" />
                 </StackPanel>
             </Border>
 
             <!-- 최대 비트레이트 -->
-            <Border Grid.Column="1"
-                    Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
-                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,8,0">
+            <Border
+                Grid.Column="1"
+                Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="6"
+                Padding="12,10"
+                Margin="0,0,8,0">
                 <StackPanel>
-                    <TextBlock Text="최대 비트레이트" Style="{StaticResource StatLabel}" />
-                    <TextBlock Text="{Binding PeakBitrateText}" Style="{StaticResource StatValue}"
-                               Foreground="#F44336" />
+                    <TextBlock
+                        Text="최대 비트레이트"
+                        Style="{StaticResource StatLabel}" />
+                    <TextBlock
+                        Text="{Binding PeakBitrateText}"
+                        Style="{StaticResource StatValue}"
+                        Foreground="#F44336" />
                 </StackPanel>
             </Border>
 
             <!-- 최소 비트레이트 -->
-            <Border Grid.Column="2"
-                    Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
-                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,8,0">
+            <Border
+                Grid.Column="2"
+                Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="6"
+                Padding="12,10"
+                Margin="0,0,8,0">
                 <StackPanel>
-                    <TextBlock Text="최소 비트레이트" Style="{StaticResource StatLabel}" />
-                    <TextBlock Text="{Binding MinBitrateText}" Style="{StaticResource StatValue}"
-                               Foreground="#4CAF50" />
+                    <TextBlock
+                        Text="최소 비트레이트"
+                        Style="{StaticResource StatLabel}" />
+                    <TextBlock
+                        Text="{Binding MinBitrateText}"
+                        Style="{StaticResource StatValue}"
+                        Foreground="#4CAF50" />
                 </StackPanel>
             </Border>
 
             <!-- 프레임 타입 분포 -->
-            <Border Grid.Column="3"
-                    Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
-                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,8,0">
+            <Border
+                Grid.Column="3"
+                Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="6"
+                Padding="12,10"
+                Margin="0,0,8,0">
                 <StackPanel>
-                    <TextBlock Text="I : P : B 비율" Style="{StaticResource StatLabel}" />
-                    <TextBlock Text="{Binding FrameTypeText}" Style="{StaticResource StatValueSm}" />
+                    <TextBlock
+                        Text="I : P : B 비율"
+                        Style="{StaticResource StatLabel}" />
+                    <TextBlock
+                        Text="{Binding FrameTypeText}"
+                        Style="{StaticResource StatValueSm}" />
                 </StackPanel>
             </Border>
 
             <!-- 평균 GoP -->
-            <Border Grid.Column="4"
-                    Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
-                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,8,0">
+            <Border
+                Grid.Column="4"
+                Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="6"
+                Padding="12,10"
+                Margin="0,0,8,0">
                 <StackPanel>
-                    <TextBlock Text="평균 GoP 크기" Style="{StaticResource StatLabel}" />
-                    <TextBlock Text="{Binding AvgGopText}" Style="{StaticResource StatValue}" />
+                    <TextBlock
+                        Text="평균 GoP 크기"
+                        Style="{StaticResource StatLabel}" />
+                    <TextBlock
+                        Text="{Binding AvgGopText}"
+                        Style="{StaticResource StatValue}" />
                 </StackPanel>
             </Border>
 
             <!-- 총 프레임 / 길이 -->
-            <Border Grid.Column="5"
-                    Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
-                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1" CornerRadius="6" Padding="12,10">
+            <Border
+                Grid.Column="5"
+                Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="6"
+                Padding="12,10">
                 <StackPanel>
-                    <TextBlock Text="총 프레임 / 길이" Style="{StaticResource StatLabel}" />
-                    <TextBlock Style="{StaticResource StatValueSm}">
-                        <Run Text="{Binding TotalFramesText, Mode=OneWay}" />
-                        <Run Text=" / " Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
-                        <Run Text="{Binding DurationText, Mode=OneWay}" />
+                    <TextBlock
+                        Text="총 프레임 / 길이"
+                        Style="{StaticResource StatLabel}" />
+                    <TextBlock
+                        Style="{StaticResource StatValueSm}">
+                        <Run
+                            Text="{Binding TotalFramesText, Mode=OneWay}" />
+                        <Run
+                            Text=" / "
+                            Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                        <Run
+                            Text="{Binding DurationText, Mode=OneWay}" />
                     </TextBlock>
                 </StackPanel>
             </Border>
@@ -224,26 +337,30 @@
             Visibility="{Binding HasResult, Converter={StaticResource BoolToVis}}" />
 
         <!-- ══ ④-B 빈 상태 (HasResult=False) ══════════════════════ -->
-        <StackPanel Grid.Row="3"
-                    VerticalAlignment="Center"
-                    HorizontalAlignment="Center"
-                    Visibility="{Binding HasResult, Converter={StaticResource InvBoolToVis}}">
+        <StackPanel
+            Grid.Row="3"
+            VerticalAlignment="Center"
+            HorizontalAlignment="Center"
+            Visibility="{Binding HasResult, Converter={StaticResource InvBoolToVis}}">
 
-            <ui:SymbolIcon Symbol="DataTrending48"
-                           FontSize="64"
-                           Foreground="{DynamicResource TextFillColorDisabledBrush}"
-                           HorizontalAlignment="Center" />
+            <ui:SymbolIcon
+                Symbol="DataTrending48"
+                FontSize="64"
+                Foreground="{DynamicResource TextFillColorDisabledBrush}"
+                HorizontalAlignment="Center" />
 
-            <TextBlock Text="미디어 파일을 열어 비트레이트 그래프를 분석하세요."
-                       FontSize="13"
-                       Margin="0,14,0,4"
-                       Foreground="{DynamicResource TextFillColorDisabledBrush}"
-                       HorizontalAlignment="Center" />
+            <TextBlock
+                Text="미디어 파일을 열어 비트레이트 그래프를 분석하세요."
+                FontSize="13"
+                Margin="0,14,0,4"
+                Foreground="{DynamicResource TextFillColorDisabledBrush}"
+                HorizontalAlignment="Center" />
 
-            <TextBlock Text="분석에는 파일 크기에 따라 수십 초가 소요될 수 있습니다."
-                       FontSize="11"
-                       Foreground="{DynamicResource TextFillColorDisabledBrush}"
-                       HorizontalAlignment="Center" />
+            <TextBlock
+                Text="분석에는 파일 크기에 따라 수십 초가 소요될 수 있습니다."
+                FontSize="11"
+                Foreground="{DynamicResource TextFillColorDisabledBrush}"
+                HorizontalAlignment="Center" />
         </StackPanel>
 
     </Grid>

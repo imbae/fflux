@@ -58,8 +58,10 @@
                     <!-- 경로 입력 + 찾아보기 -->
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition
+                                Width="*" />
+                            <ColumnDefinition
+                                Width="Auto" />
                         </Grid.ColumnDefinitions>
 
                         <ui:TextBox
@@ -117,7 +119,8 @@
                         Margin="0,0,0,16" />
 
                     <!-- 테마 선택 RadioButton -->
-                    <StackPanel Orientation="Horizontal">
+                    <StackPanel
+                        Orientation="Horizontal">
 
                         <Border
                             BorderThickness="1"
@@ -195,8 +198,10 @@
 
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition
+                                Width="*" />
+                            <ColumnDefinition
+                                Width="Auto" />
                         </Grid.ColumnDefinitions>
 
                         <ui:TextBox
@@ -220,6 +225,585 @@
                         Margin="0,6,0,0"
                         Visibility="{Binding OutputFolderValidation,
                                      Converter={StaticResource StringToVisibilityConverter}}" />
+
+                </StackPanel>
+            </ui:Card>
+
+            <!-- ══ Card: 디코더 설정 (모든 소스 공통) ══════════ -->
+            <ui:Card
+                Margin="0,0,0,16"
+                Padding="24,20">
+                <StackPanel>
+
+                    <!-- 섹션 헤더 -->
+                    <StackPanel
+                        Orientation="Horizontal"
+                        Margin="0,0,0,4">
+                        <ui:SymbolIcon
+                            Symbol="ArchiveMultiple24"
+                            FontSize="18"
+                            Foreground="{DynamicResource FFluxSecondaryBrush}"
+                            Margin="0,0,8,0"
+                            VerticalAlignment="Center" />
+                        <TextBlock
+                            Text="디코더 설정"
+                            FontSize="16"
+                            FontWeight="SemiBold"
+                            VerticalAlignment="Center" />
+                    </StackPanel>
+                    <TextBlock
+                        Text="파일·스트리밍·캡처 장치 등 모든 소스에 공통으로 적용됩니다."
+                        FontSize="12"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        TextWrapping="Wrap"
+                        Margin="0,0,0,20" />
+
+                    <!-- ── 하드웨어 가속 ── -->
+                    <TextBlock
+                        Text="하드웨어 가속 (hwaccel)"
+                        FontSize="13"
+                        FontWeight="Medium"
+                        Margin="0,0,0,2" />
+                    <TextBlock
+                        Text="GPU 하드웨어 디코더를 사용해 CPU 부하를 크게 줄입니다. 초기화 실패 시 자동으로 소프트웨어 디코딩으로 전환됩니다. D3D11VA는 Windows 10+, DXVA2는 구형 Windows, CUDA는 NVIDIA, QSV는 Intel GPU에 해당합니다."
+                        FontSize="11"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        TextWrapping="Wrap"
+                        Margin="0,0,0,8" />
+                    <ComboBox
+                        SelectedValue="{Binding HwAccel}"
+                        SelectedValuePath="Tag"
+                        HorizontalAlignment="Left"
+                        MinWidth="300"
+                        Margin="0,0,0,20">
+                        <ComboBoxItem
+                            Content="없음 — 소프트웨어 디코딩 (기본값)"
+                            Tag="none" />
+                        <ComboBoxItem
+                            Content="자동 감지 — D3D11VA 우선 시도"
+                            Tag="auto" />
+                        <ComboBoxItem
+                            Content="D3D11VA — Windows 10+ GPU 가속"
+                            Tag="d3d11va" />
+                        <ComboBoxItem
+                            Content="DXVA2 — 구형 Windows GPU 가속"
+                            Tag="dxva2" />
+                        <ComboBoxItem
+                            Content="CUDA — NVIDIA GPU 가속"
+                            Tag="cuda" />
+                        <ComboBoxItem
+                            Content="QSV — Intel Quick Sync Video"
+                            Tag="qsv" />
+                    </ComboBox>
+
+                    <!-- ── 2열 그리드: 파일 스레드 / skip_loop_filter / skip_frame ── -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition
+                                Width="*" />
+                            <ColumnDefinition
+                                Width="16" />
+                            <ColumnDefinition
+                                Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition
+                                Height="Auto" />
+                            <RowDefinition
+                                Height="16" />
+                            <RowDefinition
+                                Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <!-- 파일 디코더 스레드 수 -->
+                        <StackPanel
+                            Grid.Column="0"
+                            Grid.Row="0">
+                            <TextBlock
+                                Text="파일 디코더 스레드 수 (thread_count)"
+                                FontSize="13"
+                                FontWeight="Medium"
+                                Margin="0,0,0,2" />
+                            <TextBlock
+                                Text="파일 재생 시 사용할 디코딩 스레드 수입니다. 0 = CPU 코어 수 자동. 스레드가 많을수록 처리량이 늘지만 메모리 사용량도 증가합니다. (기본: 0)"
+                                FontSize="11"
+                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                TextWrapping="Wrap"
+                                Margin="0,0,0,6" />
+                            <ui:NumberBox
+                                Value="{Binding FileThreadCount, Mode=TwoWay}"
+                                Minimum="0"
+                                Maximum="32"
+                                SmallChange="1"
+                                LargeChange="4"
+                                SpinButtonPlacementMode="Inline"
+                                HorizontalAlignment="Stretch" />
+                        </StackPanel>
+
+                        <!-- 디블록킹 필터 건너뜀 -->
+                        <StackPanel
+                            Grid.Column="2"
+                            Grid.Row="0">
+                            <TextBlock
+                                Text="디블록킹 필터 건너뜀 (skip_loop_filter)"
+                                FontSize="13"
+                                FontWeight="Medium"
+                                Margin="0,0,0,2" />
+                            <TextBlock
+                                Text="H.264/HEVC 디블록킹 필터 적용 범위를 제한해 CPU 부하를 줄입니다. '비참조 프레임' 설정 시 화질 저하 없이 15~20% 성능 향상 효과가 있습니다. (기본: 없음)"
+                                FontSize="11"
+                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                TextWrapping="Wrap"
+                                Margin="0,0,0,6" />
+                            <ComboBox
+                                SelectedValue="{Binding SkipLoopFilter}"
+                                SelectedValuePath="Tag"
+                                HorizontalAlignment="Stretch">
+                                <ComboBoxItem
+                                    Content="없음 — 항상 적용 (기본값)"
+                                    Tag="none" />
+                                <ComboBoxItem
+                                    Content="비참조 프레임 — 권장 절충점"
+                                    Tag="nonref" />
+                                <ComboBoxItem
+                                    Content="전체 건너뜀 — 최고 성능, 화질 저하"
+                                    Tag="all" />
+                            </ComboBox>
+                        </StackPanel>
+
+                        <!-- 프레임 건너뜀 수준 -->
+                        <StackPanel
+                            Grid.Column="0"
+                            Grid.Row="2">
+                            <TextBlock
+                                Text="프레임 건너뜀 수준 (skip_frame)"
+                                FontSize="13"
+                                FontWeight="Medium"
+                                Margin="0,0,0,2" />
+                            <TextBlock
+                                Text="디코딩할 프레임 종류를 제한합니다. '비참조 프레임' = 참조 프레임만 디코딩, '비키프레임' = 키프레임만 디코딩(슬라이드쇼 효과). (기본: 없음)"
+                                FontSize="11"
+                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                TextWrapping="Wrap"
+                                Margin="0,0,0,6" />
+                            <ComboBox
+                                SelectedValue="{Binding SkipFrame}"
+                                SelectedValuePath="Tag"
+                                HorizontalAlignment="Stretch">
+                                <ComboBoxItem
+                                    Content="없음 — 모든 프레임 디코딩 (기본값)"
+                                    Tag="none" />
+                                <ComboBoxItem
+                                    Content="비참조 프레임 건너뜀"
+                                    Tag="nonref" />
+                                <ComboBoxItem
+                                    Content="비키프레임 건너뜀 — 키프레임만"
+                                    Tag="nonkey" />
+                                <ComboBoxItem
+                                    Content="전체 건너뜀"
+                                    Tag="all" />
+                            </ComboBox>
+                        </StackPanel>
+
+                    </Grid>
+
+                </StackPanel>
+            </ui:Card>
+
+            <!-- ══ Card: 스트리밍 옵션 ═══════════════════════ -->
+            <ui:Card
+                Margin="0,0,0,16"
+                Padding="24,20">
+                <StackPanel>
+
+                    <StackPanel
+                        Orientation="Horizontal"
+                        Margin="0,0,0,4">
+                        <ui:SymbolIcon
+                            Symbol="Wifi124"
+                            FontSize="18"
+                            Foreground="{DynamicResource FFluxSecondaryBrush}"
+                            Margin="0,0,8,0"
+                            VerticalAlignment="Center" />
+                        <TextBlock
+                            Text="스트리밍 옵션"
+                            FontSize="16"
+                            FontWeight="SemiBold"
+                            VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <TextBlock
+                        Text="RTSP·RTP·UDP·HTTP 등 네트워크 스트리밍 재생 시에만 적용됩니다. 장비 및 네트워크 환경에 맞게 조정하세요."
+                        FontSize="12"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        TextWrapping="Wrap"
+                        Margin="0,0,0,20" />
+
+                    <!-- ── RTSP 전송 프로토콜 ── -->
+                    <TextBlock
+                        Text="RTSP 전송 프로토콜 (rtsp_transport)"
+                        FontSize="13"
+                        FontWeight="Medium"
+                        Margin="0,0,0,2" />
+                    <TextBlock
+                        Text="RTSP URL에만 적용됩니다. TCP: 방화벽/NAT 환경에 안정적. UDP: 레이턴시가 낮지만 패킷 손실에 취약. HTTP: 프록시를 통과해야 할 때 사용."
+                        FontSize="12"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        TextWrapping="Wrap"
+                        Margin="0,0,0,8" />
+                    <StackPanel
+                        Orientation="Horizontal"
+                        Margin="0,0,0,16">
+                        <Border
+                            BorderThickness="1"
+                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                            CornerRadius="8"
+                            Padding="14,10"
+                            Margin="0,0,10,0"
+                            MinWidth="100">
+                            <RadioButton
+                                Content="TCP"
+                                IsChecked="{Binding IsRtspTcp}"
+                                GroupName="RtspTransportGroup"
+                                FontSize="13" />
+                        </Border>
+                        <Border
+                            BorderThickness="1"
+                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                            CornerRadius="8"
+                            Padding="14,10"
+                            Margin="0,0,10,0"
+                            MinWidth="100">
+                            <RadioButton
+                                Content="UDP"
+                                IsChecked="{Binding IsRtspUdp}"
+                                GroupName="RtspTransportGroup"
+                                FontSize="13" />
+                        </Border>
+                        <Border
+                            BorderThickness="1"
+                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                            CornerRadius="8"
+                            Padding="14,10"
+                            MinWidth="100">
+                            <RadioButton
+                                Content="HTTP"
+                                IsChecked="{Binding IsRtspHttp}"
+                                GroupName="RtspTransportGroup"
+                                FontSize="13" />
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ── RTSP 전송 프로토콜 ── -->
+                    <TextBlock
+                        Text="RTSP 전송 프로토콜 (rtsp_transport)"
+                        FontSize="13"
+                        FontWeight="Medium"
+                        Margin="0,0,0,2" />
+                    <TextBlock
+                        Text="RTSP URL에만 적용됩니다. TCP: 방화벽/NAT 환경에서 안정적. UDP: 레이턴시가 낮지만 패킷 손실에 취약. HTTP: 프록시를 통과해야 할 때 사용."
+                        FontSize="11"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        TextWrapping="Wrap"
+                        Margin="0,0,0,8" />
+                    <StackPanel
+                        Orientation="Horizontal"
+                        Margin="0,0,0,20">
+                        <Border
+                            BorderThickness="1"
+                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                            CornerRadius="8"
+                            Padding="14,10"
+                            Margin="0,0,10,0"
+                            MinWidth="100">
+                            <RadioButton
+                                Content="TCP"
+                                IsChecked="{Binding IsRtspTcp}"
+                                GroupName="RtspTransportGroup"
+                                FontSize="13" />
+                        </Border>
+                        <Border
+                            BorderThickness="1"
+                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                            CornerRadius="8"
+                            Padding="14,10"
+                            Margin="0,0,10,0"
+                            MinWidth="100">
+                            <RadioButton
+                                Content="UDP"
+                                IsChecked="{Binding IsRtspUdp}"
+                                GroupName="RtspTransportGroup"
+                                FontSize="13" />
+                        </Border>
+                        <Border
+                            BorderThickness="1"
+                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                            CornerRadius="8"
+                            Padding="14,10"
+                            MinWidth="100">
+                            <RadioButton
+                                Content="HTTP"
+                                IsChecked="{Binding IsRtspHttp}"
+                                GroupName="RtspTransportGroup"
+                                FontSize="13" />
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ── 6×2 그리드: 숫자 / bool 옵션 ── -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition
+                                Width="*" />
+                            <ColumnDefinition
+                                Width="16" />
+                            <ColumnDefinition
+                                Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition
+                                Height="Auto" />
+                            <RowDefinition
+                                Height="16" />
+                            <RowDefinition
+                                Height="Auto" />
+                            <RowDefinition
+                                Height="16" />
+                            <RowDefinition
+                                Height="Auto" />
+                            <RowDefinition
+                                Height="16" />
+                            <RowDefinition
+                                Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <!-- Row 0: 연결 타임아웃 / 최대 A/V 지연 -->
+                        <StackPanel
+                            Grid.Column="0"
+                            Grid.Row="0">
+                            <TextBlock
+                                Text="연결 타임아웃 (초, timeout)"
+                                FontSize="13"
+                                FontWeight="Medium"
+                                Margin="0,0,0,2" />
+                            <TextBlock
+                                Text="지정한 시간 내 서버 응답이 없으면 연결 실패로 처리합니다. (기본: 10)"
+                                FontSize="11"
+                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                TextWrapping="Wrap"
+                                Margin="0,0,0,6" />
+                            <ui:NumberBox
+                                Value="{Binding TimeoutSeconds, Mode=TwoWay}"
+                                Minimum="1"
+                                Maximum="120"
+                                SmallChange="1"
+                                LargeChange="5"
+                                SpinButtonPlacementMode="Inline"
+                                HorizontalAlignment="Stretch" />
+                        </StackPanel>
+                        <StackPanel
+                            Grid.Column="2"
+                            Grid.Row="0">
+                            <TextBlock
+                                Text="최대 A/V 지연 (ms, max_delay)"
+                                FontSize="13"
+                                FontWeight="Medium"
+                                Margin="0,0,0,2" />
+                            <TextBlock
+                                Text="A/V 디먹싱 최대 허용 지연입니다. 작을수록 레이턴시가 줄지만 네트워크 지터에 민감해집니다. (기본: 500)"
+                                FontSize="11"
+                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                TextWrapping="Wrap"
+                                Margin="0,0,0,6" />
+                            <ui:NumberBox
+                                Value="{Binding MaxDelayMs, Mode=TwoWay}"
+                                Minimum="0"
+                                Maximum="5000"
+                                SmallChange="100"
+                                LargeChange="500"
+                                SpinButtonPlacementMode="Inline"
+                                HorizontalAlignment="Stretch" />
+                        </StackPanel>
+
+                        <!-- Row 2: 프로브 크기 / 스트림 분석 시간 -->
+                        <StackPanel
+                            Grid.Column="0"
+                            Grid.Row="2">
+                            <TextBlock
+                                Text="프로브 크기 (KB, probesize)"
+                                FontSize="13"
+                                FontWeight="Medium"
+                                Margin="0,0,0,2" />
+                            <TextBlock
+                                Text="코덱·스트림 감지에 사용할 최대 데이터 크기입니다. 작을수록 시작이 빠르지만 감지 정확도가 낮아집니다. (기본: 500)"
+                                FontSize="11"
+                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                TextWrapping="Wrap"
+                                Margin="0,0,0,6" />
+                            <ui:NumberBox
+                                Value="{Binding ProbeSizeKb, Mode=TwoWay}"
+                                Minimum="32"
+                                Maximum="65536"
+                                SmallChange="100"
+                                LargeChange="500"
+                                SpinButtonPlacementMode="Inline"
+                                HorizontalAlignment="Stretch" />
+                        </StackPanel>
+                        <StackPanel
+                            Grid.Column="2"
+                            Grid.Row="2">
+                            <TextBlock
+                                Text="스트림 분석 시간 (초, analyzeduration)"
+                                FontSize="13"
+                                FontWeight="Medium"
+                                Margin="0,0,0,2" />
+                            <TextBlock
+                                Text="스트림 정보 분석에 허용할 최대 시간입니다. 작을수록 빠르게 시작되지만 오디오·자막 감지가 누락될 수 있습니다. (기본: 1.0)"
+                                FontSize="11"
+                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                TextWrapping="Wrap"
+                                Margin="0,0,0,6" />
+                            <ui:NumberBox
+                                Value="{Binding AnalyzeDurationSeconds, Mode=TwoWay}"
+                                Minimum="0.1"
+                                Maximum="30"
+                                SmallChange="0.5"
+                                LargeChange="2"
+                                SpinButtonPlacementMode="Inline"
+                                HorizontalAlignment="Stretch" />
+                        </StackPanel>
+
+                        <!-- Row 4: 라이브 디코더 스레드 / 소켓 수신 버퍼 -->
+                        <StackPanel
+                            Grid.Column="0"
+                            Grid.Row="4">
+                            <TextBlock
+                                Text="라이브 디코더 스레드 수 (thread_count)"
+                                FontSize="13"
+                                FontWeight="Medium"
+                                Margin="0,0,0,2" />
+                            <TextBlock
+                                Text="FF_THREAD_FRAME 사용 시 (N-1)프레임의 추가 지연이 발생합니다. 예) 8코어 → ~280ms 지연. 라이브에서는 1 권장. (기본: 1)"
+                                FontSize="11"
+                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                TextWrapping="Wrap"
+                                Margin="0,0,0,6" />
+                            <ui:NumberBox
+                                Value="{Binding LiveThreadCount, Mode=TwoWay}"
+                                Minimum="1"
+                                Maximum="32"
+                                SmallChange="1"
+                                LargeChange="4"
+                                SpinButtonPlacementMode="Inline"
+                                HorizontalAlignment="Stretch" />
+                        </StackPanel>
+                        <StackPanel
+                            Grid.Column="2"
+                            Grid.Row="4">
+                            <TextBlock
+                                Text="소켓 수신 버퍼 (KB, recv_buffer_size)"
+                                FontSize="13"
+                                FontWeight="Medium"
+                                Margin="0,0,0,2" />
+                            <TextBlock
+                                Text="UDP 수신 버퍼 크기입니다. 0 = 시스템 기본값. 고해상도 UDP 스트림에서 패킷 손실 시 늘려보세요. (기본: 0)"
+                                FontSize="11"
+                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                TextWrapping="Wrap"
+                                Margin="0,0,0,6" />
+                            <ui:NumberBox
+                                Value="{Binding RecvBufferSizeKb, Mode=TwoWay}"
+                                Minimum="0"
+                                Maximum="65536"
+                                SmallChange="512"
+                                LargeChange="2048"
+                                SpinButtonPlacementMode="Inline"
+                                HorizontalAlignment="Stretch" />
+                        </StackPanel>
+
+                        <!-- Row 6: RTP 재정렬 큐 / nobuffer + 자동 재연결 -->
+                        <StackPanel
+                            Grid.Column="0"
+                            Grid.Row="6">
+                            <TextBlock
+                                Text="RTP 재정렬 큐 (reorder_queue_size)"
+                                FontSize="13"
+                                FontWeight="Medium"
+                                Margin="0,0,0,2" />
+                            <TextBlock
+                                Text="UDP/RTP 스트림에서 순서가 뒤바뀐 패킷을 재정렬합니다. 0 = 비활성화. 수치가 클수록 지터 내성이 높아지지만 레이턴시도 증가합니다. (기본: 500)"
+                                FontSize="11"
+                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                TextWrapping="Wrap"
+                                Margin="0,0,0,6" />
+                            <ui:NumberBox
+                                Value="{Binding ReorderQueueSize, Mode=TwoWay}"
+                                Minimum="0"
+                                Maximum="5000"
+                                SmallChange="100"
+                                LargeChange="500"
+                                SpinButtonPlacementMode="Inline"
+                                HorizontalAlignment="Stretch" />
+                        </StackPanel>
+
+                        <StackPanel
+                            Grid.Column="2"
+                            Grid.Row="6"
+                            VerticalAlignment="Top">
+                            <!-- nobuffer -->
+                            <TextBlock
+                                Text="내부 버퍼 비활성화 (fflags=nobuffer)"
+                                FontSize="13"
+                                FontWeight="Medium"
+                                Margin="0,0,0,2" />
+                            <TextBlock
+                                Text="패킷을 버퍼 없이 즉시 전달합니다. 비활성화 시 FFmpeg이 패킷을 모아 버스트로 방출해 버벅거림의 원인이 됩니다. (기본: 활성화)"
+                                FontSize="11"
+                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                TextWrapping="Wrap"
+                                Margin="0,0,0,8" />
+                            <CheckBox
+                                Content="nobuffer 활성화"
+                                IsChecked="{Binding NoBuffer}"
+                                FontSize="13"
+                                Margin="0,0,0,16" />
+
+                            <!-- 자동 재연결 -->
+                            <TextBlock
+                                Text="자동 재연결 (reconnect)"
+                                FontSize="13"
+                                FontWeight="Medium"
+                                Margin="0,0,0,2" />
+                            <TextBlock
+                                Text="연결 끊김 또는 EOF 시 자동으로 재연결합니다. HTTP 스트림에 효과적입니다. (기본: 비활성화)"
+                                FontSize="11"
+                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                TextWrapping="Wrap"
+                                Margin="0,0,0,8" />
+                            <CheckBox
+                                Content="자동 재연결 활성화"
+                                IsChecked="{Binding Reconnect}"
+                                FontSize="13"
+                                Margin="0,0,0,8" />
+                            <StackPanel
+                                Orientation="Horizontal">
+                                <TextBlock
+                                    Text="최대 대기 (초):"
+                                    FontSize="12"
+                                    VerticalAlignment="Center"
+                                    Margin="0,0,8,0" />
+                                <ui:NumberBox
+                                    Value="{Binding ReconnectDelayMaxSeconds, Mode=TwoWay}"
+                                    Minimum="0"
+                                    Maximum="300"
+                                    SmallChange="5"
+                                    LargeChange="30"
+                                    SpinButtonPlacementMode="Inline"
+                                    Width="140"
+                                    IsEnabled="{Binding Reconnect}" />
+                            </StackPanel>
+                        </StackPanel>
+
+                    </Grid>
 
                 </StackPanel>
             </ui:Card>
@@ -269,15 +853,18 @@
                         Width="200"
                         HorizontalAlignment="Left"
                         SelectedIndex="0">
-                        <ComboBoxItem Content="한국어 (Korean)" />
-                        <ComboBoxItem Content="English" />
+                        <ComboBoxItem
+                            Content="한국어 (Korean)" />
+                        <ComboBoxItem
+                            Content="English" />
                     </ComboBox>
 
                 </StackPanel>
             </ui:Card>
 
             <!-- ══ 버튼 영역 ════════════════════════════════ -->
-            <StackPanel Orientation="Horizontal">
+            <StackPanel
+                Orientation="Horizontal">
 
                 <ui:Button
                     Content="설정 저장"
@@ -302,13 +889,18 @@
                     Margin="20,0,0,0"
                     Foreground="{DynamicResource FFluxWarningBrush}">
                     <TextBlock.Style>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Visibility" Value="Collapsed" />
+                        <Style
+                            TargetType="TextBlock">
+                            <Setter
+                                Property="Visibility"
+                                Value="Collapsed" />
                             <Style.Triggers>
                                 <DataTrigger
                                     Binding="{Binding HasUnsavedChanges}"
                                     Value="True">
-                                    <Setter Property="Visibility" Value="Visible" />
+                                    <Setter
+                                        Property="Visibility"
+                                        Value="Visible" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>

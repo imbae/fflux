@@ -12,26 +12,52 @@
     d:DataContext="{d:DesignInstance Type=local:PlayerViewModel, IsDesignTimeCreatable=False}"
     d:DesignHeight="600"
     d:DesignWidth="960"
-    Title="Player">
+    Title="Player"
+    ScrollViewer.VerticalScrollBarVisibility="Disabled"
+    ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 
     <Page.Resources>
-        <conv:InverseBoolToVisibilityConverter x:Key="InvBoolToVis" />
-        <BooleanToVisibilityConverter          x:Key="BoolToVis" />
+        <conv:InverseBoolToVisibilityConverter
+            x:Key="InvBoolToVis" />
+        <BooleanToVisibilityConverter
+            x:Key="BoolToVis" />
 
         <!-- 프레임 스텝 버튼: hold-to-repeat을 위해 RepeatButton 사용 -->
-        <Style x:Key="FrameStepStyle" TargetType="RepeatButton">
-            <Setter Property="Background"       Value="Transparent" />
-            <Setter Property="BorderThickness"  Value="0" />
-            <Setter Property="Padding"          Value="0" />
-            <Setter Property="Width"            Value="32" />
-            <Setter Property="Height"           Value="32" />
-            <Setter Property="Cursor"           Value="Hand" />
-            <Setter Property="Foreground"       Value="{DynamicResource TextFillColorPrimaryBrush}" />
-            <Setter Property="Delay"            Value="400" />
-            <Setter Property="Interval"         Value="80" />
-            <Setter Property="Template">
+        <Style
+            x:Key="FrameStepStyle"
+            TargetType="RepeatButton">
+            <Setter
+                Property="Background"
+                Value="Transparent" />
+            <Setter
+                Property="BorderThickness"
+                Value="0" />
+            <Setter
+                Property="Padding"
+                Value="0" />
+            <Setter
+                Property="Width"
+                Value="32" />
+            <Setter
+                Property="Height"
+                Value="32" />
+            <Setter
+                Property="Cursor"
+                Value="Hand" />
+            <Setter
+                Property="Foreground"
+                Value="{DynamicResource TextFillColorPrimaryBrush}" />
+            <Setter
+                Property="Delay"
+                Value="400" />
+            <Setter
+                Property="Interval"
+                Value="80" />
+            <Setter
+                Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="RepeatButton">
+                    <ControlTemplate
+                        TargetType="RepeatButton">
                         <Border
                             Background="{TemplateBinding Background}"
                             CornerRadius="4">
@@ -40,14 +66,26 @@
                                 VerticalAlignment="Center" />
                         </Border>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#22FFFFFF" />
+                            <Trigger
+                                Property="IsMouseOver"
+                                Value="True">
+                                <Setter
+                                    Property="Background"
+                                    Value="#22FFFFFF" />
                             </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter Property="Background" Value="#44FFFFFF" />
+                            <Trigger
+                                Property="IsPressed"
+                                Value="True">
+                                <Setter
+                                    Property="Background"
+                                    Value="#44FFFFFF" />
                             </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Opacity" Value="0.35" />
+                            <Trigger
+                                Property="IsEnabled"
+                                Value="False">
+                                <Setter
+                                    Property="Opacity"
+                                    Value="0.35" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -66,7 +104,10 @@
         Focusable="True"
         KeyDown="OnKeyDown"
         MouseMove="OnMouseMove"
-        MouseLeave="OnMouseLeave">
+        MouseLeave="OnMouseLeave"
+        VerticalAlignment="Stretch"
+        HorizontalAlignment="Stretch"
+        ClipToBounds="True">
 
         <!-- ══ 비디오 영역 ══════════════════════════════════════════════ -->
         <Border
@@ -161,19 +202,29 @@
 
             <!-- 투명 → 반투명 퍼플 그라디언트 배경 -->
             <Border.Background>
-                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                    <GradientStop Color="Transparent"  Offset="0.0" />
-                    <GradientStop Color="#BB1A1428"    Offset="0.45" />
-                    <GradientStop Color="#F51A1428"    Offset="1.0" />
+                <LinearGradientBrush
+                    StartPoint="0,0"
+                    EndPoint="0,1">
+                    <GradientStop
+                        Color="Transparent"
+                        Offset="0.0" />
+                    <GradientStop
+                        Color="#BB1A1428"
+                        Offset="0.45" />
+                    <GradientStop
+                        Color="#F51A1428"
+                        Offset="1.0" />
                 </LinearGradientBrush>
             </Border.Background>
 
             <Grid>
                 <Grid.RowDefinitions>
                     <!-- 시크 슬라이더 -->
-                    <RowDefinition Height="Auto" />
+                    <RowDefinition
+                        Height="Auto" />
                     <!-- 버튼 행 -->
-                    <RowDefinition Height="Auto" />
+                    <RowDefinition
+                        Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <!-- ── 시크 슬라이더 (라이브 스트림 중에는 비활성화) ────── -->
@@ -189,11 +240,15 @@
                     LargeChange="10" />
 
                 <!-- ── 버튼 행 ───────────────────────────────────── -->
-                <Grid Grid.Row="1">
+                <Grid
+                    Grid.Row="1">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition
+                            Width="Auto" />
+                        <ColumnDefinition
+                            Width="*" />
+                        <ColumnDefinition
+                            Width="Auto" />
                     </Grid.ColumnDefinitions>
 
                     <!-- 좌측: 트랜스포트 버튼 -->
@@ -208,9 +263,14 @@
                             Command="{Binding OpenFileCommand}"
                             Appearance="Secondary"
                             ToolTip="미디어 파일 열기">
-                            <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon Symbol="FolderOpen24" FontSize="14" Margin="0,0,6,0" />
-                                <TextBlock Text="열기" />
+                            <StackPanel
+                                Orientation="Horizontal">
+                                <ui:SymbolIcon
+                                    Symbol="FolderOpen24"
+                                    FontSize="14"
+                                    Margin="0,0,6,0" />
+                                <TextBlock
+                                    Text="열기" />
                             </StackPanel>
                         </ui:Button>
 
@@ -220,9 +280,14 @@
                             Command="{Binding OpenStreamCommand}"
                             Appearance="Secondary"
                             ToolTip="RTSP / RTP / UDP 스트리밍 주소 입력">
-                            <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon Symbol="Stream24" FontSize="14" Margin="0,0,6,0" />
-                                <TextBlock Text="스트리밍" />
+                            <StackPanel
+                                Orientation="Horizontal">
+                                <ui:SymbolIcon
+                                    Symbol="Stream24"
+                                    FontSize="14"
+                                    Margin="0,0,6,0" />
+                                <TextBlock
+                                    Text="스트리밍" />
                             </StackPanel>
                         </ui:Button>
 
@@ -232,26 +297,40 @@
                             Command="{Binding LoadSubtitleCommand}"
                             Appearance="Secondary"
                             ToolTip="자막 파일 열기 (SRT / VTT)">
-                            <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon Symbol="Subtitles24" FontSize="14" Margin="0,0,6,0" />
-                                <TextBlock Text="자막" />
+                            <StackPanel
+                                Orientation="Horizontal">
+                                <ui:SymbolIcon
+                                    Symbol="Subtitles24"
+                                    FontSize="14"
+                                    Margin="0,0,6,0" />
+                                <TextBlock
+                                    Text="자막" />
                             </StackPanel>
                         </ui:Button>
 
                         <!-- 자막 표시 토글 -->
                         <ui:Button
                             Margin="0,0,6,0"
-                            Width="32" Height="32"
+                            Width="32"
+                            Height="32"
                             Command="{Binding ToggleSubtitleCommand}"
                             Appearance="Secondary"
                             ToolTip="자막 표시/숨김 (V)">
-                            <ui:SymbolIcon FontSize="14">
+                            <ui:SymbolIcon
+                                FontSize="14">
                                 <ui:SymbolIcon.Style>
-                                    <Style TargetType="ui:SymbolIcon">
-                                        <Setter Property="Symbol" Value="Subtitles24" />
+                                    <Style
+                                        TargetType="ui:SymbolIcon">
+                                        <Setter
+                                            Property="Symbol"
+                                            Value="Subtitles24" />
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsSubtitleVisible}" Value="False">
-                                                <Setter Property="Symbol" Value="Subtitles24" />
+                                            <DataTrigger
+                                                Binding="{Binding IsSubtitleVisible}"
+                                                Value="False">
+                                                <Setter
+                                                    Property="Symbol"
+                                                    Value="Subtitles24" />
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
@@ -265,37 +344,48 @@
                             Style="{StaticResource FrameStepStyle}"
                             Command="{Binding StepFrameBackwardCommand}"
                             ToolTip="이전 프레임 (Ctrl+←)">
-                            <ui:SymbolIcon Symbol="PreviousFrame24" FontSize="14" />
+                            <ui:SymbolIcon
+                                Symbol="PreviousFrame24"
+                                FontSize="14" />
                         </RepeatButton>
 
                         <!-- 재생 -->
                         <ui:Button
                             Margin="0,0,2,0"
-                            Width="36" Height="36"
+                            Width="36"
+                            Height="36"
                             Command="{Binding PlayCommand}"
                             Appearance="Primary"
                             ToolTip="재생 (Space)">
-                            <ui:SymbolIcon Symbol="Play24" FontSize="14" />
+                            <ui:SymbolIcon
+                                Symbol="Play24"
+                                FontSize="14" />
                         </ui:Button>
 
                         <!-- 일시정지 -->
                         <ui:Button
                             Margin="0,0,2,0"
-                            Width="36" Height="36"
+                            Width="36"
+                            Height="36"
                             Command="{Binding PauseCommand}"
                             Appearance="Secondary"
                             ToolTip="일시 정지 (Space)">
-                            <ui:SymbolIcon Symbol="Pause24" FontSize="14" />
+                            <ui:SymbolIcon
+                                Symbol="Pause24"
+                                FontSize="14" />
                         </ui:Button>
 
                         <!-- 정지 -->
                         <ui:Button
                             Margin="0,0,2,0"
-                            Width="36" Height="36"
+                            Width="36"
+                            Height="36"
                             Command="{Binding StopCommand}"
                             Appearance="Secondary"
                             ToolTip="정지">
-                            <ui:SymbolIcon Symbol="Stop24" FontSize="14" />
+                            <ui:SymbolIcon
+                                Symbol="Stop24"
+                                FontSize="14" />
                         </ui:Button>
 
                         <!-- 프레임 앞으로 (hold-to-repeat) -->
@@ -303,7 +393,9 @@
                             Style="{StaticResource FrameStepStyle}"
                             Command="{Binding StepFrameForwardCommand}"
                             ToolTip="다음 프레임 (Ctrl+→)">
-                            <ui:SymbolIcon Symbol="NextFrame24" FontSize="14" />
+                            <ui:SymbolIcon
+                                Symbol="NextFrame24"
+                                FontSize="14" />
                         </RepeatButton>
 
                     </StackPanel>
@@ -326,11 +418,14 @@
                         <!-- 음소거 버튼 -->
                         <ui:Button
                             Margin="0,0,2,0"
-                            Width="32" Height="32"
+                            Width="32"
+                            Height="32"
                             Command="{Binding ToggleMuteCommand}"
                             Appearance="Transparent"
                             ToolTip="음소거 (M)">
-                            <ui:SymbolIcon FontSize="14" Symbol="{Binding VolumeSymbol}" />
+                            <ui:SymbolIcon
+                                FontSize="14"
+                                Symbol="{Binding VolumeSymbol}" />
                         </ui:Button>
 
                         <!-- 볼륨 슬라이더 -->
@@ -378,17 +473,26 @@
 
                         <!-- 풀스크린 버튼 -->
                         <ui:Button
-                            Width="32" Height="32"
+                            Width="32"
+                            Height="32"
                             Command="{Binding ToggleFullscreenCommand}"
                             Appearance="Transparent"
                             ToolTip="전체 화면 (F)">
-                            <ui:SymbolIcon FontSize="14">
+                            <ui:SymbolIcon
+                                FontSize="14">
                                 <ui:SymbolIcon.Style>
-                                    <Style TargetType="ui:SymbolIcon">
-                                        <Setter Property="Symbol" Value="FullScreenMaximize24" />
+                                    <Style
+                                        TargetType="ui:SymbolIcon">
+                                        <Setter
+                                            Property="Symbol"
+                                            Value="FullScreenMaximize24" />
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsFullscreen}" Value="True">
-                                                <Setter Property="Symbol" Value="FullScreenMinimize24" />
+                                            <DataTrigger
+                                                Binding="{Binding IsFullscreen}"
+                                                Value="True">
+                                                <Setter
+                                                    Property="Symbol"
+                                                    Value="FullScreenMinimize24" />
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>

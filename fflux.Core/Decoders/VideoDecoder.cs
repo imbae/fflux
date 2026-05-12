@@ -2,6 +2,7 @@ using fflux.Core.Abstractions;
 using fflux.Core.Exceptions;
 using fflux.Core.Helpers;
 using fflux.Core.Models;
+using fflux.Core.Models.Options;
 using fflux.Core.Models.StreamInfo;
 
 namespace fflux.Core.Decoders;
@@ -38,6 +39,9 @@ public sealed class VideoDecoder : IVideoDecoder
     private int _videoStreamIndex = -1;
     private PixelFormatConverter? _converter;
 
+    // 하드웨어 가속 활성화 여부 — ReceiveNextFrame에서 hw→sw 프레임 전송이 필요한지 판별합니다.
+    private bool _hwAccelEnabled;
+
     // AVERROR(EAGAIN): 디코더에 더 많은 입력이 필요한 상태 (= -11 on all FFmpeg platforms)
     private const int AVERROR_EAGAIN = -11;
 
@@ -67,7 +71,9 @@ public sealed class VideoDecoder : IVideoDecoder
     // ── IVideoDecoder 구현 ───────────────────────────────────────────
 
     /// <inheritdoc/>
-    public Task OpenAsync(string filePath, int streamIndex = -1, CancellationToken ct = default)
+    public Task OpenAsync(string filePath, int streamIndex = -1,
+                          VideoOpenOptions? options = null,
+                          CancellationToken ct = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -81,8 +87,10 @@ public sealed class VideoDecoder : IVideoDecoder
         if (!IsNetworkUrl(filePath) && !File.Exists(filePath))
             throw new FileNotFoundException("미디어 파일을 찾을 수 없습니다.", filePath);
 
+        var opts = options ?? VideoOpenOptions.Default;
+
         // avformat/avcodec I/O + CPU → ThreadPool
-        return Task.Run(() => OpenCore(filePath, streamIndex), ct);
+        return Task.Run(() => OpenCore(filePath, streamIndex, opts), ct);
     }
 
     /// <summary>URL 스킴을 보고 네트워크 소스 여부를 판별합니다.</summary>
@@ -281,11 +289,13 @@ public sealed class VideoDecoder : IVideoDecoder
 
     // ── 내부: 파일 열기 (unsafe) ─────────────────────────────────────
 
-    private unsafe void OpenCore(string filePath, int preferredStreamIndex)
+    private unsafe void OpenCore(string filePath, int preferredStreamIndex, VideoOpenOptions opts)
     {
         ReleaseContext();   // 이전 컨텍스트 정리
+        _hwAccelEnabled = false;
 
         bool isNetwork = IsNetworkUrl(filePath);
+        bool isRtsp    = filePath.StartsWith("rtsp://", StringComparison.OrdinalIgnoreCase);
 
         // ── 1. avformat_open_input ────────────────────────────────────
         AVFormatContext* fmtCtx   = null;
@@ -293,27 +303,49 @@ public sealed class VideoDecoder : IVideoDecoder
 
         if (isNetwork)
         {
-            // RTSP: UDP보다 TCP가 안정적 (방화벽/NAT 환경에서도 통과 우수)
-            if (filePath.StartsWith("rtsp://", StringComparison.OrdinalIgnoreCase))
-                ffmpeg.av_dict_set(&openOpts, "rtsp_transport", "tcp", 0);
+            // RTSP 전송 프로토콜 (tcp/udp/http)
+            if (isRtsp)
+                ffmpeg.av_dict_set(&openOpts, "rtsp_transport", opts.RtspTransport, 0);
 
-            // 소켓 I/O 타임아웃: 10초 (microseconds 단위)
+            // 소켓 I/O 타임아웃 (microseconds 단위)
             // RTSP는 "stimeout", 나머지는 "timeout"
-            var timeoutKey = filePath.StartsWith("rtsp://", StringComparison.OrdinalIgnoreCase)
-                ? "stimeout" : "timeout";
-            ffmpeg.av_dict_set(&openOpts, timeoutKey, "10000000", 0);
+            var timeoutKey  = isRtsp ? "stimeout" : "timeout";
+            var timeoutUsec = (opts.TimeoutSeconds * 1_000_000L).ToString();
+            ffmpeg.av_dict_set(&openOpts, timeoutKey, timeoutUsec, 0);
 
             // 스트림 정보 분석 시간/크기를 줄여 빠른 시작을 유도합니다.
-            // (라이브 스트림은 duration 파악이 불가능하므로 짧게 설정)
-            ffmpeg.av_dict_set(&openOpts, "probesize",       "500000", 0);  // 500 KB
-            ffmpeg.av_dict_set(&openOpts, "analyzeduration", "1000000", 0); // 1 초
+            var probeSizeBytes = (opts.ProbeSizeKb * 1024L).ToString();
+            var analyzeDurUsec = ((long)(opts.AnalyzeDurationSeconds * 1_000_000)).ToString();
+            ffmpeg.av_dict_set(&openOpts, "probesize",       probeSizeBytes, 0);
+            ffmpeg.av_dict_set(&openOpts, "analyzeduration", analyzeDurUsec, 0);
 
-            // 입력 데이터를 내부 버퍼에 쌓지 않고 즉시 디코더로 전달합니다.
-            // 이 옵션 없이는 FFmpeg이 패킷을 모아서 버스트로 방출 → 버벅거림 원인
-            ffmpeg.av_dict_set(&openOpts, "fflags", "nobuffer", 0);
+            // fflags=nobuffer: 패킷을 버퍼 없이 즉시 디코더로 전달
+            if (opts.NoBuffer)
+                ffmpeg.av_dict_set(&openOpts, "fflags", "nobuffer", 0);
 
-            // 최대 A/V 디먹싱 지연: 0.5초로 제한 (기본값 700ms 이상)
-            ffmpeg.av_dict_set(&openOpts, "max_delay", "500000", 0); // microseconds
+            // 최대 A/V 디먹싱 지연 (microseconds 단위)
+            ffmpeg.av_dict_set(&openOpts, "max_delay",
+                (opts.MaxDelayMs * 1000L).ToString(), 0);
+
+            // 소켓 수신 버퍼 (0이면 시스템 기본값 유지)
+            if (opts.RecvBufferSizeKb > 0)
+                ffmpeg.av_dict_set(&openOpts, "recv_buffer_size",
+                    (opts.RecvBufferSizeKb * 1024L).ToString(), 0);
+
+            // RTP 재정렬 큐 (0이면 비활성화)
+            if (opts.ReorderQueueSize >= 0)
+                ffmpeg.av_dict_set(&openOpts, "reorder_queue_size",
+                    opts.ReorderQueueSize.ToString(), 0);
+
+            // 자동 재연결
+            if (opts.Reconnect)
+            {
+                ffmpeg.av_dict_set(&openOpts, "reconnect",          "1", 0);
+                ffmpeg.av_dict_set(&openOpts, "reconnect_streamed", "1", 0);
+                if (opts.ReconnectDelayMaxSeconds > 0)
+                    ffmpeg.av_dict_set(&openOpts, "reconnect_delay_max",
+                        opts.ReconnectDelayMaxSeconds.ToString(), 0);
+            }
         }
 
         int ret = ffmpeg.avformat_open_input(&fmtCtx, filePath, null, &openOpts);
@@ -332,8 +364,10 @@ public sealed class VideoDecoder : IVideoDecoder
         AVDictionary* findOpts = null;
         if (isNetwork)
         {
-            ffmpeg.av_dict_set(&findOpts, "probesize",       "500000", 0);
-            ffmpeg.av_dict_set(&findOpts, "analyzeduration", "1000000", 0);
+            var probeSizeBytes2 = (opts.ProbeSizeKb * 1024L).ToString();
+            var analyzeDurUsec2 = ((long)(opts.AnalyzeDurationSeconds * 1_000_000)).ToString();
+            ffmpeg.av_dict_set(&findOpts, "probesize",       probeSizeBytes2, 0);
+            ffmpeg.av_dict_set(&findOpts, "analyzeduration", analyzeDurUsec2, 0);
         }
 
         ret = ffmpeg.avformat_find_stream_info(fmtCtx, findOpts != null ? &findOpts : null);
@@ -372,20 +406,36 @@ public sealed class VideoDecoder : IVideoDecoder
                 $"코덱 파라미터 복사 실패: {GetErrorMessage(ret)}", ret);
 
         // ── 스레드 설정 ──────────────────────────────────────────────────
-        // 라이브 스트림: 단일 스레드 디코딩
-        //   FF_THREAD_FRAME은 N개 스레드 사용 시 최대 (N-1)프레임의 디코딩 지연을 유발합니다.
+        // 라이브 스트림: FF_THREAD_FRAME은 N개 스레드 → (N-1)프레임 추가 지연 발생
         //   예) 8코어 → 7프레임 × 40ms = 280ms 추가 지연 → 라이브에 치명적
+        //   설정값 1 (기본) 권장. 사용자가 파일처럼 쓰고 싶다면 증가 가능.
         // 파일 재생: 다중 스레드로 처리량 극대화
         if (isNetwork)
         {
-            codecCtx->thread_count = 1;
-            codecCtx->thread_type  = ffmpeg.FF_THREAD_SLICE; // thread_count=1이면 무관하나 명시
+            int liveThreads        = Math.Max(1, opts.LiveThreadCount);
+            codecCtx->thread_count = liveThreads;
+            codecCtx->thread_type  = liveThreads == 1
+                ? ffmpeg.FF_THREAD_SLICE   // 단일: 슬라이스 병렬 (지연 없음)
+                : ffmpeg.FF_THREAD_FRAME;  // 멀티: 프레임 병렬 (지연 있음)
         }
         else
         {
-            codecCtx->thread_count = Math.Min(Environment.ProcessorCount, 16);
+            int fileThreads        = opts.FileThreadCount > 0
+                ? Math.Min(opts.FileThreadCount, 32)
+                : Math.Min(Environment.ProcessorCount, 16); // 0 = 자동
+            codecCtx->thread_count = fileThreads;
             codecCtx->thread_type  = ffmpeg.FF_THREAD_FRAME;
         }
+
+        // ── skip_loop_filter / skip_frame ────────────────────────────
+        // H.264/HEVC 디블록킹 필터 및 프레임 건너뜀으로 CPU 부하를 줄입니다.
+        codecCtx->skip_loop_filter = ParseSkipLevel(opts.SkipLoopFilter);
+        codecCtx->skip_frame       = ParseSkipLevel(opts.SkipFrame);
+
+        // ── 하드웨어 가속 ────────────────────────────────────────────
+        // av_hwdevice_ctx_create 성공 시 GPU 디코딩, 실패 시 소프트웨어 폴백
+        if (!string.IsNullOrEmpty(opts.HwAccel) && opts.HwAccel != "none")
+            TryEnableHwAccel(codecCtx, opts.HwAccel);
 
         // 5. avcodec_open2
         ret = ffmpeg.avcodec_open2(codecCtx, codec, null);
@@ -510,18 +560,54 @@ public sealed class VideoDecoder : IVideoDecoder
         }
 
         // PTS → TimeSpan
-        var ts = TimeSpan.Zero;
-        if (frame->pts != ffmpeg.AV_NOPTS_VALUE && _videoStreamIndex >= 0)
+        // best_effort_timestamp: pts가 AV_NOPTS_VALUE일 때 FFmpeg이 DTS/duration으로
+        // 재구성한 최선 추정값입니다. B-프레임 또는 PTS 누락 컨테이너에서 유효합니다.
+        var ts     = TimeSpan.Zero;
+        long rawPts = frame->pts != ffmpeg.AV_NOPTS_VALUE
+            ? frame->pts
+            : frame->best_effort_timestamp;
+
+        if (rawPts != ffmpeg.AV_NOPTS_VALUE && _videoStreamIndex >= 0)
         {
             var tb = fmtCtx->streams[_videoStreamIndex]->time_base;
             if (tb.den > 0)
             {
-                double sec = frame->pts * tb.num / (double)tb.den;
-                if (sec > 0) ts = TimeSpan.FromSeconds(sec);
+                double sec = rawPts * tb.num / (double)tb.den;
+                // sec >= 0: pts=0은 정상적인 첫 프레임이므로 허용
+                if (sec >= 0) ts = TimeSpan.FromSeconds(sec);
             }
         }
 
-        var videoFrame = _converter!.Convert(frame, frame->width, frame->height, ts);
+        // ── 하드웨어 프레임 → 시스템 메모리 전송 ──────────────────────────
+        // 하드웨어 가속 활성 시 frame->hw_frames_ctx != null.
+        // sws_scale은 시스템 메모리 픽셀 포맷만 처리하므로 먼저 전송해야 합니다.
+        AVFrame* convertSrc = frame;
+        AVFrame* swFrame    = null;
+
+        if (_hwAccelEnabled && frame->hw_frames_ctx != null)
+        {
+            swFrame = ffmpeg.av_frame_alloc();
+            if (swFrame != null)
+            {
+                int hwRet = ffmpeg.av_hwframe_transfer_data(swFrame, frame, 0);
+                if (hwRet >= 0)
+                {
+                    swFrame->pts = frame->pts;  // PTS 복사
+                    convertSrc   = swFrame;
+                }
+                else
+                {
+                    _logger.LogWarning("HW 프레임 시스템 메모리 전송 실패: {Err}", GetErrorMessage(hwRet));
+                    ffmpeg.av_frame_free(&swFrame);
+                    swFrame = null;
+                    // convertSrc = frame 그대로 → sws_scale이 실패하면 null 반환
+                }
+            }
+        }
+
+        var videoFrame = _converter!.Convert(convertSrc, convertSrc->width, convertSrc->height, ts);
+
+        if (swFrame != null) ffmpeg.av_frame_free(&swFrame);
         ffmpeg.av_frame_unref(frame);
 
         return videoFrame;
@@ -613,6 +699,61 @@ public sealed class VideoDecoder : IVideoDecoder
             Duration      = durationSec > 0 ? TimeSpan.FromSeconds(durationSec) : TimeSpan.Zero,
         };
     }
+
+    // ── 하드웨어 가속 헬퍼 (unsafe) ─────────────────────────────────────
+
+    /// <summary>
+    /// 지정한 hw 가속 타입으로 <see cref="AVBufferRef"/> 장치 컨텍스트를 생성하여
+    /// <paramref name="codecCtx"/>에 바인딩합니다.
+    /// 실패하면 경고 로그를 남기고 소프트웨어 디코딩으로 폴백합니다.
+    /// </summary>
+    private unsafe void TryEnableHwAccel(AVCodecContext* codecCtx, string hwAccelName)
+    {
+        var hwType = hwAccelName.Trim().ToLowerInvariant() switch
+        {
+            "auto"    => AVHWDeviceType.AV_HWDEVICE_TYPE_D3D11VA, // Windows 기본
+            "d3d11va" => AVHWDeviceType.AV_HWDEVICE_TYPE_D3D11VA,
+            "dxva2"   => AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2,
+            "cuda"    => AVHWDeviceType.AV_HWDEVICE_TYPE_CUDA,
+            "qsv"     => AVHWDeviceType.AV_HWDEVICE_TYPE_QSV,
+            "vulkan"  => AVHWDeviceType.AV_HWDEVICE_TYPE_VULKAN,
+            _         => AVHWDeviceType.AV_HWDEVICE_TYPE_NONE,
+        };
+
+        if (hwType == AVHWDeviceType.AV_HWDEVICE_TYPE_NONE)
+        {
+            _logger.LogWarning("알 수 없는 하드웨어 가속 타입: {Type}", hwAccelName);
+            return;
+        }
+
+        AVBufferRef* hwDevCtx = null;
+        int ret = ffmpeg.av_hwdevice_ctx_create(&hwDevCtx, hwType, null, null, 0);
+
+        if (ret < 0)
+        {
+            _logger.LogWarning(
+                "하드웨어 가속 초기화 실패 ({Type}) — 소프트웨어 디코딩으로 전환합니다. 오류: {Err}",
+                hwAccelName, GetErrorMessage(ret));
+            return;
+        }
+
+        codecCtx->hw_device_ctx = ffmpeg.av_buffer_ref(hwDevCtx);
+        ffmpeg.av_buffer_unref(&hwDevCtx);
+        _hwAccelEnabled = true;
+
+        _logger.LogInformation("하드웨어 가속 활성화: {Type}", hwAccelName);
+    }
+
+    /// <summary>설정 문자열을 <see cref="AVDiscard"/> 값으로 변환합니다.</summary>
+    private static AVDiscard ParseSkipLevel(string value) =>
+        value.Trim().ToLowerInvariant() switch
+        {
+            "nonref"  => AVDiscard.AVDISCARD_NONREF,
+            "bidir"   => AVDiscard.AVDISCARD_BIDIR,
+            "nonkey"  => AVDiscard.AVDISCARD_NONKEY,
+            "all"     => AVDiscard.AVDISCARD_ALL,
+            _         => AVDiscard.AVDISCARD_DEFAULT,   // "none" 포함
+        };
 
     // ── 유틸리티 ─────────────────────────────────────────────────────
 

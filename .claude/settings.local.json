@@ -36,7 +36,9 @@
       "WebFetch(domain:github.com)",
       "WebSearch",
       "WebFetch(domain:wpfui.lepo.co)",
-      "Bash(cd /mnt/f/source/fflux && dotnet build fflux.Core/fflux.Core.csproj --no-restore -c Release 2>&1 | tail -20)"
+      "Bash(cd /mnt/f/source/fflux && dotnet build fflux.Core/fflux.Core.csproj --no-restore -c Release 2>&1 | tail -20)",
+      "Bash(Get-ChildItem -Path \"F:\\\\source\\\\fflux\" -Directory -Force)",
+      "Bash(Select-Object Name)"
     ]
   }
 }

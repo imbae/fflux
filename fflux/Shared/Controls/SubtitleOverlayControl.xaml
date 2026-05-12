@@ -13,7 +13,8 @@
     HorizontalAlignment="Center">
 
     <UserControl.Resources>
-        <conv:StringToVisibilityConverter x:Key="StrToVis" />
+        <conv:StringToVisibilityConverter
+            x:Key="StrToVis" />
     </UserControl.Resources>
 
     <!--

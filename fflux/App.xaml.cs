@@ -6,6 +6,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using fflux.Core;
 using fflux.Core.Abstractions;
+using fflux.Misb;
 using fflux.Core.Exceptions;
 using fflux.UI.Shared.Models;
 using fflux.UI.Shared.Services;
@@ -52,6 +53,7 @@ public partial class App : Application
             {
                 services.AddCoreServices();
                 services.AddUIServices();
+                services.AddMisbServices();
             })
             .Build();
     }

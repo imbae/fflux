@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\fflux.Core\fflux.Core.csproj" />
+    <ProjectReference Include="..\fflux.Misb\fflux.Misb\fflux.Misb.csproj" />
   </ItemGroup>
 
 </Project>

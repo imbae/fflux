@@ -1,11 +1,15 @@
+using System.Collections.ObjectModel;
 using System.Windows.Controls;
-using System.Windows.Media;
 using fflux.Core.Abstractions;
 using fflux.Core.Exceptions;
 using fflux.Core.Models;
 using fflux.Core.Models.Options;
+using fflux.Misb.Abstractions;
+using fflux.Misb.Helpers;
+using fflux.Misb.Models;
+using fflux.Misb.Timeline;
+using fflux.UI.Modules.MisbViewer;
 using fflux.UI.Shared.Services;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Win32;
 using Wpf.Ui;
 using Wpf.Ui.Controls;
@@ -20,10 +24,10 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
 {
     // ── 의존성 ──────────────────────────────────────────────────────
 
-    private readonly IServiceProvider         _services;
-    private readonly MainWindowViewModel      _mainVm;
-    private readonly IContentDialogService    _dialogService;
-    private readonly ISettingsService         _settingsService;
+    private readonly IServiceProvider _services;
+    private readonly MainWindowViewModel _mainVm;
+    private readonly IContentDialogService _dialogService;
+    private readonly ISettingsService _settingsService;
     private readonly ILogger<PlayerViewModel> _logger;
 
     // ── FFmpeg 디코더 (파일 열기 시 교체) ────────────────────────────
@@ -63,10 +67,22 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
     //  - vsync에 정확히 동기화 → 찢김 없는 매끄러운 출력
 
     private VideoFrame? _pendingFrame;       // 백그라운드 ↔ UI 공유 (Interlocked 전용)
-    private bool        _renderingSubscribed; // CompositionTarget.Rendering 구독 여부
+    private bool _renderingSubscribed; // CompositionTarget.Rendering 구독 여부
 
     // ── 재생 루프 태스크 ─────────────────────────────────────────────
     // 이전 재생이 완전히 종료된 것을 확인한 후 디코더를 교체하기 위해 참조를 보관합니다.
+
+    // ── MISB ─────────────────────────────────────────────────────────
+
+    // MISB 서비스 (DI에서 지연 취득 — fflux.Misb이 참조된 경우만 동작)
+    private IMetadataTimelineService? _misbTimeline;
+    private IMisbPlaybackSyncService? _misbSyncService;
+
+    // 현재 열린 로컬 파일 경로 (라이브 스트림은 null)
+    private string? _lastOpenedFilePath;
+
+    // MISB 인덱싱 백그라운드 태스크 취소 토큰
+    private CancellationTokenSource? _misbLoadCts;
 
     // ── 자막 ─────────────────────────────────────────────────────────
 
@@ -82,6 +98,40 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
 
     /// <summary>현재 재생 프레임의 WriteableBitmap (BGRA 32-bit). Image.Source에 바인딩.</summary>
     public WriteableBitmap? VideoBitmap { get; private set; }
+
+    // ── MISB 프로퍼티 ────────────────────────────────────────────────
+
+    /// <summary>MISB 오버레이 활성화 여부.</summary>
+    [ObservableProperty]
+    private bool _isMisbEnabled;
+
+    /// <summary>현재 파일의 MISB 타임라인 인덱싱이 완료되었으면 true.</summary>
+    [ObservableProperty]
+    private bool _isMisbLoaded;
+
+    /// <summary>MISB 상태 텍스트 (예: "MISB: 1,200개 레코드").</summary>
+    [ObservableProperty]
+    private string _misbStatusText = string.Empty;
+
+    /// <summary>VMTI 오버레이 아이템 컬렉션 (바운딩 박스 + 레이블).</summary>
+    public ObservableCollection<VmtiOverlayItem> VmtiOverlayItems { get; } = [];
+
+    /// <summary>우측 메타데이터 패널에 바인딩할 표시 모델.</summary>
+    public MisbMetadataDisplayModel MisbDisplay { get; } = new();
+
+    /// <summary>우측 메타데이터 패널 표시 여부.</summary>
+    [ObservableProperty]
+    private bool _isMisbPanelVisible;
+
+    /// <summary>오버레이 Canvas 가로 크기 = 비디오 픽셀 너비.</summary>
+    [ObservableProperty]
+    private int _videoWidth = 1920;
+
+    /// <summary>오버레이 Canvas 세로 크기 = 비디오 픽셀 높이.</summary>
+    [ObservableProperty]
+    private int _videoHeight = 1080;
+
+    // ────────────────────────────────────────────────────────────────
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(PlayCommand))]
@@ -110,7 +160,7 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
     [ObservableProperty] private double _durationSeconds;
     [ObservableProperty] private double _positionSeconds;
     [ObservableProperty] private string _timecodeText = "00:00 / 00:00";
-    [ObservableProperty] private string _statusText   = "파일을 열어주세요";
+    [ObservableProperty] private string _statusText = "파일을 열어주세요";
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(VolumeSymbol))]
@@ -142,24 +192,24 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
     [ObservableProperty] private Brush _subtitleColor = Brushes.White;
 
     public SymbolRegular VolumeSymbol =>
-        IsMuted || VolumeLevel == 0  ? SymbolRegular.SpeakerMute24 :
-        VolumeLevel < 50             ? SymbolRegular.Speaker120 :
+        IsMuted || VolumeLevel == 0 ? SymbolRegular.SpeakerMute24 :
+        VolumeLevel < 50 ? SymbolRegular.Speaker120 :
                                        SymbolRegular.Speaker224;
 
     // ── 생성자 ──────────────────────────────────────────────────────
 
     public PlayerViewModel(
-        IServiceProvider          services,
-        MainWindowViewModel       mainVm,
-        IContentDialogService     dialogService,
-        ISettingsService          settingsService,
-        ILogger<PlayerViewModel>  logger)
+        IServiceProvider services,
+        MainWindowViewModel mainVm,
+        IContentDialogService dialogService,
+        ISettingsService settingsService,
+        ILogger<PlayerViewModel> logger)
     {
-        _services        = services;
-        _mainVm          = mainVm;
-        _dialogService   = dialogService;
+        _services = services;
+        _mainVm = mainVm;
+        _dialogService = dialogService;
         _settingsService = settingsService;
-        _logger          = logger;
+        _logger = logger;
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -171,7 +221,7 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
     {
         var dlg = new OpenFileDialog
         {
-            Title  = "미디어 파일 열기",
+            Title = "미디어 파일 열기",
             Filter = "미디어 파일|*.mp4;*.mkv;*.avi;*.mov;*.wmv;*.flv;*.webm;*.ts;*.m2ts|모든 파일|*.*",
         };
         if (dlg.ShowDialog() != true) return;
@@ -186,26 +236,26 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
         // ── URL 입력 다이얼로그 ──────────────────────────────────────
         var urlBox = new System.Windows.Controls.TextBox
         {
-            MinWidth  = 400,
-            FontSize  = 13,
-            Margin    = new Thickness(0, 10, 0, 0),
-            Text      = "rtsp://",
+            MinWidth = 400,
+            FontSize = 13,
+            Margin = new Thickness(0, 10, 0, 0),
+            Text = "rtsp://",
         };
 
         var hint = new System.Windows.Controls.TextBlock
         {
-            Text     = "예)  rtsp://192.168.0.1:554/stream\n" +
+            Text = "예)  rtsp://192.168.0.1:554/stream\n" +
                        "     udp://@239.0.0.1:1234\n" +
                        "     rtp://224.0.0.1:5004",
             FontSize = 11,
-            Margin   = new Thickness(0, 6, 0, 0),
+            Margin = new Thickness(0, 6, 0, 0),
             Foreground = new SolidColorBrush(Color.FromRgb(0x99, 0x99, 0x99)),
         };
 
         var panel = new StackPanel();
         panel.Children.Add(new System.Windows.Controls.TextBlock
         {
-            Text     = "스트리밍 주소를 입력하세요:",
+            Text = "스트리밍 주소를 입력하세요:",
             FontSize = 13,
         });
         panel.Children.Add(urlBox);
@@ -213,11 +263,11 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
 
         var dialog = new ContentDialog
         {
-            Title              = "스트리밍 열기",
-            Content            = panel,
-            PrimaryButtonText  = "열기",
-            CloseButtonText    = "취소",
-            DefaultButton      = ContentDialogButton.Primary,
+            Title = "스트리밍 열기",
+            Content = panel,
+            PrimaryButtonText = "열기",
+            CloseButtonText = "취소",
+            DefaultButton = ContentDialogButton.Primary,
         };
 
         // 다이얼로그가 열리면 TextBox에 포커스
@@ -238,11 +288,11 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
 
     /// <summary>URL 스킴으로 라이브 스트림 여부를 판단합니다.</summary>
     private static bool IsStreamUrl(string url)
-        => url.StartsWith("rtsp://",  StringComparison.OrdinalIgnoreCase)
-        || url.StartsWith("rtp://",   StringComparison.OrdinalIgnoreCase)
-        || url.StartsWith("udp://",   StringComparison.OrdinalIgnoreCase)
-        || url.StartsWith("srt://",   StringComparison.OrdinalIgnoreCase)
-        || url.StartsWith("rtmp://",  StringComparison.OrdinalIgnoreCase)
+        => url.StartsWith("rtsp://", StringComparison.OrdinalIgnoreCase)
+        || url.StartsWith("rtp://", StringComparison.OrdinalIgnoreCase)
+        || url.StartsWith("udp://", StringComparison.OrdinalIgnoreCase)
+        || url.StartsWith("srt://", StringComparison.OrdinalIgnoreCase)
+        || url.StartsWith("rtmp://", StringComparison.OrdinalIgnoreCase)
         || url.StartsWith("rtmps://", StringComparison.OrdinalIgnoreCase);
 
     [RelayCommand(CanExecute = nameof(CanPlay))]
@@ -294,16 +344,46 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
         _mainVm.PlaybackStatusIcon = "Stop24";
     }
 
+    // ── MISB 토글 커맨드 ─────────────────────────────────────────────
+
+    /// <summary>MISB 오버레이 활성화/비활성화 토글.</summary>
+    [RelayCommand]
+    private async Task ToggleMisbAsync()
+    {
+        if (IsMisbEnabled)
+        {
+            // 비활성화
+            IsMisbEnabled = false;
+            UnsubscribeMisbSync();
+            ClearMisbOverlay();
+            MisbStatusText = string.Empty;
+        }
+        else
+        {
+            // 활성화
+            IsMisbEnabled = true;
+            SubscribeMisbSync();
+
+            if (IsFileOpen && _lastOpenedFilePath != null)
+                await LoadMisbForFileAsync(_lastOpenedFilePath);
+        }
+    }
+
+    /// <summary>우측 MISB 메타데이터 패널 표시/숨김 토글.</summary>
+    [RelayCommand]
+    private void ToggleMisbPanel()
+        => IsMisbPanelVisible = !IsMisbPanelVisible;
+
     // ── CanExecute ───────────────────────────────────────────────────
 
-    private bool CanPlay()  => IsFileOpen && !IsPlaying;
+    private bool CanPlay() => IsFileOpen && !IsPlaying;
     private bool CanPause() => IsPlaying;
-    private bool CanStop()  => IsFileOpen;
+    private bool CanStop() => IsFileOpen;
 
     // ── 볼륨 / 속도 ──────────────────────────────────────────────────
 
-    partial void OnVolumeLevelChanged(double value)  => SyncVolume();
-    partial void OnIsMutedChanged(bool value)        => SyncVolume();
+    partial void OnVolumeLevelChanged(double value) => SyncVolume();
+    partial void OnIsMutedChanged(bool value) => SyncVolume();
 
     private void SyncVolume()
         => _audioPlayer?.SetVolume((float)(VolumeLevel / 100.0), IsMuted);
@@ -325,7 +405,7 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
     {
         var dlg = new OpenFileDialog
         {
-            Title  = "자막 파일 열기",
+            Title = "자막 파일 열기",
             Filter = "자막 파일|*.srt;*.vtt|SubRip|*.srt|WebVTT|*.vtt|모든 파일|*.*",
         };
         if (dlg.ShowDialog() != true) return;
@@ -344,7 +424,7 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
     /// <summary>드래그앤드롭 및 커맨드에서 공통으로 사용하는 자막 로드 진입점.</summary>
     public async Task LoadSubtitleFromPathAsync(string filePath)
     {
-        var ext    = Path.GetExtension(filePath).ToLowerInvariant().TrimStart('.');
+        var ext = Path.GetExtension(filePath).ToLowerInvariant().TrimStart('.');
         var parser = _services.GetKeyedService<ISubtitleParser>(ext);
 
         if (parser == null)
@@ -451,7 +531,7 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
             else
             {
                 // 뒤로: 1프레임 이전 위치로 seek
-                var step   = FrameStepSeconds();
+                var step = FrameStepSeconds();
                 var rawPos = PositionSeconds - step;
                 var target = TimeSpan.FromSeconds(Math.Clamp(rawPos, 0, DurationSeconds));
                 frame = await _videoDecoder.SeekAndDecodeAtAsync(target);
@@ -551,7 +631,12 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
 
         // 자막 초기화 (라이브 스트림에서는 자막 미지원)
         _subtitleEntries = [];
-        SubtitleText     = string.Empty;
+        SubtitleText = string.Empty;
+
+        // MISB 오버레이 초기화
+        ClearMisbOverlay();
+        IsMisbLoaded = false;
+        MisbStatusText = IsMisbEnabled ? "MISB 로드 대기 중…" : string.Empty;
 
         // ── 기존 리소스 해제 ─────────────────────────────────────────
         _audioPlayer?.Dispose();
@@ -569,11 +654,11 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
             var openOpts = BuildVideoOpenOptions(isLive);
             await _videoDecoder.OpenAsync(source, options: openOpts);
 
-            IsLiveStream    = isLive;
-            IsFileOpen      = true;
+            IsLiveStream = isLive;
+            IsFileOpen = true;
             // 라이브 스트림은 Duration을 알 수 없으므로 0으로 둠
             DurationSeconds = isLive ? 0 : _videoDecoder.Duration.TotalSeconds;
-            _frameRate      = _videoDecoder.StreamInfo?.FrameRate ?? 0;
+            _frameRate = _videoDecoder.StreamInfo?.FrameRate ?? 0;
 
             _isUpdatingPositionFromPlayback = true;
             PositionSeconds = 0;
@@ -582,15 +667,15 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
             UpdateTimecode(TimeSpan.Zero);
 
             // 상태바 표시: 라이브는 URL 그대로, 파일은 파일명만
-            _mainVm.CurrentFileName    = isLive ? source : Path.GetFileName(source);
+            _mainVm.CurrentFileName = isLive ? source : Path.GetFileName(source);
             _mainVm.PlaybackStatusText = "준비";
             _mainVm.PlaybackStatusIcon = "Stop24";
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "소스 열기 실패: {Source}", source);
-            StatusText   = $"열기 실패: {ex.Message}";
-            IsFileOpen   = false;
+            StatusText = $"열기 실패: {ex.Message}";
+            IsFileOpen = false;
             IsLiveStream = false;
             return;
         }
@@ -602,6 +687,11 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
         if (!isLive)
             await TryAutoLoadSubtitleAsync(source);
 
+        // ── MISB 자동 로드 (파일 전용, MISB 활성화 상태인 경우) ──────────
+        _lastOpenedFilePath = isLive ? null : source;
+        if (!isLive && IsMisbEnabled)
+            _ = LoadMisbForFileAsync(source);
+
         UpdateStatus(isLive ? "● LIVE 연결됨" : "재생 중");
 
         // ── 자동 재생 ────────────────────────────────────────────────────
@@ -610,7 +700,7 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
 
     private async Task TryAutoLoadSubtitleAsync(string filePath)
     {
-        var dir  = Path.GetDirectoryName(filePath) ?? string.Empty;
+        var dir = Path.GetDirectoryName(filePath) ?? string.Empty;
         var stem = Path.GetFileNameWithoutExtension(filePath);
 
         // .srt 우선, 없으면 .vtt 탐색
@@ -632,28 +722,28 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
     private VideoOpenOptions BuildVideoOpenOptions(bool isLive)
     {
         var cur = _settingsService.Current;
-        var sd  = cur.Decoder;
-        var st  = cur.Streaming;
+        var sd = cur.Decoder;
+        var st = cur.Streaming;
 
         return new VideoOpenOptions
         {
             // ── 공통 디코더 옵션 ──────────────────────────────────────
-            HwAccel         = sd.HwAccel,
+            HwAccel = sd.HwAccel,
             FileThreadCount = sd.FileThreadCount,
-            SkipLoopFilter  = sd.SkipLoopFilter,
-            SkipFrame       = sd.SkipFrame,
+            SkipLoopFilter = sd.SkipLoopFilter,
+            SkipFrame = sd.SkipFrame,
 
             // ── 스트리밍 옵션 (라이브일 때만 의미 있음) ───────────────
-            RtspTransport            = st.RtspTransport,
-            TimeoutSeconds           = st.TimeoutSeconds,
-            ProbeSizeKb              = st.ProbeSizeKb,
-            AnalyzeDurationSeconds   = st.AnalyzeDurationSeconds,
-            NoBuffer                 = isLive && st.NoBuffer,
-            MaxDelayMs               = st.MaxDelayMs,
-            LiveThreadCount          = st.LiveThreadCount,
-            RecvBufferSizeKb         = st.RecvBufferSizeKb,
-            ReorderQueueSize         = st.ReorderQueueSize,
-            Reconnect                = isLive && st.Reconnect,
+            RtspTransport = st.RtspTransport,
+            TimeoutSeconds = st.TimeoutSeconds,
+            ProbeSizeKb = st.ProbeSizeKb,
+            AnalyzeDurationSeconds = st.AnalyzeDurationSeconds,
+            NoBuffer = isLive && st.NoBuffer,
+            MaxDelayMs = st.MaxDelayMs,
+            LiveThreadCount = st.LiveThreadCount,
+            RecvBufferSizeKb = st.RecvBufferSizeKb,
+            ReorderQueueSize = st.ReorderQueueSize,
+            Reconnect = isLive && st.Reconnect,
             ReconnectDelayMaxSeconds = st.ReconnectDelayMaxSeconds,
         };
     }
@@ -722,6 +812,10 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
         }
 
         _pausedPosition = position;
+
+        // MISB 시크 시 스로틀 우회하여 즉시 갱신
+        if (IsMisbEnabled && IsMisbLoaded && _misbSyncService != null)
+            _misbSyncService.Seek(position);
 
         await Application.Current.Dispatcher.InvokeAsync(() => UpdateTimecode(position));
 
@@ -799,7 +893,7 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
 
     private async Task VideoPlaybackLoopAsync(CancellationToken ct)
     {
-        var sw       = Stopwatch.StartNew();
+        var sw = Stopwatch.StartNew();
         var firstPts = TimeSpan.MinValue;
 
         try
@@ -827,7 +921,7 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
                     }
 
                     var targetMs = (frame.Timestamp - firstPts).TotalMilliseconds / _playbackSpeed;
-                    var delayMs  = targetMs - sw.Elapsed.TotalMilliseconds;
+                    var delayMs = targetMs - sw.Elapsed.TotalMilliseconds;
 
                     if (delayMs > 2.0)
                         await Task.Delay((int)delayMs, ct);
@@ -863,9 +957,9 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
                 }
                 Interlocked.Exchange(ref _pendingFrame, null)?.Dispose();
 
-                var wasLive     = IsLiveStream;
-                IsPlaying       = false;
-                IsLiveStream    = false;
+                var wasLive = IsLiveStream;
+                IsPlaying = false;
+                IsLiveStream = false;
                 _pausedPosition = TimeSpan.Zero;
                 UpdateStatus(wasLive ? "스트림 연결 끊김" : "재생 완료");
                 _mainVm.PlaybackStatusText = "정지";
@@ -883,7 +977,7 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
             Interlocked.Exchange(ref _pendingFrame, null)?.Dispose();
             await Application.Current.Dispatcher.InvokeAsync(() =>
             {
-                IsPlaying  = false;
+                IsPlaying = false;
                 StatusText = $"재생 오류: {ex.Message}";
                 _mainVm.PlaybackStatusText = "오류";
                 _mainVm.PlaybackStatusIcon = "Stop24";
@@ -934,7 +1028,7 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
     {
         // 크기 변경 시에만 새 WriteableBitmap 생성
         if (VideoBitmap == null
-            || VideoBitmap.PixelWidth  != frame.Width
+            || VideoBitmap.PixelWidth != frame.Width
             || VideoBitmap.PixelHeight != frame.Height)
         {
             VideoBitmap = new WriteableBitmap(
@@ -967,7 +1061,153 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
             _isUpdatingPositionFromPlayback = false;
         }
 
+        // 비디오 해상도 갱신 (MISB 오버레이 Canvas 크기 동기화)
+        if (VideoWidth != frame.Width || VideoHeight != frame.Height)
+        {
+            VideoWidth = frame.Width;
+            VideoHeight = frame.Height;
+        }
+
+        // MISB 재생 위치 동기화 (30fps 스로틀링 내부 처리)
+        if (IsMisbEnabled && IsMisbLoaded && _misbSyncService != null)
+            _misbSyncService.UpdatePosition(frame.Timestamp);
+
         UpdateTimecode(frame.Timestamp);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // MISB 헬퍼
+    // ═══════════════════════════════════════════════════════════════
+
+    /// <summary>MISB 서비스를 DI에서 지연 취득합니다.</summary>
+    private IMetadataTimelineService GetMisbTimeline()
+        => _misbTimeline ??= _services.GetRequiredService<IMetadataTimelineService>();
+
+    private IMisbPlaybackSyncService GetMisbSync()
+        => _misbSyncService ??= _services.GetRequiredService<IMisbPlaybackSyncService>();
+
+    private void SubscribeMisbSync()
+        => GetMisbSync().MetadataUpdated += OnMisbMetadataUpdated;
+
+    private void UnsubscribeMisbSync()
+    {
+        if (_misbSyncService != null)
+            _misbSyncService.MetadataUpdated -= OnMisbMetadataUpdated;
+    }
+
+    /// <summary>MISB 파일 인덱싱 백그라운드 태스크.</summary>
+    private async Task LoadMisbForFileAsync(string filePath)
+    {
+        // 이전 로딩 취소
+        _misbLoadCts?.Cancel();
+        _misbLoadCts?.Dispose();
+        _misbLoadCts = new CancellationTokenSource();
+        var ct = _misbLoadCts.Token;
+
+        IsMisbLoaded = false;
+        MisbStatusText = "MISB 로드 중…";
+
+        try
+        {
+            var timeline = GetMisbTimeline();
+            var progress = new Progress<double>(p =>
+                Application.Current.Dispatcher.InvokeAsync(() =>
+                    MisbStatusText = $"MISB 로드 {p:P0}"));
+
+            await timeline.LoadAsync(filePath, progress, ct);
+
+            IsMisbLoaded = timeline.IsLoaded && timeline.IndexedCount > 0;
+            MisbStatusText = IsMisbLoaded
+                ? $"MISB: {timeline.IndexedCount:N0}개 레코드"
+                : "MISB 데이터 없음";
+
+            _logger.LogInformation("MISB 타임라인 로드 완료: {Count}개 레코드", timeline.IndexedCount);
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "MISB 로드 실패: {File}", filePath);
+            IsMisbLoaded = false;
+            MisbStatusText = "MISB 로드 실패";
+        }
+    }
+
+    /// <summary>MetadataUpdated 이벤트 핸들러 — 오버레이 아이템과 메타데이터 패널을 갱신합니다.</summary>
+    private void OnMisbMetadataUpdated(object? sender, MetadataSnapshot snapshot)
+    {
+        var items = BuildOverlayItems(snapshot.Metadata).ToList();
+
+        Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            // VMTI 바운딩 박스 오버레이 갱신
+            VmtiOverlayItems.Clear();
+            foreach (var item in items)
+                VmtiOverlayItems.Add(item);
+
+            // 우측 메타데이터 패널 갱신
+            MisbDisplay.UpdateFrom(snapshot.Metadata);
+        });
+    }
+
+    /// <summary>MisbMetadata → VmtiOverlayItem 목록 변환.</summary>
+    private IEnumerable<VmtiOverlayItem> BuildOverlayItems(MisbMetadata metadata)
+    {
+        if (metadata.VmtiData is not { } vmti || vmti.Targets.Count == 0)
+            yield break;
+
+        uint frameWidth = vmti.FrameWidth > 0 ? vmti.FrameWidth : (uint)VideoWidth;
+        if (frameWidth == 0) yield break;
+
+        foreach (var target in vmti.Targets)
+        {
+            // 바운딩 박스 픽셀 번호가 둘 다 0이면 유효하지 않은 항목
+            if (target.BoundingBoxTopLeft == 0 && target.BoundingBoxBottomRight == 0)
+                continue;
+
+            var (x0, y0) = PixelCoordinateHelper.GetCoordinate(target.BoundingBoxTopLeft, frameWidth);
+            var (x1, y1) = PixelCoordinateHelper.GetCoordinate(target.BoundingBoxBottomRight, frameWidth);
+
+            var left = Math.Min(x0, x1);
+            var top = Math.Min(y0, y1);
+            var width = Math.Abs(x1 - x0);
+            var height = Math.Abs(y1 - y0);
+
+            yield return new VmtiOverlayItem
+            {
+                X = left,
+                Y = top,
+                Width = width,
+                Height = height,
+                Label = BuildTargetLabel(target, vmti.Ontologies),
+            };
+        }
+    }
+
+    /// <summary>표적 ID + 온톨로지 레이블 + 신뢰도를 결합한 레이블 문자열.</summary>
+    private static string BuildTargetLabel(VmtiTarget target, IReadOnlyList<VmtiOntology> ontologies)
+    {
+        if (target.Objects.Count == 0)
+            return $"T{target.TargetId}";
+
+        var obj = target.Objects[0];
+        var ontology = ontologies.FirstOrDefault(o => o.OntologyId == obj.OntologyId);
+        var name = ontology?.Label ?? "Unknown";
+        var conf = double.IsNaN(obj.Confidence) ? "" : $" {obj.Confidence:F0}%";
+
+        return $"T{target.TargetId}: {name}{conf}";
+    }
+
+    /// <summary>VMTI 오버레이 아이템 및 상태 초기화.</summary>
+    private void ClearMisbOverlay()
+    {
+        if (Application.Current.Dispatcher.CheckAccess())
+        {
+            VmtiOverlayItems.Clear();
+        }
+        else
+        {
+            Application.Current.Dispatcher.InvokeAsync(() => VmtiOverlayItems.Clear());
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -994,6 +1234,12 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
 
     public void Dispose()
     {
+        // 0. MISB 리소스 정리
+        UnsubscribeMisbSync();
+        _misbLoadCts?.Cancel();
+        _misbLoadCts?.Dispose();
+        _misbLoadCts = null;
+
         // 1. 재생 루프 취소 — 백그라운드 스레드가 CT 체크포인트에서 빠져나오도록 신호
         StopPlaybackLoop(pauseAudio: false);
         _seekDebounce?.Cancel();

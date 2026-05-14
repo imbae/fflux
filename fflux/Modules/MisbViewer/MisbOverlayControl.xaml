@@ -1,0 +1,79 @@
+<UserControl
+    x:Class="fflux.UI.Modules.MisbViewer.MisbOverlayControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:fflux.UI.Modules.MisbViewer"
+    IsHitTestVisible="False">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter
+            x:Key="BoolToVis" />
+    </UserControl.Resources>
+    
+    <!--
+        Viewbox + Stretch="Uniform" 는 Image Source="{Binding VideoBitmap}" Stretch="Uniform" 와
+        동일한 레터박싱을 적용합니다.
+        내부 Canvas의 Width/Height를 비디오 해상도(VideoWidth/VideoHeight)로 설정하면
+        바운딩 박스 좌표가 픽셀 단위 그대로 렌더링됩니다.
+    -->
+    <Viewbox Stretch="Uniform">
+
+        <Canvas
+            Width="{Binding VideoWidth}"
+            Height="{Binding VideoHeight}">
+
+            <ItemsControl ItemsSource="{Binding VmtiOverlayItems}">
+
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Canvas IsItemsHost="True" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <!-- Canvas.Left / Canvas.Top → 바운딩 박스 좌상단 픽셀 좌표 -->
+                <ItemsControl.ItemContainerStyle>
+                    <Style TargetType="ContentPresenter">
+                        <Setter Property="Canvas.Left" Value="{Binding X}" />
+                        <Setter Property="Canvas.Top"  Value="{Binding Y}" />
+                    </Style>
+                </ItemsControl.ItemContainerStyle>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type local:VmtiOverlayItem}">
+                        <Grid>
+
+                            <!-- 바운딩 박스 사각형 -->
+                            <Rectangle
+                                Width="{Binding Width}"
+                                Height="{Binding Height}"
+                                Stroke="#FF00E040"
+                                StrokeThickness="2"
+                                Fill="Transparent" />
+
+                            <!-- 레이블 (좌상단 위, 반투명 배경) -->
+                            <Border
+                                Background="#CC000000"
+                                CornerRadius="2"
+                                Padding="3,1"
+                                VerticalAlignment="Top"
+                                HorizontalAlignment="Left"
+                                Margin="0,-20,0,0"
+                                Visibility="{Binding HasBoundingBox,
+                                             Converter={StaticResource BoolToVis}}">
+                                <TextBlock
+                                    Text="{Binding Label}"
+                                    Foreground="#FF00E040"
+                                    FontSize="12"
+                                    FontWeight="SemiBold" />
+                            </Border>
+
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+
+            </ItemsControl>
+
+        </Canvas>
+    </Viewbox>
+
+</UserControl>

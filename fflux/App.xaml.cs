@@ -4,6 +4,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using fflux.AiSubtitle.DependencyInjection;
+using fflux.AiSubtitle.Infrastructure.Database;
 using fflux.Core;
 using fflux.Core.Abstractions;
 using fflux.Misb;
@@ -48,12 +50,16 @@ public partial class App : Application
             UIElement.PreviewMouseWheelEvent,
             new MouseWheelEventHandler(OnScrollViewerPreviewMouseWheel));
 
+        // .env 파일 로드 (GROQ_API_KEY 등 — 존재하는 경우만)
+        TryLoadDotEnv();
+
         _host = Host.CreateDefaultBuilder()
-            .ConfigureServices((_, services) =>
+            .ConfigureServices((ctx, services) =>
             {
                 services.AddCoreServices();
                 services.AddUIServices();
                 services.AddMisbServices();
+                services.AddAiSubtitle(ctx.Configuration);
             })
             .Build();
     }
@@ -117,7 +123,10 @@ public partial class App : Application
         // 4. FFmpeg 바이너리 초기화 (경로가 설정된 경우만)
         await TryInitializeFFmpegAsync(settingsService.Current.FFmpegBinaryPath);
 
-        // 5. 메인 창 표시
+        // 5. AiSubtitle SQLite 캐시 DB 초기화 (번역 캐시 테이블 생성)
+        await TryInitializeAiSubtitleDbAsync();
+
+        // 6. 메인 창 표시
         var mainWindow = _host.Services.GetRequiredService<MainWindow>();
         mainWindow.Show();
 
@@ -130,6 +139,21 @@ public partial class App : Application
         await _host.StopAsync(TimeSpan.FromSeconds(5));
         _host.Dispose();
         base.OnExit(e);
+    }
+
+    // ── AiSubtitle DB 초기화 ─────────────────────────────────
+    private async Task TryInitializeAiSubtitleDbAsync()
+    {
+        try
+        {
+            var dbInit = _host.Services.GetRequiredService<DatabaseInitializer>();
+            await dbInit.InitializeAsync();
+        }
+        catch (Exception ex)
+        {
+            var logger = _host.Services.GetRequiredService<ILogger<App>>();
+            logger.LogWarning(ex, "AiSubtitle 번역 캐시 DB 초기화 실패 — 캐시 없이 동작합니다.");
+        }
     }
 
     // ── FFmpeg 초기화 ────────────────────────────────────────
@@ -159,6 +183,76 @@ public partial class App : Application
                 .GetRequiredService<ILogger<App>>();
             logger.LogError(ex,
                 "FFmpeg 초기화 실패 — 설정에서 경로를 확인하세요.");
+        }
+    }
+
+    // ── .env 로드 ──────────────────────────────────────────
+    /// <summary>
+    /// .env 파일을 찾아 환경변수로 로드합니다. 없어도 앱 시작을 막지 않습니다.
+    ///
+    /// 탐색 순서 (먼저 발견된 파일 하나만 사용):
+    ///   1. 실행 파일 디렉터리 (배포 환경 / bin\Debug\…\.env)
+    ///   2. 프로젝트 루트 상위 탐색 — 솔루션 디렉터리의 .env
+    ///   3. 솔루션 루트 하위 fflux.AiSubtitle\.env (개발 환경용 서브모듈 경로)
+    /// </summary>
+    private static void TryLoadDotEnv()
+    {
+        string? envPath = FindDotEnvPath();
+        if (envPath is null)
+        {
+            // .env 파일을 찾지 못해도 앱 시작을 막지 않음
+            // (시스템 환경변수 또는 appsettings에서 GROQ_API_KEY를 설정한 경우 동작)
+            Debug.WriteLine("[AiSubtitle] .env 파일을 찾을 수 없습니다. 시스템 환경변수를 사용합니다.");
+            return;
+        }
+
+        LoadDotEnvFile(envPath);
+        Debug.WriteLine($"[AiSubtitle] .env 로드 완료: {envPath}");
+    }
+
+    private static string? FindDotEnvPath()
+    {
+        // 1. 실행 파일 디렉터리 (bin\Debug\net10.0-windows\)
+        string baseDir = AppContext.BaseDirectory;
+        string candidate = Path.Combine(baseDir, ".env");
+        if (File.Exists(candidate)) return candidate;
+
+        // 2+3. 실행 파일에서 위로 최대 6단계 올라가며 탐색
+        //       개발 환경: bin\Debug\net10.0-windows → bin\Debug → bin → fflux → fflux(솔루션) → source
+        string? dir = baseDir;
+        for (int i = 0; i < 6; i++)
+        {
+            dir = Path.GetDirectoryName(dir?.TrimEnd(Path.DirectorySeparatorChar));
+            if (dir is null) break;
+
+            // 해당 디렉터리의 .env
+            candidate = Path.Combine(dir, ".env");
+            if (File.Exists(candidate)) return candidate;
+
+            // fflux.AiSubtitle 서브모듈의 .env (솔루션 루트에서 탐색)
+            candidate = Path.Combine(dir, "fflux.AiSubtitle", ".env");
+            if (File.Exists(candidate)) return candidate;
+        }
+
+        return null;
+    }
+
+    private static void LoadDotEnvFile(string envPath)
+    {
+        foreach (string line in File.ReadAllLines(envPath))
+        {
+            string trimmed = line.Trim();
+            if (string.IsNullOrEmpty(trimmed) || trimmed.StartsWith('#')) continue;
+
+            int eq = trimmed.IndexOf('=');
+            if (eq < 1) continue;
+
+            string key   = trimmed[..eq].Trim();
+            string value = trimmed[(eq + 1)..].Trim();
+
+            // 이미 설정된 시스템 환경변수는 덮어쓰지 않음
+            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable(key)))
+                Environment.SetEnvironmentVariable(key, value);
         }
     }
 

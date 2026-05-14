@@ -1,3 +1,5 @@
+using fflux.AiSubtitle.Services.Subtitle;
+using fflux.UI.Modules.AiSubtitle;
 using fflux.UI.Modules.BatchQueue;
 using fflux.UI.Modules.BitrateAnalyzer;
 using fflux.UI.Modules.FFmpegExplorer;
@@ -39,6 +41,7 @@ public static class UIServiceCollectionExtensions
         services.AddSingleton<SceneDetectorPage>();
         services.AddSingleton<BitrateAnalyzerPage>();
         services.AddSingleton<SettingsPage>();
+        services.AddSingleton<AiSubtitlePage>();
 
         // ── ViewModels (Page별) ──────────────────────────────
         services.AddSingleton<SettingsViewModel>();
@@ -48,6 +51,15 @@ public static class UIServiceCollectionExtensions
         services.AddSingleton<BatchQueueViewModel>();
         services.AddSingleton<SceneDetectorViewModel>();
         services.AddSingleton<BitrateAnalyzerViewModel>();
+        services.AddSingleton<AiSubtitleViewModel>();
+
+        // ── AiSubtitle 연동 ───────────────────────────────────
+        // PlayerViewModel이 IMediaPositionProvider를 구현합니다.
+        // SubtitleSyncService와 RealTimeTranslationService는 이를 주입받아 동작합니다.
+        services.AddSingleton<IMediaPositionProvider>(
+            sp => sp.GetRequiredService<PlayerViewModel>());
+        services.AddSingleton<ISubtitleSyncService, SubtitleSyncService>();
+        services.AddSingleton<IRealTimeTranslationService, RealTimeTranslationService>();
 
         return services;
     }

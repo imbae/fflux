@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Windows.Controls;
+using fflux.AiSubtitle.Services.Subtitle;
 using fflux.Core.Abstractions;
 using fflux.Core.Exceptions;
 using fflux.Core.Models;
@@ -10,6 +11,7 @@ using fflux.Misb.Models;
 using fflux.Misb.Timeline;
 using fflux.UI.Modules.MisbViewer;
 using fflux.UI.Shared.Services;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Win32;
 using Wpf.Ui;
 using Wpf.Ui.Controls;
@@ -19,8 +21,9 @@ namespace fflux.UI.Modules.Player;
 /// <summary>
 /// 비디오 플레이어 ViewModel.
 /// IVideoDecoder + IAudioDecoder 병렬 루프 → WriteableBitmap 렌더링 + NAudio 출력을 관리합니다.
+/// IMediaPositionProvider 구현: fflux.AiSubtitle의 실시간 번역 서비스가 재생 위치를 구독합니다.
 /// </summary>
-public sealed partial class PlayerViewModel : ObservableObject, IDisposable
+public sealed partial class PlayerViewModel : ObservableObject, IMediaPositionProvider, IDisposable
 {
     // ── 의존성 ──────────────────────────────────────────────────────
 
@@ -190,6 +193,25 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
 
     /// <summary>자막 텍스트 색상 (기본값: White).</summary>
     [ObservableProperty] private Brush _subtitleColor = Brushes.White;
+
+    // ── IMediaPositionProvider 구현 ──────────────────────────────────
+
+    /// <inheritdoc/>
+    public TimeSpan CurrentPosition => TimeSpan.FromSeconds(PositionSeconds);
+
+    /// <inheritdoc/>
+    public event EventHandler<TimeSpan>? PositionChanged;
+
+    // ── 실시간 번역 ──────────────────────────────────────────────────
+
+    /// <summary>실시간 번역 활성화 여부.</summary>
+    [ObservableProperty] private bool _isRealTimeTranslationEnabled;
+
+    /// <summary>실시간 번역으로 얻은 현재 자막 번역 텍스트.</summary>
+    [ObservableProperty] private string _realTimeTranslationText = string.Empty;
+
+    // 실시간 번역 서비스 (지연 취득 — IMediaPositionProvider 순환 참조 회피)
+    private IRealTimeTranslationService? _realTimeTranslationSvc;
 
     public SymbolRegular VolumeSymbol =>
         IsMuted || VolumeLevel == 0 ? SymbolRegular.SpeakerMute24 :
@@ -374,6 +396,42 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
     private void ToggleMisbPanel()
         => IsMisbPanelVisible = !IsMisbPanelVisible;
 
+    // ── 실시간 번역 커맨드 ────────────────────────────────────────────
+
+    /// <summary>실시간 번역 활성화/비활성화 토글.</summary>
+    [RelayCommand]
+    private void ToggleRealTimeTranslation()
+    {
+        var svc = _realTimeTranslationSvc
+            ??= _services.GetService<IRealTimeTranslationService>();
+
+        if (svc == null)
+        {
+            _logger.LogWarning("IRealTimeTranslationService가 DI에 등록되지 않았습니다.");
+            return;
+        }
+
+        if (IsRealTimeTranslationEnabled)
+        {
+            svc.Stop();
+            svc.TranslationReady -= OnRealTimeTranslationReady;
+            IsRealTimeTranslationEnabled = false;
+            RealTimeTranslationText = string.Empty;
+        }
+        else
+        {
+            svc.TranslationReady += OnRealTimeTranslationReady;
+            svc.Start("ko"); // TODO: 언어 설정 페이지와 연동
+            IsRealTimeTranslationEnabled = true;
+        }
+    }
+
+    private void OnRealTimeTranslationReady(object? sender, RealTimeTranslationResult result)
+    {
+        Application.Current.Dispatcher.InvokeAsync(
+            () => RealTimeTranslationText = result.TranslatedText);
+    }
+
     // ── CanExecute ───────────────────────────────────────────────────
 
     private bool CanPlay() => IsFileOpen && !IsPlaying;
@@ -425,7 +483,7 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
     public async Task LoadSubtitleFromPathAsync(string filePath)
     {
         var ext = Path.GetExtension(filePath).ToLowerInvariant().TrimStart('.');
-        var parser = _services.GetKeyedService<ISubtitleParser>(ext);
+        var parser = _services.GetKeyedService<fflux.Core.Abstractions.ISubtitleParser>(ext);
 
         if (parser == null)
         {
@@ -1219,6 +1277,9 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
         var dur = TimeSpan.FromSeconds(DurationSeconds);
         TimecodeText = $"{FormatTs(position)} / {FormatTs(dur)}";
         UpdateSubtitle(position);
+
+        // IMediaPositionProvider — 재생 위치 변경 알림 (AiSubtitle 실시간 번역 연동)
+        PositionChanged?.Invoke(this, position);
     }
 
     private void UpdateStatus(string text) => StatusText = text;
@@ -1234,7 +1295,14 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
 
     public void Dispose()
     {
-        // 0. MISB 리소스 정리
+        // 0. 실시간 번역 정리
+        if (_realTimeTranslationSvc != null)
+        {
+            _realTimeTranslationSvc.TranslationReady -= OnRealTimeTranslationReady;
+            _realTimeTranslationSvc.Stop();
+        }
+
+        // 1. MISB 리소스 정리
         UnsubscribeMisbSync();
         _misbLoadCts?.Cancel();
         _misbLoadCts?.Dispose();

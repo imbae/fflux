@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/Submodules/">
+    <Project Path="fflux.AiSubtitle/fflux.AiSubtitle/fflux.AiSubtitle.csproj" />
     <Project Path="fflux.Misb/fflux.Misb/fflux.Misb.csproj" />
   </Folder>
   <Project Path="fflux.Core/fflux.Core.csproj" Id="dad2c580-5ee9-42c3-84af-1f44f7d3b3fd" />

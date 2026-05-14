@@ -244,14 +244,25 @@
              컨트롤 바 위에 표시. IsSubtitleVisible=false 이면 Collapsed.
              텍스트가 빈 경우 내부 Border가 자동으로 숨겨집니다.
         ════════════════════════════════════════════════════════════════ -->
+        <!-- 원문 자막 오버레이 -->
         <ctrl:SubtitleOverlayControl
             SubtitleText="{Binding SubtitleText}"
             SubtitleFontSize="{Binding SubtitleFontSize}"
             SubtitleColor="{Binding SubtitleColor}"
             VerticalAlignment="Bottom"
             HorizontalAlignment="Center"
-            Margin="80,0,80,112"
+            Margin="80,0,80,148"
             Visibility="{Binding IsSubtitleVisible, Converter={StaticResource BoolToVis}}" />
+
+        <!-- 실시간 번역 자막 오버레이 (IsRealTimeTranslationEnabled=true일 때만 표시) -->
+        <ctrl:SubtitleOverlayControl
+            SubtitleText="{Binding RealTimeTranslationText}"
+            SubtitleFontSize="{Binding SubtitleFontSize}"
+            SubtitleColor="LightYellow"
+            VerticalAlignment="Bottom"
+            HorizontalAlignment="Center"
+            Margin="80,0,80,112"
+            Visibility="{Binding IsRealTimeTranslationEnabled, Converter={StaticResource BoolToVis}}" />
 
         <!-- ══ 오버레이 컨트롤 바 ═══════════════════════════════════════
              VerticalAlignment="Bottom" 으로 하단에 고정.
@@ -462,6 +473,40 @@
                             <ui:SymbolIcon
                                 Symbol="SlideText24"
                                 FontSize="14" />
+                        </ui:Button>
+
+                        <!-- 실시간 번역 토글 -->
+                        <ui:Button
+                            Margin="0,0,6,0"
+                            Command="{Binding ToggleRealTimeTranslationCommand}"
+                            ToolTip="실시간 AI 번역 활성화/비활성화">
+                            <ui:Button.Style>
+                                <Style
+                                    TargetType="ui:Button"
+                                    BasedOn="{StaticResource {x:Type ui:Button}}">
+                                    <Setter
+                                        Property="Appearance"
+                                        Value="Secondary" />
+                                    <Style.Triggers>
+                                        <DataTrigger
+                                            Binding="{Binding IsRealTimeTranslationEnabled}"
+                                            Value="True">
+                                            <Setter
+                                                Property="Appearance"
+                                                Value="Primary" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ui:Button.Style>
+                            <StackPanel
+                                Orientation="Horizontal">
+                                <ui:SymbolIcon
+                                    Symbol="Translate24"
+                                    FontSize="14"
+                                    Margin="0,0,6,0" />
+                                <TextBlock
+                                    Text="실시간 번역" />
+                            </StackPanel>
                         </ui:Button>
 
                         <!-- 프레임 뒤로 (hold-to-repeat) -->

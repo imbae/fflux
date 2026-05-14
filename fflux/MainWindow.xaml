@@ -13,6 +13,7 @@
     xmlns:scene="clr-namespace:fflux.UI.Modules.SceneDetector"
     xmlns:bitrate="clr-namespace:fflux.UI.Modules.BitrateAnalyzer"
     xmlns:settings="clr-namespace:fflux.UI.Modules.Settings"
+    xmlns:aisubtitle="clr-namespace:fflux.UI.Modules.AiSubtitle"
     mc:Ignorable="d"
     Title="fflux"
     Width="1280"
@@ -108,6 +109,16 @@
                     <ui:NavigationViewItem.Icon>
                         <ui:SymbolIcon
                             Symbol="DataTrending24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+
+                <!-- 🎙 AI Subtitle -->
+                <ui:NavigationViewItem
+                    Content="AI Subtitle"
+                    TargetPageType="{x:Type aisubtitle:AiSubtitlePage}">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon
+                            Symbol="Translate24" />
                     </ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
 

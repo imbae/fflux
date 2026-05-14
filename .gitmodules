@@ -1,3 +1,6 @@
 [submodule "fflux.Misb"]
 	path = fflux.Misb
 	url = https://github.com/imbae/fflux.Misb.git
+[submodule "fflux.AiSubtitle"]
+	path = fflux.AiSubtitle
+	url = https://github.com/imbae/fflux.AiSubtitle.git

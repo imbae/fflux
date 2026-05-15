@@ -12,7 +12,7 @@
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance Type=local:PlayerViewModel, IsDesignTimeCreatable=False}"
     d:DesignHeight="600"
-    d:DesignWidth="960"
+    d:DesignWidth="1200"
     Title="Player"
     ScrollViewer.VerticalScrollBarVisibility="Disabled"
     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
@@ -141,20 +141,30 @@
             CornerRadius="4"
             Padding="7,3">
             <Border.Style>
-                <Style TargetType="Border">
-                    <Setter Property="Visibility" Value="Collapsed" />
+                <Style
+                    TargetType="Border">
+                    <Setter
+                        Property="Visibility"
+                        Value="Collapsed" />
                     <Style.Triggers>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding IsMisbEnabled}" Value="True" />
-                                <Condition Binding="{Binding IsMisbLoaded}"  Value="True" />
+                                <Condition
+                                    Binding="{Binding IsMisbEnabled}"
+                                    Value="True" />
+                                <Condition
+                                    Binding="{Binding IsMisbLoaded}"
+                                    Value="True" />
                             </MultiDataTrigger.Conditions>
-                            <Setter Property="Visibility" Value="Visible" />
+                            <Setter
+                                Property="Visibility"
+                                Value="Visible" />
                         </MultiDataTrigger>
                     </Style.Triggers>
                 </Style>
             </Border.Style>
-            <StackPanel Orientation="Horizontal">
+            <StackPanel
+                Orientation="Horizontal">
                 <ui:SymbolIcon
                     Symbol="Location24"
                     FontSize="11"
@@ -232,6 +242,7 @@
              IsMisbPanelVisible=false 이면 Collapsed.
         ════════════════════════════════════════════════════════════════ -->
         <misb:MisbMetadataPanel
+            x:Name="MisbPanel"
             DataContext="{Binding MisbDisplay}"
             VerticalAlignment="Stretch"
             HorizontalAlignment="Right"
@@ -523,7 +534,7 @@
                         <!-- 재생 -->
                         <ui:Button
                             Margin="0,0,2,0"
-                            Width="36"
+                            Width="40"
                             Height="36"
                             Command="{Binding PlayCommand}"
                             Appearance="Primary"
@@ -536,7 +547,7 @@
                         <!-- 일시정지 -->
                         <ui:Button
                             Margin="0,0,2,0"
-                            Width="36"
+                            Width="40"
                             Height="36"
                             Command="{Binding PauseCommand}"
                             Appearance="Secondary"
@@ -549,7 +560,7 @@
                         <!-- 정지 -->
                         <ui:Button
                             Margin="0,0,2,0"
-                            Width="36"
+                            Width="40"
                             Height="36"
                             Command="{Binding StopCommand}"
                             Appearance="Secondary"

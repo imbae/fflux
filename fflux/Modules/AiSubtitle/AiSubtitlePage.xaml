@@ -14,13 +14,19 @@
     Title="AI Subtitle">
 
     <Page.Resources>
-        <conv:InverseBoolToVisibilityConverter x:Key="InvBoolToVis" />
-        <BooleanToVisibilityConverter         x:Key="BoolToVis" />
-        <conv:StringToVisibilityConverter     x:Key="StrToVis" />
+        <conv:InverseBoolToVisibilityConverter
+            x:Key="InvBoolToVis" />
+        <BooleanToVisibilityConverter
+            x:Key="BoolToVis" />
+        <conv:StringToVisibilityConverter
+            x:Key="StrToVis" />
     </Page.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="24,16" MaxWidth="720">
+    <ScrollViewer
+        VerticalScrollBarVisibility="Auto">
+        <StackPanel
+            Margin="24,16"
+            MaxWidth="720">
 
             <!-- 페이지 헤더 -->
             <TextBlock
@@ -41,7 +47,8 @@
                 Header="📁 소스 동영상 파일"
                 IsExpanded="True"
                 Margin="0,0,0,12">
-                <StackPanel Margin="0,8,0,0">
+                <StackPanel
+                    Margin="0,8,0,0">
 
                     <TextBlock
                         Text="동영상 파일"
@@ -50,9 +57,12 @@
                         Margin="0,0,0,4" />
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="8" />
-                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition
+                                Width="*" />
+                            <ColumnDefinition
+                                Width="8" />
+                            <ColumnDefinition
+                                Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <ui:TextBox
                             Grid.Column="0"
@@ -73,9 +83,12 @@
                         Margin="0,12,0,4" />
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="8" />
-                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition
+                                Width="*" />
+                            <ColumnDefinition
+                                Width="8" />
+                            <ColumnDefinition
+                                Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <ui:TextBox
                             Grid.Column="0"
@@ -96,47 +109,97 @@
                 Header="🌐 번역 설정"
                 IsExpanded="True"
                 Margin="0,0,0,12">
-                <Grid Margin="0,8,0,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="16" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
+                <StackPanel
+                    Margin="0,8,0,0">
 
-                    <!-- 대상 언어 -->
-                    <StackPanel Grid.Column="0">
+                    <!-- 언어 + 엔진 행 -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition
+                                Width="*" />
+                            <ColumnDefinition
+                                Width="16" />
+                            <ColumnDefinition
+                                Width="*" />
+                            <ColumnDefinition
+                                Width="16" />
+                            <ColumnDefinition
+                                Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- 소스 언어 -->
+                        <StackPanel
+                            Grid.Column="0">
+                            <TextBlock
+                                Text="소스 언어 (원본)"
+                                FontSize="12"
+                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                Margin="0,0,0,4" />
+                            <ComboBox
+                                ItemsSource="{x:Static local:AiSubtitleViewModel.SourceLanguages}"
+                                SelectedValuePath="Code"
+                                SelectedValue="{Binding SourceLanguage}"
+                                DisplayMemberPath="DisplayName" />
+                        </StackPanel>
+
+                        <!-- 대상 언어 -->
+                        <StackPanel
+                            Grid.Column="2">
+                            <TextBlock
+                                Text="대상 언어"
+                                FontSize="12"
+                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                Margin="0,0,0,4" />
+                            <ComboBox
+                                ItemsSource="{x:Static local:AiSubtitleViewModel.SupportedLanguages}"
+                                SelectedValuePath="Code"
+                                SelectedValue="{Binding TargetLanguage}"
+                                DisplayMemberPath="DisplayName" />
+                        </StackPanel>
+
+                        <!-- 번역 엔진 -->
+                        <StackPanel
+                            Grid.Column="4"
+                            IsEnabled="False">
+                            <TextBlock
+                                Text="번역 엔진"
+                                FontSize="12"
+                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                Margin="0,0,0,4" />
+                            <ComboBox
+                                ItemsSource="{x:Static local:AiSubtitleViewModel.EngineNames}"
+                                SelectedIndex="{Binding EngineIndex}" />
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- 번역 스타일 행 -->
+                    <StackPanel
+                        Margin="0,12,0,0">
                         <TextBlock
-                            Text="대상 언어"
+                            Text="번역 스타일"
                             FontSize="12"
                             Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                             Margin="0,0,0,4" />
                         <ComboBox
-                            ItemsSource="{x:Static local:AiSubtitleViewModel.SupportedLanguages}"
-                            SelectedValuePath="Code"
-                            SelectedValue="{Binding TargetLanguage}"
+                            ItemsSource="{x:Static local:AiSubtitleViewModel.TranslationStyles}"
+                            SelectedValuePath="Style"
+                            SelectedValue="{Binding TranslationStyle}"
                             DisplayMemberPath="DisplayName" />
                     </StackPanel>
 
-                    <!-- 번역 엔진 -->
-                    <StackPanel Grid.Column="2">
-                        <TextBlock
-                            Text="번역 엔진"
-                            FontSize="12"
-                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                            Margin="0,0,0,4" />
-                        <ComboBox
-                            ItemsSource="{x:Static local:AiSubtitleViewModel.EngineNames}"
-                            SelectedIndex="{Binding EngineIndex}" />
-                    </StackPanel>
-                </Grid>
+                </StackPanel>
             </ui:CardExpander>
 
             <!-- ── 실행 버튼 ── -->
-            <Grid Margin="0,0,0,12">
+            <Grid
+                Margin="0,0,0,12">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="12" />
-                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition
+                        Width="*" />
+                    <ColumnDefinition
+                        Width="12" />
+                    <ColumnDefinition
+                        Width="Auto" />
                 </Grid.ColumnDefinitions>
 
                 <ui:Button

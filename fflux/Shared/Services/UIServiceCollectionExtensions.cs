@@ -53,12 +53,9 @@ public static class UIServiceCollectionExtensions
         services.AddSingleton<BitrateAnalyzerViewModel>();
         services.AddSingleton<AiSubtitleViewModel>();
 
-        // ── AiSubtitle 연동 ───────────────────────────────────
-        // PlayerViewModel이 IMediaPositionProvider를 구현합니다.
-        // SubtitleSyncService와 RealTimeTranslationService는 이를 주입받아 동작합니다.
-        services.AddSingleton<IMediaPositionProvider>(
-            sp => sp.GetRequiredService<PlayerViewModel>());
-        services.AddSingleton<ISubtitleSyncService, SubtitleSyncService>();
+        // ── AiSubtitle 실시간 전사·번역 연동 ────────────────────
+        // RealTimeTranslationService의 의존성(IAudioTranscriptionService,
+        // ITranslationServiceFactory)은 AddAiSubtitle()에서 등록됩니다.
         services.AddSingleton<IRealTimeTranslationService, RealTimeTranslationService>();
 
         return services;

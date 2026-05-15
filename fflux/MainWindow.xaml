@@ -16,7 +16,7 @@
     xmlns:aisubtitle="clr-namespace:fflux.UI.Modules.AiSubtitle"
     mc:Ignorable="d"
     Title="fflux"
-    Width="1280"
+    Width="1600"
     Height="900"
     MinWidth="960"
     MinHeight="600"

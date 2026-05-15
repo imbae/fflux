@@ -41,6 +41,26 @@ public partial class PlayerPage : Page
     {
         RootGrid.Focus();
 
+        // ── 외부 스크롤바 원천 차단 ────────────────────────────────────────
+        // WPF-UI NavigationView는 Frame을 ScrollViewer로 감싸고 있습니다.
+        // 이 ScrollViewer의 기본 VerticalScrollBarVisibility=Auto 설정은
+        // 자식(Frame → Page)에게 무한 높이(∞)를 Measure 단계에서 제공합니다.
+        // 결과적으로 MisbMetadataPanel 내부의 Height="*" 행이 Auto처럼
+        // 동작해 StackPanel 전체 높이가 DesiredSize로 보고되고
+        // 페이지 레벨 스크롤바가 생기면서 하단 컨트롤바가 가려집니다.
+        //
+        // DisableAncestorScrollBars()는 이 Page → Window 사이의
+        // 모든 ScrollViewer를 Disabled로 설정합니다.
+        // Disabled 모드에서는 스크롤바가 숨겨지고, 뷰포트 크기(유한)만
+        // 자식에게 전달되므로 Height="*" 행이 올바르게 동작합니다.
+        DisableAncestorScrollBars();
+
+        // DisableAncestorScrollBars로 인해 조상 ScrollViewer가 유한 공간을
+        // 제공하게 되면, Page.ActualHeight = 뷰포트 높이가 됩니다.
+        // 이후 창 크기 변경 시 SizeChanged가 올바른 값으로 트리거됩니다.
+        ConstrainLayout(ActualWidth, ActualHeight);
+        SizeChanged += OnPageSizeChanged;
+
         _hideTimer.Tick += (_, _) =>
         {
             _hideTimer.Stop();
@@ -49,6 +69,52 @@ public partial class PlayerPage : Page
         };
 
         ViewModel.PropertyChanged += OnViewModelPropertyChanged;
+    }
+
+    /// <summary>
+    /// 이 Page에서 Window까지 시각적 부모 체인을 올라가며 발견되는 모든
+    /// <see cref="ScrollViewer"/>의 수직·수평 스크롤바를
+    /// <see cref="ScrollBarVisibility.Disabled"/>로 설정합니다.
+    ///
+    /// <para>
+    /// <see cref="ScrollBarVisibility.Disabled"/>는 단순히 스크롤바 UI를 숨기는
+    /// <see cref="ScrollBarVisibility.Hidden"/>과 달리, ScrollViewer가 자식에게
+    /// 전달하는 availableSize를 뷰포트 크기(유한)로 제한합니다.
+    /// 덕분에 내부 <c>Height="*"</c> 행이 올바르게 동작하고,
+    /// MisbMetadataPanel 내부의 ScrollViewer만 스크롤바를 표시하게 됩니다.
+    /// </para>
+    /// </summary>
+    private void DisableAncestorScrollBars()
+    {
+        DependencyObject? current = VisualTreeHelper.GetParent(this);
+        while (current is not null)
+        {
+            if (current is ScrollViewer sv)
+            {
+                sv.VerticalScrollBarVisibility   = ScrollBarVisibility.Disabled;
+                sv.HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled;
+            }
+
+            if (current is Window) break;
+            current = VisualTreeHelper.GetParent(current);
+        }
+    }
+
+    private void OnPageSizeChanged(object sender, SizeChangedEventArgs e)
+        => ConstrainLayout(e.NewSize.Width, e.NewSize.Height);
+
+    /// <summary>
+    /// RootGrid와 MisbMetadataPanel의 MaxWidth/MaxHeight를 뷰포트 크기로 제한합니다.
+    /// DisableAncestorScrollBars와 이중 방어선을 구성합니다.
+    /// </summary>
+    private void ConstrainLayout(double width, double height)
+    {
+        if (width  > 0) RootGrid.MaxWidth  = width;
+        if (height > 0) RootGrid.MaxHeight = height;
+
+        // MisbMetadataPanel은 Margin="0,0,0,112"이므로
+        // 패널 자체의 MaxHeight = 뷰포트 높이 - 하단 마진(112).
+        if (height > 0) MisbPanel.MaxHeight = height - 112;
     }
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)

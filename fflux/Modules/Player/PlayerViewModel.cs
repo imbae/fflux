@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Windows.Controls;
 using fflux.AiSubtitle.Services.Subtitle;
+using fflux.AiSubtitle.Services.Translation;
 using fflux.Core.Abstractions;
 using fflux.Core.Exceptions;
 using fflux.Core.Models;
@@ -9,9 +10,9 @@ using fflux.Misb.Abstractions;
 using fflux.Misb.Helpers;
 using fflux.Misb.Models;
 using fflux.Misb.Timeline;
+using fflux.UI.Modules.AiSubtitle;
 using fflux.UI.Modules.MisbViewer;
 using fflux.UI.Shared.Services;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Win32;
 using Wpf.Ui;
 using Wpf.Ui.Controls;
@@ -44,6 +45,7 @@ public sealed partial class PlayerViewModel : ObservableObject, IMediaPositionPr
 
     // ── 재생 루프 제어 ───────────────────────────────────────────────
 
+    private volatile bool _disposed;
     private CancellationTokenSource? _playbackCts;
     private CancellationTokenSource? _seekDebounce;
     private Task? _videoLoopTask;
@@ -421,7 +423,13 @@ public sealed partial class PlayerViewModel : ObservableObject, IMediaPositionPr
         else
         {
             svc.TranslationReady += OnRealTimeTranslationReady;
-            svc.Start("ko"); // TODO: 언어 설정 페이지와 연동
+
+            // AI Subtitle 페이지의 번역 설정과 연동
+            var aiVm = _services.GetService<AiSubtitleViewModel>();
+            svc.Start(
+                targetLanguage: aiVm?.TargetLanguage  ?? "ko",
+                sourceLanguage: aiVm?.SourceLanguage  ?? "",
+                style:          aiVm?.TranslationStyle ?? TranslationStyle.Default);
             IsRealTimeTranslationEnabled = true;
         }
     }
@@ -628,6 +636,7 @@ public sealed partial class PlayerViewModel : ObservableObject, IMediaPositionPr
     partial void OnPositionSecondsChanged(double value)
     {
         if (_isUpdatingPositionFromPlayback) return;
+        if (_disposed) return;
 
         // 150ms 디바운스: 슬라이더 드래그 중 과도한 시크 요청 방지
         _seekDebounce?.Cancel();
@@ -910,6 +919,11 @@ public sealed partial class PlayerViewModel : ObservableObject, IMediaPositionPr
             _audioPlayer.Play();
             _audioLoopTask = Task.Run(() => AudioPlaybackLoopAsync(ct), ct);
         }
+
+        // 실시간 번역이 켜져 있었다면 새 파일에 맞게 버퍼 초기화
+        if (IsRealTimeTranslationEnabled)
+            (_realTimeTranslationSvc ??= _services.GetService<IRealTimeTranslationService>())
+                ?.Stop();
     }
 
     /// <summary>
@@ -1061,6 +1075,11 @@ public sealed partial class PlayerViewModel : ObservableObject, IMediaPositionPr
         {
             await foreach (var frame in _audioDecoder!.DecodeAsync(ct))
             {
+                // 실시간 전사·번역: PCM 프레임을 번역 서비스 버퍼에 공급
+                if (IsRealTimeTranslationEnabled)
+                    (_realTimeTranslationSvc ??= _services.GetService<IRealTimeTranslationService>())
+                        ?.PushAudioFrame(frame.Samples, frame.SampleRate, frame.Channels, frame.Timestamp);
+
                 while (_audioPlayer != null
                        && _audioPlayer.BufferedDuration > maxBuffer)
                 {
@@ -1295,6 +1314,8 @@ public sealed partial class PlayerViewModel : ObservableObject, IMediaPositionPr
 
     public void Dispose()
     {
+        _disposed = true;   // OnPositionSecondsChanged 등 재진입 차단
+
         // 0. 실시간 번역 정리
         if (_realTimeTranslationSvc != null)
         {
@@ -1312,6 +1333,7 @@ public sealed partial class PlayerViewModel : ObservableObject, IMediaPositionPr
         StopPlaybackLoop(pauseAudio: false);
         _seekDebounce?.Cancel();
         _seekDebounce?.Dispose();
+        _seekDebounce = null;
 
         // 2. 루프 태스크가 완료될 때까지 최대 2초 대기 (데드락 방지: UI 스레드 아닌 경우만)
         var loops = new[] { _videoLoopTask, _audioLoopTask }

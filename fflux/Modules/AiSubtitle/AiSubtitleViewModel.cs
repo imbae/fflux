@@ -27,6 +27,10 @@ public sealed partial class AiSubtitleViewModel : ObservableObject
     [ObservableProperty]
     private string _outputSrtPath = string.Empty;
 
+    /// <summary>소스(원본) 언어 코드 (예: "ja", "en"). 빈 문자열이면 자동 감지.</summary>
+    [ObservableProperty]
+    private string _sourceLanguage = "en";
+
     /// <summary>번역 대상 언어 코드 (예: "ko", "en").</summary>
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(GenerateCommand))]
@@ -58,17 +62,26 @@ public sealed partial class AiSubtitleViewModel : ObservableObject
     [ObservableProperty]
     private Brush _resultColor = Brushes.Gray;
 
+    /// <summary>번역 스타일 (장르별 어조 조정).</summary>
+    [ObservableProperty]
+    private TranslationStyle _translationStyle = TranslationStyle.Default;
+
     // ── 지원 언어 목록 ───────────────────────────────────────────────
 
     public static IReadOnlyList<LanguageItem> SupportedLanguages { get; } =
     [
-        new("한국어",   "ko"),
+        new("한국어", "ko"),
         new("English", "en"),
-        new("日本語",   "ja"),
-        new("中文",     "zh"),
-        new("Español", "es"),
-        new("Français","fr"),
-        new("Deutsch", "de"),
+        new("日本語", "ja"),
+    ];
+
+    /// <summary>소스 언어 목록 — '자동 감지' 항목 포함.</summary>
+    public static IReadOnlyList<LanguageItem> SourceLanguages { get; } =
+    [
+        new("자동 감지", ""),
+        new("English", "en"),
+        new("日本語", "ja"),
+        new("한국어", "ko"),
     ];
 
     public static IReadOnlyList<string> EngineNames { get; } =
@@ -76,6 +89,10 @@ public sealed partial class AiSubtitleViewModel : ObservableObject
         "Groq (Llama 4)",
         "DeepL",
     ];
+
+    /// <summary>UI ComboBox용 번역 스타일 목록.</summary>
+    public static IReadOnlyList<TranslationStyleInfo> TranslationStyles { get; } =
+        TranslationStyleHelper.All;
 
     // ── 생성자 ──────────────────────────────────────────────────────
 
@@ -137,8 +154,10 @@ public sealed partial class AiSubtitleViewModel : ObservableObject
         var request = new SubtitleGenerationRequest(
             MediaFilePath:  MediaFilePath,
             TargetLanguage: TargetLanguage,
+            SourceLanguage: SourceLanguage,
             OutputSrtPath:  OutputSrtPath,
-            Engine:         engine);
+            Engine:         engine,
+            Style:          TranslationStyle);
 
         var progress = new Progress<SubtitleGenerationProgress>(OnProgress);
 

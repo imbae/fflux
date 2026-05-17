@@ -60,6 +60,16 @@ public partial class App : Application
                 services.AddUIServices();
                 services.AddMisbServices();
                 services.AddAiSubtitle(ctx.Configuration);
+
+                // AiSubtitleOptions.FfmpegBinaryPath 를 ISettingsService에서 런타임 주입.
+                // PostConfigure는 IOptions<AiSubtitleOptions>.Value 최초 접근 시 실행되므로
+                // OnStartup에서 settingsService.LoadAsync() 완료 후에 AudioExtractionService가
+                // 처음 사용될 때 올바른 경로가 설정됩니다.
+                services.AddOptions<AiSubtitleOptions>()
+                    .PostConfigure<ISettingsService>((opts, ss) =>
+                    {
+                        opts.FfmpegBinaryPath = ss.Current.FFmpegBinaryPath;
+                    });
             })
             .Build();
     }

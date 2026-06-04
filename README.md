@@ -6,6 +6,7 @@
 [![.NET](https://img.shields.io/badge/.NET-10.0-purple.svg)](https://dotnet.microsoft.com/download/dotnet/10.0)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-lightgrey.svg)]()
 [![ffmpeg.autogen](https://img.shields.io/badge/ffmpeg.autogen-8.1.0-green.svg)](https://github.com/Ruslan-B/FFmpeg.AutoGen)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/imbae?style=flat&logo=github&label=Sponsor&color=ea4aaa)](https://github.com/sponsors/imbae)
 
 개발자 지향 고급 기능(실시간 통계, 구간 녹화, 자막 편집, AI 자막 생성, MISB KLV 파싱)을 ffmpeg.autogen API로 직접 구현한 WPF 비디오 플레이어입니다. 외부 ffmpeg.exe 프로세스 호출 없이 라이브러리를 직접 사용하며, GPL 코덱 없이 LGPL 조건을 완전히 준수합니다.
 

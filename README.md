@@ -1,6 +1,10 @@
 # fflux
 
-**ffmpeg.autogen 기반 WPF 비디오 플레이어** — Developer-focused media player built on ffmpeg.autogen + WPF (.NET 10)
+🌐 **English** | [한국어](README.ko.md)
+
+**Developer-focused WPF video player built on ffmpeg.autogen + .NET 10**
+
+No external `ffmpeg.exe` process — uses the ffmpeg.autogen API directly. Fully LGPL-compliant with no GPL codec linking.
 
 [![License: LGPL](https://img.shields.io/badge/License-LGPL-blue.svg)](LICENSE.txt)
 [![.NET](https://img.shields.io/badge/.NET-10.0-purple.svg)](https://dotnet.microsoft.com/download/dotnet/10.0)
@@ -8,286 +12,282 @@
 [![ffmpeg.autogen](https://img.shields.io/badge/ffmpeg.autogen-8.1.0-green.svg)](https://github.com/Ruslan-B/FFmpeg.AutoGen)
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/imbae?style=flat&logo=github&label=Sponsor&color=ea4aaa)](https://github.com/sponsors/imbae)
 
-개발자 지향 고급 기능(실시간 통계, 구간 녹화, 자막 편집, AI 자막 생성, MISB KLV 파싱)을 ffmpeg.autogen API로 직접 구현한 WPF 비디오 플레이어입니다. 외부 ffmpeg.exe 프로세스 호출 없이 라이브러리를 직접 사용하며, GPL 코덱 없이 LGPL 조건을 완전히 준수합니다.
-
 ---
 
 ![fflux Player](docs/screenshots/player.png)
 
 ---
 
-## 목차
+## Table of Contents
 
-- [기능 개요](#기능-개요)
-- [스크린샷](#스크린샷)
-- [시작하기](#시작하기)
-  - [사전 요구사항](#사전-요구사항)
-  - [FFmpeg 바이너리 설정](#ffmpeg-바이너리-설정)
-- [플레이어 사용법](#플레이어-사용법)
-- [자막 편집기](#자막-편집기)
+- [Features](#features)
+- [Screenshots](#screenshots)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [FFmpeg Setup](#ffmpeg-setup)
+- [Player Usage](#player-usage)
+- [Subtitle Editor](#subtitle-editor)
 - [FFmpeg Explorer](#ffmpeg-explorer)
-- [AI 자막 생성 (PRO)](#ai-자막-생성-pro)
-- [MISB KLV 메타데이터 (PRO)](#misb-klv-메타데이터-pro)
-- [소스 빌드](#소스-빌드)
-- [라이선스](#라이선스)
+- [AI Subtitle Generation (PRO)](#ai-subtitle-generation-pro)
+- [MISB KLV Metadata (PRO)](#misb-klv-metadata-pro)
+- [Building from Source](#building-from-source)
+- [License](#license)
 
 ---
 
-## 기능 개요
+## Features
 
-| 기능 | 설명 | 무료 |
-|------|------|:----:|
-| 비디오 재생 | MP4 · MKV · AVI · MOV · WMV · WebM · TS 등 | ✅ |
-| 라이브 스트리밍 | RTSP · RTP · UDP 주소 직접 입력 | ✅ |
-| 오디오 출력 | WASAPI 저지연 출력, 볼륨/음소거 | ✅ |
-| 재생 제어 | 배속 조정(0.25×~2×), 프레임 스텝, 시크 | ✅ |
-| 실시간 통계 | FPS · 비트레이트 · 프레임 번호 실시간 표시 | ✅ |
-| 미디어 정보 패널 | 코덱 · 해상도 · 스트림 정보 슬라이딩 패널 | ✅ |
-| 구간 녹화 | Stream Copy 무손실 녹화, GIF 내보내기 | ✅ |
-| 자막 편집기 | SRT/VTT 읽기·편집·저장, 재생 위치 연동 | ✅ |
-| FFmpeg Explorer | FFmpeg 옵션 GUI 빌더 + 커맨드 생성기 | ✅ |
-| **AI 자막 생성** | Whisper 전사 + Groq/DeepL 번역 → .srt 출력 | 🔒 PRO |
-| **실시간 AI 번역** | 재생 중 음성을 실시간 전사·번역 오버레이 | 🔒 PRO |
-| **MISB KLV** | KLV 메타데이터 파싱 + VMTI 바운딩 박스 오버레이 | 🔒 PRO |
+| Feature | Description | Free |
+|---------|-------------|:----:|
+| Video Playback | MP4 · MKV · AVI · MOV · WMV · WebM · TS and more | ✅ |
+| Live Streaming | RTSP · RTP · UDP direct URL input | ✅ |
+| Audio Output | WASAPI low-latency output, volume/mute | ✅ |
+| Playback Control | Speed (0.25×–2×), frame step, seek | ✅ |
+| Real-time Stats | FPS · bitrate · frame number live display | ✅ |
+| Media Info Panel | Codec · resolution · stream info sliding panel | ✅ |
+| Segment Recording | Lossless Stream Copy recording, GIF export | ✅ |
+| Subtitle Editor | SRT/VTT read · edit · save, playback sync | ✅ |
+| FFmpeg Explorer | FFmpeg option GUI builder + command generator | ✅ |
+| **AI Subtitle** | Whisper transcription + Groq/DeepL translation → .srt | 🔒 PRO |
+| **Real-time AI Translation** | Live transcription + translation overlay during playback | 🔒 PRO |
+| **MISB KLV** | KLV metadata parsing + VMTI bounding box overlay | 🔒 PRO |
 
 ---
 
-## 스크린샷
+## Screenshots
 
-### 비디오 플레이어 — 미디어 정보 패널 · 구간 녹화
+### Player — Media Info Panel · Segment Recording
 
 ![Player with media info panel](docs/screenshots/player.png)
 
-재생 중 우측 패널에서 코덱·해상도·비트레이트·스트림 정보를 실시간 확인합니다. 하단 컨트롤 바에서 구간 녹화(Stream Copy)를 시작하면 재인코딩 없이 원본 품질로 저장됩니다.
+The right-side panel shows real-time codec, resolution, and bitrate information. Stream Copy recording saves without re-encoding.
 
-### 자막 편집기
+### Subtitle Editor
 
 ![Subtitle Editor](docs/screenshots/subtitle-editor.png)
 
-SRT/VTT 파일을 불러와 타임스탬프·텍스트를 인라인 편집하고, 해당 구간의 영상을 미리보기 패널에서 바로 확인합니다.
+Load SRT/VTT files, edit timestamps and text inline, and preview the corresponding video frame.
 
 ### FFmpeg Explorer
 
 ![FFmpeg Explorer](docs/screenshots/ffmpeg-explorer.png)
 
-복잡한 FFmpeg 옵션을 GUI로 조립하고 커맨드라인을 자동 생성합니다. 복사 또는 즉시 실행이 가능합니다.
+Build complex FFmpeg commands via GUI. Copy to clipboard or execute directly.
 
-### AI 자막 생성 (PRO)
+### AI Subtitle Generation (PRO)
 
 ![AI Subtitle](docs/screenshots/ai-subtitle.png)
 
-Whisper 서버를 내장 UI로 시작하고, 동영상에서 음성을 전사한 뒤 Groq(Llama 4) 또는 DeepL로 번역하여 `.srt` 파일을 생성합니다.
+Start the Whisper server from the built-in UI, transcribe audio, and translate with Groq (Llama 4) or DeepL.
 
-### 설정
+### Settings
 
 ![Settings](docs/screenshots/settings.png)
 
-FFmpeg 경로, 테마, 하드웨어 가속(D3D11VA·DXVA2·CUDA·QSV), 디코더 스레드 수 등을 설정합니다.
+Configure FFmpeg path, theme, hardware acceleration (D3D11VA · DXVA2 · CUDA · QSV), and decoder thread count.
 
 ---
 
-## 시작하기
+## Getting Started
 
-### 사전 요구사항
+### Prerequisites
 
-| 항목 | 버전 | 비고 |
-|------|------|------|
+| Item | Version | Notes |
+|------|---------|-------|
 | Windows | 10 / 11 (x64) | |
-| [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) | 10.0+ | 실행 필수 |
-| [FFmpeg LGPL 빌드](https://github.com/BtbN/FFmpeg-Builds/releases) | 7.x / 8.x | `ffmpeg.exe` 포함 폴더 |
-| Python *(AI 자막 기능만)* | 3.9 이상 | PATH 등록 필수 |
+| [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) | 10.0+ | Required to run |
+| [FFmpeg LGPL build](https://github.com/BtbN/FFmpeg-Builds/releases) | 7.x / 8.x | Folder containing `ffmpeg.exe` |
+| Python *(AI subtitle only)* | 3.9+ | Must be in PATH |
 
-> ⚠️ **FFmpeg GPL 빌드 사용 금지** — fflux는 LGPL 라이선스를 준수합니다. GPL 코덱(x264, x265 등)이 포함된 빌드를 사용하면 LGPL 조건을 위반합니다.  
-> [BtbN FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds/releases) 에서 `ffmpeg-master-latest-win64-lgpl.zip`을 다운로드하세요.
+> ⚠️ **Do not use FFmpeg GPL builds** — fflux is LGPL-licensed. Using builds with GPL codecs (x264, x265, etc.) violates LGPL terms.  
+> Download `ffmpeg-master-latest-win64-lgpl.zip` from [BtbN FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds/releases).
 
-### FFmpeg 바이너리 설정
+### FFmpeg Setup
 
-1. fflux 실행 후 좌측 메뉴 **Settings** 진입
-2. **FFmpeg 설정** 카드 → `ffmpeg.exe`가 있는 폴더 경로 입력
-3. **설정 저장** 클릭 → FFmpeg 초기화 성공 메시지 확인
+1. Launch fflux and go to **Settings** in the left menu
+2. Under **FFmpeg Settings**, enter the folder path containing `ffmpeg.exe`
+3. Click **Save** and confirm the FFmpeg initialization message
 
 ---
 
-## 플레이어 사용법
+## Player Usage
 
-### 파일 열기
+### Opening Files
 
-- 하단 컨트롤 바 **[열기]** 버튼 또는 비디오 영역에 파일 드래그앤드롭
-- 자막 파일(`.srt`, `.vtt`)을 드롭하면 자막만 교체
+- Click **[Open]** in the bottom control bar, or drag and drop a file onto the video area
+- Dropping a subtitle file (`.srt`, `.vtt`) replaces the current subtitle only
 
-### 스트리밍
+### Live Streaming
 
-하단 **[스트리밍]** 버튼 → URL 입력 → **[열기]**
+Click **[Stream]** → enter URL → **[Open]**
 
 ```
-지원 스킴: rtsp://  rtp://  udp://  srt://  rtmp://  rtmps://
+Supported schemes: rtsp://  rtp://  udp://  srt://  rtmp://  rtmps://
 
-예시:
+Examples:
   rtsp://192.168.0.1:554/stream
   udp://@239.0.0.1:1234
 ```
 
-### 키보드 단축키
+### Keyboard Shortcuts
 
-| 키 | 동작 |
-|----|------|
-| `Space` | 재생 / 일시정지 |
-| `←` / `→` | 5초 뒤로 / 앞으로 |
-| `Ctrl+←` / `Ctrl+→` | 이전 프레임 / 다음 프레임 |
-| `M` | 음소거 토글 |
-| `F` | 전체화면 토글 |
-| `V` | 자막 표시/숨김 |
-| `Escape` | 전체화면 해제 |
+| Key | Action |
+|-----|--------|
+| `Space` | Play / Pause |
+| `←` / `→` | Seek −5s / +5s |
+| `Ctrl+←` / `Ctrl+→` | Previous frame / Next frame |
+| `M` | Toggle mute |
+| `F` | Toggle fullscreen |
+| `V` | Toggle subtitle display |
+| `Escape` | Exit fullscreen |
 
-### 구간 녹화
+### Segment Recording
 
-하단 컨트롤 바 **[녹화]** 버튼 → 원하는 시점에 **[중지]** 버튼  
-(Stream Copy — 재인코딩 없이 원본 품질 그대로 MKV/MP4/TS로 저장)
+Click **[Record]** in the bottom bar → click **[Stop]** at the desired end point.  
+(Stream Copy — saves at original quality as MKV/MP4/TS without re-encoding)
 
 ---
 
-## 자막 편집기
+## Subtitle Editor
 
-좌측 메뉴 **Subtitle Editor** 진입
+Go to **Subtitle Editor** in the left menu.
 
 ![Subtitle Editor](docs/screenshots/subtitle-editor.png)
 
-- SRT / VTT 파일을 드롭하거나 **[자막 열기]** 버튼으로 불러오기
-- 동영상 파일을 드롭하면 동일 이름의 자막이 있으면 함께 로드
-- DataGrid에서 타임스탬프·텍스트 인라인 편집
-- **[위치로 이동]** 버튼 → 해당 자막 구간의 비디오 프레임 미리보기
-- `Ctrl+S` 저장 / `Insert` 행 추가 / `Ctrl+Del` 행 삭제
+- Drop an SRT/VTT file or click **[Open Subtitle]**
+- Dropping a video file also loads a same-named subtitle if present
+- Inline editing of timestamps and text in the DataGrid
+- **[Go to Position]** button → preview the video frame at that subtitle's timestamp
+- `Ctrl+S` save / `Insert` add row / `Ctrl+Del` delete row
 
 ---
 
 ## FFmpeg Explorer
 
-좌측 메뉴 **FFmpeg Explorer** 진입
+Go to **FFmpeg Explorer** in the left menu.
 
 ![FFmpeg Explorer](docs/screenshots/ffmpeg-explorer.png)
 
-복잡한 FFmpeg 커맨드 라인을 GUI로 조립합니다.
+Assemble complex FFmpeg command lines via GUI.
 
-- 입력 파일 · 출력 파일 선택
-- 비디오/오디오/필터 옵션을 드롭다운/슬라이더로 설정
-- 생성된 커맨드를 클립보드 복사 또는 직접 실행
+- Select input and output files
+- Configure video/audio/filter options via dropdowns and sliders
+- Copy the generated command to clipboard or run it directly
 
 ---
 
-## AI 자막 생성 (PRO)
+## AI Subtitle Generation (PRO)
 
-> PRO 기능 — `fflux.AiSubtitle` private 서브모듈이 포함된 빌드에서만 활성화됩니다.
+> PRO feature — only activated in builds that include the `fflux.AiSubtitle` private submodule.
 
 ![AI Subtitle](docs/screenshots/ai-subtitle.png)
 
-동영상 파일에서 **Whisper**로 음성을 전사하고 **Groq(Llama 4)** 또는 **DeepL**로 번역하여 `.srt` 파일을 생성합니다.
+Transcribes audio from a video file using **Whisper** and translates it with **Groq (Llama 4)** or **DeepL** to produce a `.srt` file.
 
-### 환경 변수 설정 (`.env`)
+### Environment Variables (`.env`)
 
-프로젝트 루트 또는 실행 파일 디렉터리에 `.env` 파일을 생성합니다  
-(`.env.example`을 복사하여 편집하세요).
+Create a `.env` file in the project root or the executable directory  
+(copy `.env.example` and edit).
 
 ```dotenv
-# ── Groq API 키 (필수) ────────────────────────────────────────
-# 발급: https://console.groq.com → API Keys → Create API Key
-# 무료 플랜 제공 (분당 요청 제한 있음)
+# Groq API key (required) — https://console.groq.com
 GROQ_API_KEY=gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-# ── 번역 AI 모델 (선택 — 기본값으로 동작) ────────────────────
+# Translation model (optional — default works fine)
 AI_MODEL=meta-llama/llama-4-scout-17b-16e-instruct
 
-# ── OpenAI 호환 엔드포인트 (선택 — 변경 불필요) ──────────────
+# OpenAI-compatible endpoint (optional — no change needed)
 AI_PROVIDER=https://api.groq.com/openai/v1
 
-# ── Python Whisper 서버 URL ───────────────────────────────────
+# Python Whisper server URL
 PYTHON_API_URL=http://localhost:8765
 
-# ── DeepL API 키 (선택) ───────────────────────────────────────
+# DeepL API key (optional)
 # DEEPL_API_KEY=
 ```
 
-| 변수 | 필수 | 설명 | 발급처 |
-|------|:----:|------|--------|
-| `GROQ_API_KEY` | ✅ | Groq LLM/Whisper API 인증 키 | [console.groq.com](https://console.groq.com) |
-| `AI_MODEL` | — | 번역에 사용할 Llama 모델명 | — |
-| `AI_PROVIDER` | — | OpenAI 호환 엔드포인트 URL | — |
-| `PYTHON_API_URL` | ✅ | Whisper 전사 서버 URL | 직접 실행 또는 원격 서버 |
-| `DEEPL_API_KEY` | — | DeepL 번역 엔진 (없으면 Groq 번역만 사용) | [deepl.com/pro-api](https://www.deepl.com/pro-api) |
+| Variable | Required | Description | Get it at |
+|----------|:--------:|-------------|-----------|
+| `GROQ_API_KEY` | ✅ | Groq LLM/Whisper API key | [console.groq.com](https://console.groq.com) |
+| `AI_MODEL` | — | Llama model name for translation | — |
+| `AI_PROVIDER` | — | OpenAI-compatible endpoint URL | — |
+| `PYTHON_API_URL` | ✅ | Whisper transcription server URL | Run locally or use remote |
+| `DEEPL_API_KEY` | — | DeepL translation engine (Groq-only without it) | [deepl.com/pro-api](https://www.deepl.com/pro-api) |
 
-### Python Whisper 서버 설치 및 실행
+### Python Whisper Server
 
-AI 자막 생성은 [faster-whisper](https://github.com/SYSTRAN/faster-whisper) 기반 로컬 Python 서버에서 음성 전사를 수행합니다.
+AI subtitle generation uses a local Python server based on [faster-whisper](https://github.com/SYSTRAN/faster-whisper).
 
 ```bash
 cd fflux.AiSubtitle/python
 pip install -r requirements.txt
 ```
 
-> GPU(CUDA) 사용 시 [pytorch.org](https://pytorch.org/get-started/locally/) 에서 CUDA 버전에 맞는 PyTorch를 먼저 설치하세요. CUDA 12.6 권장.
+> For GPU (CUDA), install the matching PyTorch version first from [pytorch.org](https://pytorch.org/get-started/locally/). CUDA 12.6 recommended.
 
-**앱 내에서 시작 (권장)**: 좌측 메뉴 **AI Subtitle** → Whisper 서버 카드에서 모델 선택 → **[서버 시작]**
+**Start from within the app (recommended)**: Go to **AI Subtitle** → select a model in the Whisper Server card → click **[Start Server]**
 
-**직접 실행**:
+**Manual start**:
 ```bash
-python whisper_server.py                                          # CPU, base 모델
-python whisper_server.py --model large-v3 --device cuda          # GPU + 고정밀
+python whisper_server.py                                  # CPU, base model
+python whisper_server.py --model large-v3 --device cuda  # GPU, high accuracy
 ```
 
-#### Whisper 모델 비교
+#### Whisper Model Comparison
 
-| 모델 | 크기 | 속도 | 정확도 |
-|------|------|-----:|--------|
-| `tiny` | ~75 MB | 32× | 낮음 |
-| `base` | ~145 MB | 16× | 보통 |
-| `small` | ~465 MB | 6× | 좋음 |
-| `medium` | ~1.5 GB | 2× | 매우 좋음 |
-| `large-v3` | ~3 GB | 1× | 최고 |
+| Model | Size | Speed | Accuracy |
+|-------|------|------:|----------|
+| `tiny` | ~75 MB | 32× | Low |
+| `base` | ~145 MB | 16× | Fair |
+| `small` | ~465 MB | 6× | Good |
+| `medium` | ~1.5 GB | 2× | Very good |
+| `large-v3` | ~3 GB | 1× | Best |
 
-### AI 자막 생성 워크플로우
+### Workflow
 
 ```
-① Python 서버 시작 → ② 서버 연결됨 확인
+① Start Python server → ② Confirm "● Server connected"
         ↓
-③ 소스 동영상 파일 선택
+③ Select source video file
         ↓
-④ 번역 설정 (소스 언어 · 대상 언어 · 번역 엔진 · 번역 스타일)
+④ Configure translation (source language · target language · engine · style)
         ↓
-⑤ [🎬 자막 생성 시작] 클릭
+⑤ Click [🎬 Generate Subtitle]
         ↓
-⑥ 전사 → 번역 → 저장 (하단 로그 패널에서 진행 확인)
+⑥ Monitor progress in the log panel (transcribe → translate → save)
         ↓
-⑦ 동영상과 같은 폴더에 .srt 파일 저장 완료
+⑦ .srt file saved to the same folder as the video
 ```
 
-번역된 구문은 SQLite 캐시(`%APPDATA%\fflux\AiSubtitle\translation_cache.db`)에 저장되어 동일 구문의 중복 API 호출을 방지합니다.
+Translated phrases are cached in SQLite (`%APPDATA%\fflux\AiSubtitle\translation_cache.db`) to avoid redundant API calls.
 
 ---
 
-## MISB KLV 메타데이터 (PRO)
+## MISB KLV Metadata (PRO)
 
-> PRO 기능 — `fflux.Misb` private 서브모듈이 포함된 빌드에서만 활성화됩니다.
+> PRO feature — only activated in builds that include the `fflux.Misb` private submodule.
 
-**MISB ST 0601** KLV 메타데이터를 파싱하여 항공 영상의 센서 위치·자세·VMTI 표적 정보를 실시간으로 오버레이합니다.
+Parses **MISB ST 0601** KLV metadata and overlays sensor position, platform attitude, and VMTI target information in real time on aerial video footage.
 
-| 기능 | 설명 |
-|------|------|
-| VMTI 바운딩 박스 | 프레임별 표적 위치에 바운딩 박스 + 분류 레이블 오버레이 |
-| 메타데이터 패널 | 센서 위치(위도/경도/고도), 플랫폼 자세(Heading/Pitch/Roll), FOV 실시간 표시 |
-| 프레임 중심 좌표 | 프레임 센터 및 4개 모서리 GeoPoint 표시 |
-| 타임라인 동기화 | 시크 시 해당 위치의 KLV 메타데이터 즉시 업데이트 |
+| Feature | Description |
+|---------|-------------|
+| VMTI Bounding Boxes | Per-frame target bounding boxes with classification labels |
+| Metadata Panel | Sensor lat/lon/alt, platform heading/pitch/roll, sensor FOV |
+| Frame Center | Frame center coordinates and 4-corner GeoPoints |
+| Timeline Sync | KLV metadata updates instantly on seek |
 
-지원 표준: **MISB ST 0601** (UAS Datalink Local Set) · **MISB ST 0903** (VMTI)
+Supported standards: **MISB ST 0601** (UAS Datalink Local Set) · **MISB ST 0903** (VMTI)
 
 ---
 
-## 소스 빌드
+## Building from Source
 
 ```
 .NET 10 SDK
-Visual Studio 2022 17.10+ 또는 JetBrains Rider 2024.1+
+Visual Studio 2022 17.10+ or JetBrains Rider 2024.1+
 ```
 
-### Public 빌드 (PRO 기능 없이)
+### Public Build (no PRO features)
 
 ```bash
 git clone https://github.com/imbae/fflux.git
@@ -295,9 +295,9 @@ cd fflux
 dotnet build fflux/fflux.UI.csproj
 ```
 
-`Directory.Build.props`가 서브모듈 존재 여부를 자동 감지합니다. 서브모듈이 없으면 `#if MISB` / `#if AI_SUBTITLE` 블록이 컴파일에서 제외되고 PRO 기능만 비활성화된 상태로 빌드됩니다.
+`Directory.Build.props` auto-detects submodule presence. Without submodules, `#if MISB` / `#if AI_SUBTITLE` blocks are excluded and the build succeeds with PRO features simply disabled.
 
-### PRO 빌드 (서브모듈 포함)
+### PRO Build (with submodules)
 
 ```bash
 git clone --recurse-submodules https://github.com/imbae/fflux.git
@@ -305,24 +305,24 @@ cd fflux
 dotnet build fflux.slnx
 ```
 
-### 프로젝트 구조
+### Project Structure
 
 ```
 fflux/
-├── fflux.Core/            ← ffmpeg.autogen 핵심 엔진 (디코더, 파서, 모델)
+├── fflux.Core/            ← ffmpeg.autogen engine (decoders, parsers, models)
 ├── fflux/                 ← WPF UI (fflux.UI.csproj)
 │   └── Modules/
-│       ├── Player/        ← 비디오 플레이어
-│       ├── SubtitleEditor/← 자막 편집기
-│       ├── FFmpegExplorer/← FFmpeg 커맨드 빌더
-│       ├── AiSubtitle/    ← AI 자막 생성 페이지 (PRO UI)
-│       └── MisbViewer/    ← MISB 오버레이 컨트롤 (PRO UI)
+│       ├── Player/        ← Video player
+│       ├── SubtitleEditor/← Subtitle editor
+│       ├── FFmpegExplorer/← FFmpeg command builder
+│       ├── AiSubtitle/    ← AI subtitle page (PRO UI)
+│       └── MisbViewer/    ← MISB overlay controls (PRO UI)
 ├── tests/
 │   └── fflux.Core.Tests/
 │
-│   (별도 Private 저장소)
-├── fflux.Misb/            ← MISB KLV 파싱 엔진 (PRO)
-└── fflux.AiSubtitle/      ← AI 자막·번역 엔진 (PRO)
+│   (Separate private repositories)
+├── fflux.Misb/            ← MISB KLV parsing engine (PRO)
+└── fflux.AiSubtitle/      ← AI subtitle/translation engine (PRO)
     └── python/
         ├── whisper_server.py
         └── requirements.txt
@@ -330,17 +330,18 @@ fflux/
 
 ---
 
-## 라이선스
+## License
 
-fflux는 **LGPL(GNU Lesser General Public License)** 라이선스로 배포됩니다.
+fflux is distributed under the **LGPL (GNU Lesser General Public License)**.
 
-- FFmpeg **LGPL 빌드**를 사용하여 LGPL 조건을 준수합니다
-- GPL 코덱(x264, x265 등) 링킹 금지
-- 소스 수정 배포 시 변경 내역 공개 의무
+- Uses FFmpeg **LGPL builds** to maintain LGPL compliance
+- No GPL codec linking (x264, x265, etc.)
+- Modified source distributions must disclose changes
 
 ---
 
-## 기여 및 문의
+## Contributing & Contact
 
-- 버그 제보 및 기능 제안: [Issues](https://github.com/imbae/fflux/issues)
-- PRO 기능(AI 자막, MISB) 관련 문의는 별도 연락 바랍니다
+- Bug reports and feature requests: [Issues](https://github.com/imbae/fflux/issues)
+- PRO feature inquiries (AI subtitle, MISB): please contact separately
+- If fflux is useful to you, consider [sponsoring ☕](https://github.com/sponsors/imbae)

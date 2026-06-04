@@ -20,6 +20,7 @@ using fflux.Misb;
 using fflux.Core.Exceptions;
 using fflux.UI.Shared.Models;
 using fflux.UI.Shared.Services;
+using System.Globalization;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using Microsoft.Extensions.DependencyInjection;
@@ -186,7 +187,10 @@ public partial class App : Application
         var settingsService = _host.Services.GetRequiredService<ISettingsService>();
         await settingsService.LoadAsync();
 
-        // 2. 저장된 테마 적용
+        // 2. 저장된 언어 적용 (테마보다 먼저 — UI 초기화 전)
+        LocalizationManager.Instance.SetLanguage(settingsService.Current.Language);
+
+        // 3. 저장된 테마 적용
         ApplyTheme(settingsService.Current.Theme);
 
         // 3. 다크 퍼플 액센트 적용
@@ -195,7 +199,7 @@ public partial class App : Application
             applicationTheme: ApplicationTheme.Dark
         );
 
-        // 4. FFmpeg 바이너리 초기화 (경로가 설정된 경우만)
+        // 5. FFmpeg 바이너리 초기화 (경로가 설정된 경우만)
         await TryInitializeFFmpegAsync(settingsService.Current.FFmpegBinaryPath);
 
 #if AI_SUBTITLE

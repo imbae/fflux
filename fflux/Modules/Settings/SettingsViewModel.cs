@@ -126,6 +126,10 @@ public sealed partial class SettingsViewModel : ObservableObject
     public bool IsLightTheme  { get => SelectedTheme == AppTheme.Light;  set { if (value) SelectedTheme = AppTheme.Light;  } }
     public bool IsDarkTheme   { get => SelectedTheme == AppTheme.Dark;   set { if (value) SelectedTheme = AppTheme.Dark;   } }
 
+    // 언어
+    public bool IsKoreanLanguage { get => SelectedLanguage == AppLanguage.Korean;  set { if (value) SelectedLanguage = AppLanguage.Korean;  } }
+    public bool IsEnglishLanguage{ get => SelectedLanguage == AppLanguage.English; set { if (value) SelectedLanguage = AppLanguage.English; } }
+
     // RTSP 전송 프로토콜
     public bool IsRtspTcp  { get => RtspTransport == "tcp";  set { if (value) RtspTransport = "tcp";  } }
     public bool IsRtspUdp  { get => RtspTransport == "udp";  set { if (value) RtspTransport = "udp";  } }
@@ -174,12 +178,14 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
     }
 
+    private static LocalizationManager Loc => LocalizationManager.Instance;
+
     public string FFmpegPathValidation
     {
         get
         {
             if (string.IsNullOrWhiteSpace(FFmpegBinaryPath)) return string.Empty;
-            return Directory.Exists(FFmpegBinaryPath) ? string.Empty : "⚠ 폴더를 찾을 수 없습니다.";
+            return Directory.Exists(FFmpegBinaryPath) ? string.Empty : Loc["Settings.Validation.FolderNotFound"];
         }
     }
 
@@ -188,7 +194,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         get
         {
             if (string.IsNullOrWhiteSpace(DefaultOutputFolder)) return string.Empty;
-            return Directory.Exists(DefaultOutputFolder) ? string.Empty : "⚠ 폴더를 찾을 수 없습니다.";
+            return Directory.Exists(DefaultOutputFolder) ? string.Empty : Loc["Settings.Validation.FolderNotFound"];
         }
     }
 
@@ -212,6 +218,14 @@ public sealed partial class SettingsViewModel : ObservableObject
         LoadFromSettings(_settingsService.Current);
     }
 
+    // ── 언어 변경 즉시 적용 ──────────────────────────────────────────
+    partial void OnSelectedLanguageChanged(AppLanguage value)
+    {
+        LocalizationManager.Instance.SetLanguage(value);
+        OnPropertyChanged(nameof(IsKoreanLanguage));
+        OnPropertyChanged(nameof(IsEnglishLanguage));
+    }
+
     // ── 테마 변경 즉시 적용 ──────────────────────────────────────────
     partial void OnSelectedThemeChanged(AppTheme value)
     {
@@ -233,14 +247,14 @@ public sealed partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private void BrowseFFmpegPath()
     {
-        var dialog = new OpenFolderDialog { Title = "FFmpeg 바이너리 폴더를 선택하세요", Multiselect = false };
+        var dialog = new OpenFolderDialog { Title = Loc["Dialog.Browse.FFmpeg"], Multiselect = false };
         if (dialog.ShowDialog() == true) FFmpegBinaryPath = dialog.FolderName;
     }
 
     [RelayCommand]
     private void BrowseOutputFolder()
     {
-        var dialog = new OpenFolderDialog { Title = "기본 출력 폴더를 선택하세요", Multiselect = false };
+        var dialog = new OpenFolderDialog { Title = Loc["Dialog.Browse.OutputFolder"], Multiselect = false };
         if (dialog.ShowDialog() == true) DefaultOutputFolder = dialog.FolderName;
     }
 
@@ -288,14 +302,14 @@ public sealed partial class SettingsViewModel : ObservableObject
                 await TryReinitializeFFmpegAsync();
 
             _snackbarService.Show(
-                "저장 완료", "설정이 저장되었습니다.",
+                Loc["Dialog.Save.Title"], Loc["Dialog.Save.Message"],
                 ControlAppearance.Success,
                 new SymbolIcon(SymbolRegular.Checkmark24),
                 TimeSpan.FromSeconds(3));
         }
         catch (Exception ex)
         {
-            await _dialogService.ShowErrorAsync("저장 실패", "설정 저장 중 오류가 발생했습니다.", ex);
+            await _dialogService.ShowErrorAsync(Loc["Dialog.SaveFailed"], Loc["Dialog.SaveFailedMsg"], ex);
         }
     }
 
@@ -305,8 +319,8 @@ public sealed partial class SettingsViewModel : ObservableObject
         {
             await _ffmpegInitializer.InitializeAsync(FFmpegBinaryPath);
             _snackbarService.Show(
-                "FFmpeg 로드 완료",
-                $"FFmpeg {_ffmpegInitializer.VersionInfo?.AvcodecVersion} 초기화 성공",
+                Loc["Dialog.FFmpeg.Success"],
+                string.Format(Loc["Dialog.FFmpeg.SuccessMsg"], _ffmpegInitializer.VersionInfo?.AvcodecVersion),
                 ControlAppearance.Success,
                 new SymbolIcon(SymbolRegular.Checkmark24),
                 TimeSpan.FromSeconds(4));
@@ -315,8 +329,8 @@ public sealed partial class SettingsViewModel : ObservableObject
         {
             _logger.LogError(ex, "FFmpeg 재초기화 실패");
             await _dialogService.ShowErrorAsync(
-                "FFmpeg 초기화 실패",
-                "FFmpeg 바이너리를 로드할 수 없습니다.\n경로를 확인해 주세요.", ex);
+                Loc["Dialog.FFmpeg.Failed"],
+                Loc["Dialog.FFmpeg.FailedMsg"], ex);
         }
     }
 
@@ -324,9 +338,10 @@ public sealed partial class SettingsViewModel : ObservableObject
     private async Task ResetToDefaultsAsync()
     {
         var confirmed = await _dialogService.ShowConfirmAsync(
-            "기본값으로 초기화",
-            "모든 설정을 기본값으로 되돌립니다. 계속하시겠습니까?",
-            confirmText: "초기화", cancelText: "취소");
+            Loc["Dialog.Reset.Title"],
+            Loc["Dialog.Reset.Message"],
+            confirmText: Loc["Dialog.Reset.Confirm"],
+            cancelText:  Loc["Dialog.Reset.Cancel"]);
 
         if (!confirmed) return;
 
@@ -336,7 +351,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         OnPropertyChanged(nameof(HasUnsavedChanges));
 
         _snackbarService.Show(
-            "초기화 완료", "설정이 기본값으로 초기화되었습니다.",
+            Loc["Dialog.Reset.Done"], Loc["Dialog.Reset.DoneMsg"],
             ControlAppearance.Caution,
             new SymbolIcon(SymbolRegular.ArrowReset24),
             TimeSpan.FromSeconds(3));

@@ -5,6 +5,7 @@ using System.Windows.Media;
 using fflux.Core.Abstractions;
 using fflux.Core.Models;
 using fflux.UI.Modules.Player;
+using fflux.UI.Shared.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 
@@ -26,6 +27,7 @@ namespace fflux.UI.Modules.SubtitleEditor;
 /// </summary>
 public sealed partial class SubtitleEditorViewModel : ObservableObject, IDisposable
 {
+    private static LocalizationManager Loc => LocalizationManager.Instance;
     // 비디오 파일 자동 연결 시 검색할 확장자 (우선순위 순)
     private static readonly string[] VideoExtensions =
         [".mp4", ".mkv", ".avi", ".mov", ".wmv", ".webm", ".ts", ".m2ts", ".m4v", ".flv"];
@@ -151,8 +153,8 @@ public sealed partial class SubtitleEditorViewModel : ObservableObject, IDisposa
     {
         var dlg = new OpenFileDialog
         {
-            Title  = "자막 파일 열기",
-            Filter = "자막 파일|*.srt;*.vtt|SubRip|*.srt|WebVTT|*.vtt|모든 파일|*.*",
+            Title  = Loc["SubtitleEditor.Dialog.Open"],
+            Filter = Loc["SubtitleEditor.Dialog.OpenFilter"],
         };
         if (dlg.ShowDialog() != true) return;
 
@@ -167,7 +169,7 @@ public sealed partial class SubtitleEditorViewModel : ObservableObject, IDisposa
 
         if (parser is null)
         {
-            StatusText = $"지원하지 않는 형식: .{ext}  (SRT / VTT만 지원됩니다)";
+            StatusText = string.Format(Loc["SubtitleEditor.Status.Unsupported"], ext);
             return;
         }
 
@@ -183,7 +185,7 @@ public sealed partial class SubtitleEditorViewModel : ObservableObject, IDisposa
         }
         catch (Exception ex)
         {
-            StatusText = $"파일 열기 실패: {ex.Message}";
+            StatusText = string.Format(Loc["SubtitleEditor.Status.OpenFailed"], ex.Message);
         }
     }
 
@@ -302,7 +304,7 @@ public sealed partial class SubtitleEditorViewModel : ObservableObject, IDisposa
         RefreshStatus();
 
         if (hasErrors)
-            StatusText += "  (경고: 잘못된 타임스탬프 항목은 저장에서 제외됨)";
+            StatusText += "  " + Loc["SubtitleEditor.Status.SaveWarning"];
     }
 
     // ═══════════════════════════════════════════════════════════════

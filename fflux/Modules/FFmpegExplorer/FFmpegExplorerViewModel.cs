@@ -9,6 +9,7 @@ namespace fflux.UI.Modules.FFmpegExplorer;
 
 public sealed partial class FFmpegExplorerViewModel : ObservableObject
 {
+    private static LocalizationManager Loc => LocalizationManager.Instance;
     // ── 의존성 ──────────────────────────────────────────────────────
 
     private readonly IFFmpegCommandService      _commandService;
@@ -223,7 +224,7 @@ public sealed partial class FFmpegExplorerViewModel : ObservableObject
     private void CopyCommand()
     {
         Clipboard.SetText(GeneratedCommand);
-        StatusText = "클립보드에 복사됨";
+        StatusText = Loc["FFmpegExplorer.Copy.Done"];
     }
 
     [RelayCommand(CanExecute = nameof(CanExecute))]
@@ -234,8 +235,8 @@ public sealed partial class FFmpegExplorerViewModel : ObservableObject
 
         if (!File.Exists(ffmpegExe))
         {
-            AppendLog($"[오류] ffmpeg.exe를 찾을 수 없습니다: {ffmpegExe}");
-            AppendLog("       설정 페이지에서 FFmpeg 바이너리 경로를 확인하세요.");
+            AppendLog(string.Format(Loc["FFmpegExplorer.Error.NotFound"], ffmpegExe));
+            AppendLog("       " + Loc["FFmpegExplorer.Error.CheckSettings"]);
             ShowLog    = true;
             StatusText = "FFmpeg 경로 오류";
             return;
@@ -247,7 +248,7 @@ public sealed partial class FFmpegExplorerViewModel : ObservableObject
         ProgressText  = "";
         IsRunning     = true;
         ShowLog       = true;
-        StatusText    = "실행 중…";
+        StatusText    = Loc["FFmpegExplorer.Execute.Label"] + "…";
 
         AppendLog($"$ ffmpeg {_commandService.BuildArguments(BuildOptions())}");
         AppendLog(new string('─', 60));
@@ -262,26 +263,26 @@ public sealed partial class FFmpegExplorerViewModel : ObservableObject
 
             if (exitCode == 0)
             {
-                StatusText    = "완료";
+                StatusText    = Loc["FFmpegExplorer.Execute.Label"];
                 ProgressValue = 100;
                 AppendLog(new string('─', 60));
-                AppendLog("[완료] 인코딩이 성공적으로 끝났습니다.");
+                AppendLog(Loc["FFmpegExplorer.Log.Success"]);
             }
             else
             {
-                StatusText = $"오류 (종료 코드: {exitCode})";
-                AppendLog($"[오류] ffmpeg 종료 코드: {exitCode}");
+                StatusText = string.Format(Loc["FFmpegExplorer.Log.Error"], exitCode);
+                AppendLog(string.Format(Loc["FFmpegExplorer.Log.Error"], exitCode));
             }
         }
         catch (OperationCanceledException)
         {
-            StatusText = "취소됨";
-            AppendLog("[취소] 사용자에 의해 중단됐습니다.");
+            StatusText = Loc["FFmpegExplorer.Cancel.Label"];
+            AppendLog(Loc["FFmpegExplorer.Log.Cancelled"]);
         }
         catch (Exception ex)
         {
-            StatusText = $"실행 오류: {ex.Message}";
-            AppendLog($"[예외] {ex.Message}");
+            StatusText = ex.Message;
+            AppendLog(string.Format(Loc["FFmpegExplorer.Log.Exception"], ex.Message));
             _logger.LogError(ex, "FFmpeg 실행 실패");
         }
         finally

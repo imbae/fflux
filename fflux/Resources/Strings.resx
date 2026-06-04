@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+
+  <!-- ── Player ── -->
+  <data name="Player.Hint.OpenFile" xml:space="preserve"><value>Press the Open button</value></data>
+  <data name="Player.Hint.Formats" xml:space="preserve"><value>MP4 · MKV · AVI · MOV · WMV · WebM · TS</value></data>
+  <data name="Player.Hint.Streaming" xml:space="preserve"><value>Or enter RTSP · RTP · UDP address via Streaming button</value></data>
+  <data name="Player.Pro.Notice" xml:space="preserve"><value>Pro features are not available in the Public Repository.</value></data>
+  <data name="Player.Misb.Tooltip" xml:space="preserve"><value>Enable/disable MISB KLV metadata overlay</value></data>
+  <data name="Player.MisbPanel.Label" xml:space="preserve"><value>Metadata</value></data>
+  <data name="Player.MisbPanel.Tooltip" xml:space="preserve"><value>Show/hide MISB metadata panel</value></data>
+  <data name="Player.RealTime.Label" xml:space="preserve"><value>AI Trans.</value></data>
+  <data name="Player.RealTime.Tooltip" xml:space="preserve"><value>Enable/disable real-time AI translation</value></data>
+  <data name="Player.FrameBack.Tooltip" xml:space="preserve"><value>Previous frame (Ctrl+←)</value></data>
+  <data name="Player.Play.Tooltip" xml:space="preserve"><value>Play / Pause (Space)</value></data>
+  <data name="Player.Stop.Tooltip" xml:space="preserve"><value>Stop</value></data>
+  <data name="Player.FrameForward.Tooltip" xml:space="preserve"><value>Next frame (Ctrl+→)</value></data>
+  <data name="Player.Open.Label" xml:space="preserve"><value>Open</value></data>
+  <data name="Player.Open.Tooltip" xml:space="preserve"><value>Open media file</value></data>
+  <data name="Player.Stream.Label" xml:space="preserve"><value>Stream</value></data>
+  <data name="Player.Stream.Tooltip" xml:space="preserve"><value>Enter RTSP / RTP / UDP streaming address</value></data>
+  <data name="Player.LoadSubtitle.Label" xml:space="preserve"><value>Subtitle</value></data>
+  <data name="Player.LoadSubtitle.Tooltip" xml:space="preserve"><value>Open subtitle file (SRT / VTT)</value></data>
+  <data name="Player.Record.Label" xml:space="preserve"><value>Record</value></data>
+  <data name="Player.Record.Stop" xml:space="preserve"><value>Stop</value></data>
+  <data name="Player.Record.Tooltip" xml:space="preserve"><value>Start/stop Stream Copy recording</value></data>
+  <data name="Player.Gif.Tooltip" xml:space="preserve"><value>Export GIF from current position</value></data>
+  <data name="Player.Subtitle.Tooltip" xml:space="preserve"><value>Show/hide subtitles (V)</value></data>
+  <data name="Player.MediaInfo.Tooltip" xml:space="preserve"><value>Show/hide media info panel</value></data>
+  <data name="Player.Mute.Tooltip" xml:space="preserve"><value>Mute (M)</value></data>
+  <data name="Player.Speed.Label" xml:space="preserve"><value>Speed</value></data>
+  <data name="Player.Speed.Tooltip" xml:space="preserve"><value>Playback speed</value></data>
+  <data name="Player.Fullscreen.Tooltip" xml:space="preserve"><value>Fullscreen (F)</value></data>
+
+  <!-- ── SubtitleEditor ── -->
+  <data name="SubtitleEditor.Open.Label" xml:space="preserve"><value>Open</value></data>
+  <data name="SubtitleEditor.Open.Tooltip" xml:space="preserve"><value>Open subtitle file (Ctrl+O)</value></data>
+  <data name="SubtitleEditor.Save.Label" xml:space="preserve"><value>Save</value></data>
+  <data name="SubtitleEditor.Save.Tooltip" xml:space="preserve"><value>Save (Ctrl+S)</value></data>
+  <data name="SubtitleEditor.SaveAs.Label" xml:space="preserve"><value>Save As</value></data>
+  <data name="SubtitleEditor.SaveAs.Tooltip" xml:space="preserve"><value>Save As</value></data>
+  <data name="SubtitleEditor.Add.Label" xml:space="preserve"><value>Add</value></data>
+  <data name="SubtitleEditor.Add.Tooltip" xml:space="preserve"><value>Add subtitle below selection (Ins)</value></data>
+  <data name="SubtitleEditor.Delete.Label" xml:space="preserve"><value>Delete</value></data>
+  <data name="SubtitleEditor.Delete.Tooltip" xml:space="preserve"><value>Delete selected subtitle (Ctrl+Del)</value></data>
+  <data name="SubtitleEditor.Seek.Label" xml:space="preserve"><value>Go to</value></data>
+  <data name="SubtitleEditor.Seek.Tooltip" xml:space="preserve"><value>Move player to selected subtitle position</value></data>
+  <data name="SubtitleEditor.Grid.Start" xml:space="preserve"><value>Start</value></data>
+  <data name="SubtitleEditor.Grid.End" xml:space="preserve"><value>End</value></data>
+  <data name="SubtitleEditor.Grid.Color" xml:space="preserve"><value>Color</value></data>
+  <data name="SubtitleEditor.Grid.Text" xml:space="preserve"><value>Subtitle Text</value></data>
+  <data name="SubtitleEditor.Empty.Title" xml:space="preserve"><value>Open or drag-and-drop SRT / VTT file</value></data>
+  <data name="SubtitleEditor.Empty.Hint" xml:space="preserve"><value>Or click the [Open] button above</value></data>
+  <data name="SubtitleEditor.Video.Hint" xml:space="preserve"><value>Drag-and-drop video or click [Video] button</value></data>
+  <data name="SubtitleEditor.Video.Formats" xml:space="preserve"><value>MP4 · MKV · AVI · MOV · WebM · TS</value></data>
+  <data name="SubtitleEditor.Play.Tooltip" xml:space="preserve"><value>Play / Pause (Space)</value></data>
+  <data name="SubtitleEditor.Stop.Tooltip" xml:space="preserve"><value>Stop</value></data>
+  <data name="SubtitleEditor.Detail.StartTime" xml:space="preserve"><value>Start Time</value></data>
+  <data name="SubtitleEditor.Detail.EndTime" xml:space="preserve"><value>End Time</value></data>
+  <data name="SubtitleEditor.Detail.Text" xml:space="preserve"><value>Subtitle Text</value></data>
+  <data name="SubtitleEditor.Detail.Color" xml:space="preserve"><value>Color</value></data>
+  <data name="SubtitleEditor.Detail.CustomColor" xml:space="preserve"><value>Custom (#RRGGBB)</value></data>
+  <data name="SubtitleEditor.Detail.SetStart.Tooltip" xml:space="preserve"><value>Set current position as start time</value></data>
+  <data name="SubtitleEditor.Detail.SetEnd.Tooltip" xml:space="preserve"><value>Set current position as end time</value></data>
+  <data name="SubtitleEditor.Detail.Error" xml:space="preserve"><value>Timestamp format error&#10;Enter as HH:MM:SS,mmm</value></data>
+
+  <!-- ── FFmpegExplorer ── -->
+  <data name="FFmpegExplorer.Section.File" xml:space="preserve"><value>File</value></data>
+  <data name="FFmpegExplorer.Input.Label" xml:space="preserve"><value>Input</value></data>
+  <data name="FFmpegExplorer.Input.Tooltip" xml:space="preserve"><value>Select input file</value></data>
+  <data name="FFmpegExplorer.Input.Button" xml:space="preserve"><value>Open</value></data>
+  <data name="FFmpegExplorer.Output.Label" xml:space="preserve"><value>Output</value></data>
+  <data name="FFmpegExplorer.Output.Tooltip" xml:space="preserve"><value>Specify output file path</value></data>
+  <data name="FFmpegExplorer.Output.Button" xml:space="preserve"><value>Save</value></data>
+  <data name="FFmpegExplorer.Tab.Video" xml:space="preserve"><value>  Video  </value></data>
+  <data name="FFmpegExplorer.Tab.Audio" xml:space="preserve"><value>  Audio  </value></data>
+  <data name="FFmpegExplorer.Tab.Filter" xml:space="preserve"><value>  Filters  </value></data>
+  <data name="FFmpegExplorer.Tab.Advanced" xml:space="preserve"><value>  Advanced  </value></data>
+  <data name="FFmpegExplorer.VideoCodec.Label" xml:space="preserve"><value>Video Codec</value></data>
+  <data name="FFmpegExplorer.Quality.Label" xml:space="preserve"><value>Quality</value></data>
+  <data name="FFmpegExplorer.Quality.UseCrf" xml:space="preserve"><value>Use CRF  (lower = better quality · 0 = lossless · default 23)</value></data>
+  <data name="FFmpegExplorer.Fps.Label" xml:space="preserve"><value>Frame Rate</value></data>
+  <data name="FFmpegExplorer.Resolution.Label" xml:space="preserve"><value>Resolution</value></data>
+  <data name="FFmpegExplorer.Video.Hint" xml:space="preserve"><value>※ With "copy" selected, video stream is copied without re-encoding.</value></data>
+  <data name="FFmpegExplorer.AudioCodec.Label" xml:space="preserve"><value>Audio Codec</value></data>
+  <data name="FFmpegExplorer.Bitrate.Label" xml:space="preserve"><value>Bitrate</value></data>
+  <data name="FFmpegExplorer.SampleRate.Label" xml:space="preserve"><value>Sample Rate</value></data>
+  <data name="FFmpegExplorer.Channels.Label" xml:space="preserve"><value>Channels</value></data>
+  <data name="FFmpegExplorer.Audio.Hint" xml:space="preserve"><value>※ With "copy" selected, audio is copied without re-encoding.</value></data>
+  <data name="FFmpegExplorer.VideoFilter.Label" xml:space="preserve"><value>-vf  (Video Filter)</value></data>
+  <data name="FFmpegExplorer.VideoFilter.Hint" xml:space="preserve"><value>e.g.)  scale=1280:720    crop=640:480:0:0    eq=brightness=0.1</value></data>
+  <data name="FFmpegExplorer.AudioFilter.Label" xml:space="preserve"><value>-af  (Audio Filter)</value></data>
+  <data name="FFmpegExplorer.AudioFilter.Hint" xml:space="preserve"><value>e.g.)  volume=0.5    aresample=44100    dynaudnorm</value></data>
+  <data name="FFmpegExplorer.ExtraArgs.Label" xml:space="preserve"><value>Extra Args  (inserted before output file path)</value></data>
+  <data name="FFmpegExplorer.ExtraArgs.Hint" xml:space="preserve"><value>e.g.)  -map 0:v:0 -map 0:a:0    -movflags +faststart    -threads 4</value></data>
+  <data name="FFmpegExplorer.Section.Command" xml:space="preserve"><value>Generated Command</value></data>
+  <data name="FFmpegExplorer.Copy.Label" xml:space="preserve"><value>Copy</value></data>
+  <data name="FFmpegExplorer.Copy.Tooltip" xml:space="preserve"><value>Copy to clipboard</value></data>
+  <data name="FFmpegExplorer.Execute.Label" xml:space="preserve"><value>Run</value></data>
+  <data name="FFmpegExplorer.Execute.Tooltip" xml:space="preserve"><value>Run FFmpeg</value></data>
+  <data name="FFmpegExplorer.Cancel.Label" xml:space="preserve"><value>Cancel</value></data>
+  <data name="FFmpegExplorer.Cancel.Tooltip" xml:space="preserve"><value>Cancel execution</value></data>
+
+  <!-- ── AiSubtitle ── -->
+  <data name="AiSubtitle.Title" xml:space="preserve"><value>AI Subtitle Generation</value></data>
+  <data name="AiSubtitle.Description" xml:space="preserve"><value>Transcribe audio with Whisper and translate with Groq / DeepL to generate a .srt file.</value></data>
+  <data name="AiSubtitle.Section.Server" xml:space="preserve"><value>🖥 Whisper Server</value></data>
+  <data name="AiSubtitle.Server.Check" xml:space="preserve"><value>Check Status</value></data>
+  <data name="AiSubtitle.Server.Start" xml:space="preserve"><value>Start Server</value></data>
+  <data name="AiSubtitle.Model.Label" xml:space="preserve"><value>Whisper Model</value></data>
+  <data name="AiSubtitle.Gpu.Label" xml:space="preserve"><value>Use GPU (CUDA)</value></data>
+  <data name="AiSubtitle.Section.Source" xml:space="preserve"><value>📁 Source Video File</value></data>
+  <data name="AiSubtitle.MediaFile.Label" xml:space="preserve"><value>Video File</value></data>
+  <data name="AiSubtitle.MediaFile.Placeholder" xml:space="preserve"><value>Enter file path or click Browse</value></data>
+  <data name="AiSubtitle.Browse" xml:space="preserve"><value>Browse</value></data>
+  <data name="AiSubtitle.OutputPath.Label" xml:space="preserve"><value>Output .srt path (empty = auto-save next to video)</value></data>
+  <data name="AiSubtitle.OutputPath.Placeholder" xml:space="preserve"><value>(Auto)</value></data>
+  <data name="AiSubtitle.Section.Translation" xml:space="preserve"><value>🌐 Translation Settings</value></data>
+  <data name="AiSubtitle.SourceLang.Label" xml:space="preserve"><value>Source Language</value></data>
+  <data name="AiSubtitle.TargetLang.Label" xml:space="preserve"><value>Target Language</value></data>
+  <data name="AiSubtitle.Engine.Label" xml:space="preserve"><value>Engine</value></data>
+  <data name="AiSubtitle.Style.Label" xml:space="preserve"><value>Style</value></data>
+  <data name="AiSubtitle.Generate.Label" xml:space="preserve"><value>🎬 Start Generation</value></data>
+  <data name="AiSubtitle.Cancel.Label" xml:space="preserve"><value>Cancel</value></data>
+  <data name="AiSubtitle.Log.Title" xml:space="preserve"><value>Log</value></data>
+  <data name="AiSubtitle.Log.Clear" xml:space="preserve"><value>Clear</value></data>
+
+  <!-- ── Settings ── -->
+  <data name="Settings.Title" xml:space="preserve"><value>Settings</value></data>
+  <data name="Settings.Section.FFmpeg" xml:space="preserve"><value>FFmpeg Settings</value></data>
+  <data name="Settings.FFmpeg.Description" xml:space="preserve"><value>Specify the folder path containing the FFmpeg LGPL binary (folder with ffmpeg.exe).</value></data>
+  <data name="Settings.FFmpeg.Placeholder" xml:space="preserve"><value>e.g. C:\ffmpeg\bin</value></data>
+  <data name="Settings.Browse" xml:space="preserve"><value>Browse</value></data>
+  <data name="Settings.Section.Appearance" xml:space="preserve"><value>Appearance</value></data>
+  <data name="Settings.Appearance.Description" xml:space="preserve"><value>Select app theme. Changes apply immediately.</value></data>
+  <data name="Settings.Theme.System" xml:space="preserve"><value>🌐  System</value></data>
+  <data name="Settings.Theme.Light" xml:space="preserve"><value>☀️  Light</value></data>
+  <data name="Settings.Theme.Dark" xml:space="preserve"><value>🌙  Dark</value></data>
+  <data name="Settings.Section.Output" xml:space="preserve"><value>Output Settings</value></data>
+  <data name="Settings.Output.Description" xml:space="preserve"><value>Default folder where encoding results are saved.</value></data>
+  <data name="Settings.Output.Placeholder" xml:space="preserve"><value>e.g. D:\Output</value></data>
+  <data name="Settings.Section.Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Settings.Language.Description" xml:space="preserve"><value>Select app interface language. Takes effect immediately.</value></data>
+  <data name="Settings.Language.Korean" xml:space="preserve"><value>한국어 (Korean)</value></data>
+  <data name="Settings.Language.English" xml:space="preserve"><value>English</value></data>
+  <data name="Settings.Section.Decoder" xml:space="preserve"><value>Decoder Settings</value></data>
+  <data name="Settings.Decoder.Description" xml:space="preserve"><value>Applied to all sources: files, streaming, capture devices, etc.</value></data>
+  <data name="Settings.HwAccel.Label" xml:space="preserve"><value>Hardware Acceleration (hwaccel)</value></data>
+  <data name="Settings.HwAccel.Description" xml:space="preserve"><value>Use GPU hardware decoder to significantly reduce CPU load. Falls back to software decoding on failure. D3D11VA for Windows 10+, DXVA2 for legacy, CUDA for NVIDIA, QSV for Intel.</value></data>
+  <data name="Settings.HwAccel.None" xml:space="preserve"><value>None — Software Decoding (Default)</value></data>
+  <data name="Settings.HwAccel.Auto" xml:space="preserve"><value>Auto Detect — Try D3D11VA first</value></data>
+  <data name="Settings.HwAccel.D3D11VA" xml:space="preserve"><value>D3D11VA — Windows 10+ GPU</value></data>
+  <data name="Settings.HwAccel.DXVA2" xml:space="preserve"><value>DXVA2 — Legacy Windows GPU</value></data>
+  <data name="Settings.HwAccel.CUDA" xml:space="preserve"><value>CUDA — NVIDIA GPU</value></data>
+  <data name="Settings.HwAccel.QSV" xml:space="preserve"><value>QSV — Intel Quick Sync Video</value></data>
+  <data name="Settings.FileThread.Label" xml:space="preserve"><value>File Decoder Threads (thread_count)</value></data>
+  <data name="Settings.FileThread.Description" xml:space="preserve"><value>Decoding threads for file playback. 0 = auto (CPU cores). More threads increase throughput but also memory. (Default: 0)</value></data>
+  <data name="Settings.SkipLoop.Label" xml:space="preserve"><value>Deblocking Filter Skip (skip_loop_filter)</value></data>
+  <data name="Settings.SkipLoop.Description" xml:space="preserve"><value>Limit H.264/HEVC deblocking filter scope to reduce CPU load. "Non-reference" provides 15~20% speedup without quality loss. (Default: None)</value></data>
+  <data name="Settings.SkipLoop.None" xml:space="preserve"><value>None — Always apply (Default)</value></data>
+  <data name="Settings.SkipLoop.NonRef" xml:space="preserve"><value>Non-reference frames — Recommended</value></data>
+  <data name="Settings.SkipLoop.All" xml:space="preserve"><value>All — Max performance, quality loss</value></data>
+  <data name="Settings.SkipFrame.Label" xml:space="preserve"><value>Frame Skip Level (skip_frame)</value></data>
+  <data name="Settings.SkipFrame.Description" xml:space="preserve"><value>Limit frame types to decode. Non-ref = reference frames only, Non-key = keyframes only (slideshow). (Default: None)</value></data>
+  <data name="Settings.SkipFrame.None" xml:space="preserve"><value>None — Decode all frames (Default)</value></data>
+  <data name="Settings.SkipFrame.NonRef" xml:space="preserve"><value>Skip non-reference frames</value></data>
+  <data name="Settings.SkipFrame.NonKey" xml:space="preserve"><value>Skip non-keyframes — keyframes only</value></data>
+  <data name="Settings.SkipFrame.All" xml:space="preserve"><value>Skip all</value></data>
+  <data name="Settings.Section.Streaming" xml:space="preserve"><value>Streaming Options</value></data>
+  <data name="Settings.Streaming.Description" xml:space="preserve"><value>Applied only during network streaming (RTSP · RTP · UDP · HTTP). Adjust to your network environment.</value></data>
+  <data name="Settings.RtspTransport.Label" xml:space="preserve"><value>RTSP Transport (rtsp_transport)</value></data>
+  <data name="Settings.RtspTransport.Description" xml:space="preserve"><value>Applies to RTSP URLs only. TCP: stable behind firewall/NAT. UDP: low latency but packet-loss prone. HTTP: use when proxy is needed.</value></data>
+  <data name="Settings.Timeout.Label" xml:space="preserve"><value>Connection Timeout (s, timeout)</value></data>
+  <data name="Settings.Timeout.Description" xml:space="preserve"><value>Connection fails if server doesn't respond within this time. (Default: 10)</value></data>
+  <data name="Settings.MaxDelay.Label" xml:space="preserve"><value>Max A/V Delay (ms, max_delay)</value></data>
+  <data name="Settings.MaxDelay.Description" xml:space="preserve"><value>Maximum A/V demuxing delay. Smaller reduces latency but increases jitter sensitivity. (Default: 500)</value></data>
+  <data name="Settings.ProbeSize.Label" xml:space="preserve"><value>Probe Size (KB, probesize)</value></data>
+  <data name="Settings.ProbeSize.Description" xml:space="preserve"><value>Max data size for codec/stream detection. Smaller starts faster but less accurate. (Default: 500)</value></data>
+  <data name="Settings.AnalyzeDuration.Label" xml:space="preserve"><value>Analyze Duration (s, analyzeduration)</value></data>
+  <data name="Settings.AnalyzeDuration.Description" xml:space="preserve"><value>Max time for stream analysis. Smaller starts faster but may miss audio/subtitle. (Default: 1.0)</value></data>
+  <data name="Settings.LiveThread.Label" xml:space="preserve"><value>Live Decoder Threads (thread_count)</value></data>
+  <data name="Settings.LiveThread.Description" xml:space="preserve"><value>FF_THREAD_FRAME adds (N-1) frame delay. e.g. 8 cores → ~280ms. Recommend 1 for live. (Default: 1)</value></data>
+  <data name="Settings.RecvBuffer.Label" xml:space="preserve"><value>Recv Buffer (KB, recv_buffer_size)</value></data>
+  <data name="Settings.RecvBuffer.Description" xml:space="preserve"><value>UDP receive buffer size. 0 = system default. Increase if packet loss on high-res UDP. (Default: 0)</value></data>
+  <data name="Settings.ReorderQueue.Label" xml:space="preserve"><value>RTP Reorder Queue (reorder_queue_size)</value></data>
+  <data name="Settings.ReorderQueue.Description" xml:space="preserve"><value>Reorder out-of-sequence UDP/RTP packets. 0 = disabled. Larger = better jitter tolerance, higher latency. (Default: 500)</value></data>
+  <data name="Settings.NoBuffer.Label" xml:space="preserve"><value>Disable Internal Buffer (fflags=nobuffer)</value></data>
+  <data name="Settings.NoBuffer.Description" xml:space="preserve"><value>Deliver packets without buffering. Without this FFmpeg bursts packets causing stuttering. (Default: enabled)</value></data>
+  <data name="Settings.NoBuffer.Check" xml:space="preserve"><value>Enable nobuffer</value></data>
+  <data name="Settings.Reconnect.Label" xml:space="preserve"><value>Auto Reconnect (reconnect)</value></data>
+  <data name="Settings.Reconnect.Description" xml:space="preserve"><value>Automatically reconnect on disconnect or EOF. Effective for HTTP streams. (Default: disabled)</value></data>
+  <data name="Settings.Reconnect.Check" xml:space="preserve"><value>Enable auto-reconnect</value></data>
+  <data name="Settings.ReconnectDelay.Label" xml:space="preserve"><value>Max wait (s):</value></data>
+  <data name="Settings.Save" xml:space="preserve"><value>Save Settings</value></data>
+  <data name="Settings.Reset" xml:space="preserve"><value>Reset to Defaults</value></data>
+  <data name="Settings.UnsavedChanges" xml:space="preserve"><value>● You have unsaved changes.</value></data>
+  <data name="Settings.Validation.FolderNotFound" xml:space="preserve"><value>⚠ Folder not found.</value></data>
+
+  <!-- ── Dialogs / ViewModel messages ── -->
+  <data name="Dialog.Browse.FFmpeg" xml:space="preserve"><value>Select FFmpeg binary folder</value></data>
+  <data name="Dialog.Browse.OutputFolder" xml:space="preserve"><value>Select default output folder</value></data>
+  <data name="Dialog.Save.Title" xml:space="preserve"><value>Saved</value></data>
+  <data name="Dialog.Save.Message" xml:space="preserve"><value>Settings have been saved.</value></data>
+  <data name="Dialog.FFmpeg.Success" xml:space="preserve"><value>FFmpeg loaded</value></data>
+  <data name="Dialog.FFmpeg.SuccessMsg" xml:space="preserve"><value>FFmpeg {0} initialized successfully</value></data>
+  <data name="Dialog.FFmpeg.Failed" xml:space="preserve"><value>FFmpeg initialization failed</value></data>
+  <data name="Dialog.FFmpeg.FailedMsg" xml:space="preserve"><value>Cannot load FFmpeg binary.\nPlease check the path.</value></data>
+  <data name="Dialog.Reset.Title" xml:space="preserve"><value>Reset to Defaults</value></data>
+  <data name="Dialog.Reset.Message" xml:space="preserve"><value>Reset all settings to defaults. Continue?</value></data>
+  <data name="Dialog.Reset.Confirm" xml:space="preserve"><value>Reset</value></data>
+  <data name="Dialog.Reset.Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Dialog.Reset.Done" xml:space="preserve"><value>Reset complete</value></data>
+  <data name="Dialog.Reset.DoneMsg" xml:space="preserve"><value>Settings have been reset to defaults.</value></data>
+  <data name="Dialog.SaveFailed" xml:space="preserve"><value>Save failed</value></data>
+  <data name="Dialog.SaveFailedMsg" xml:space="preserve"><value>An error occurred while saving settings.</value></data>
+  <data name="SubtitleEditor.Dialog.Open" xml:space="preserve"><value>Open Subtitle File</value></data>
+  <data name="SubtitleEditor.Dialog.OpenFilter" xml:space="preserve"><value>Subtitle Files|*.srt;*.vtt|SubRip|*.srt|WebVTT|*.vtt|All Files|*.*</value></data>
+  <data name="SubtitleEditor.Dialog.SaveAs" xml:space="preserve"><value>Save Subtitle File (SRT)</value></data>
+  <data name="SubtitleEditor.Status.Unsupported" xml:space="preserve"><value>Unsupported format: .{0}  (SRT / VTT only)</value></data>
+  <data name="SubtitleEditor.Status.OpenFailed" xml:space="preserve"><value>Open failed: {0}</value></data>
+  <data name="SubtitleEditor.Status.SaveWarning" xml:space="preserve"><value>(Warning: entries with invalid timestamps excluded from save)</value></data>
+  <data name="FFmpegExplorer.Dialog.Input" xml:space="preserve"><value>Select Input File</value></data>
+  <data name="FFmpegExplorer.Dialog.Output" xml:space="preserve"><value>Save Output File</value></data>
+  <data name="FFmpegExplorer.Copy.Done" xml:space="preserve"><value>Copied to clipboard</value></data>
+  <data name="FFmpegExplorer.Error.NotFound" xml:space="preserve"><value>[Error] ffmpeg.exe not found: {0}</value></data>
+  <data name="FFmpegExplorer.Error.CheckSettings" xml:space="preserve"><value>Check FFmpeg binary path in Settings.</value></data>
+  <data name="FFmpegExplorer.Log.Success" xml:space="preserve"><value>[Done] Encoding completed successfully.</value></data>
+  <data name="FFmpegExplorer.Log.Error" xml:space="preserve"><value>[Error] ffmpeg exit code: {0}</value></data>
+  <data name="FFmpegExplorer.Log.Cancelled" xml:space="preserve"><value>[Cancelled] Stopped by user.</value></data>
+  <data name="FFmpegExplorer.Log.Exception" xml:space="preserve"><value>[Exception] {0}</value></data>
+  <data name="Player.Status.Default" xml:space="preserve"><value>Open a file to start</value></data>
+  <data name="MainWindow.Status.Stopped" xml:space="preserve"><value>Stopped</value></data>
+</root>

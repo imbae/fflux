@@ -1,0 +1,80 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <LangVersion>latest</LangVersion>
+    <ApplicationIcon>fflux.ico</ApplicationIcon>
+    <StartupObject />
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="fflux.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="LiveChartsCore.SkiaSharpView.WPF" Version="2.0.4" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.*" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.*" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.*" />
+    <PackageReference Include="NAudio" Version="2.3.0" />
+    <PackageReference Include="WPF-UI" Version="4.3.0" />
+  </ItemGroup>
+
+  <!-- Private 서브모듈 존재 시에만 컴파일 심볼 + ProjectReference 추가 -->
+  <PropertyGroup Condition="'$(HasMisb)' == 'true'">
+    <DefineConstants>$(DefineConstants);MISB</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(HasAiSubtitle)' == 'true'">
+    <DefineConstants>$(DefineConstants);AI_SUBTITLE</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\fflux.Core\fflux.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(HasMisb)' == 'true'">
+    <ProjectReference Include="..\fflux.Misb\fflux.Misb\fflux.Misb.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(HasAiSubtitle)' == 'true'">
+    <ProjectReference Include="..\fflux.AiSubtitle\fflux.AiSubtitle\fflux.AiSubtitle.csproj" />
+  </ItemGroup>
+
+  <!--
+    Pro 모듈 DLL을 modules/ 서브폴더로 이동합니다.
+    배포 시 fflux.exe 와 modules/ 폴더를 함께 전달하면 Pro 기능이 활성화됩니다.
+    modules/ 폴더 없이 fflux.exe 만 배포하면 Free 모드로 동작합니다.
+  -->
+  <Target Name="MoveProModulesToSubfolder" AfterTargets="Build">
+
+    <ItemGroup Condition="'$(HasMisb)' == 'true'">
+      <MisbOutputs Include="$(OutDir)fflux.Misb.dll;$(OutDir)fflux.Misb.pdb" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(HasAiSubtitle)' == 'true'">
+      <AiSubtitleOutputs Include="$(OutDir)fflux.AiSubtitle.dll;$(OutDir)fflux.AiSubtitle.pdb" />
+    </ItemGroup>
+
+    <MakeDir
+      Condition="'$(HasMisb)' == 'true' Or '$(HasAiSubtitle)' == 'true'"
+      Directories="$(OutDir)modules\" />
+
+    <Move
+      Condition="'$(HasMisb)' == 'true'"
+      SourceFiles="@(MisbOutputs)"
+      DestinationFolder="$(OutDir)modules\"
+      OverwriteReadOnlyFiles="true"
+      ContinueOnError="true" />
+
+    <Move
+      Condition="'$(HasAiSubtitle)' == 'true'"
+      SourceFiles="@(AiSubtitleOutputs)"
+      DestinationFolder="$(OutDir)modules\"
+      OverwriteReadOnlyFiles="true"
+      ContinueOnError="true" />
+
+  </Target>
+
+</Project>

@@ -1,0 +1,15 @@
+<Project>
+  <!--
+    Private 서브모듈(fflux.Misb, fflux.AiSubtitle)의 존재 여부를 자동 감지합니다.
+    Public clone 환경에서 서브모듈이 비어있어도 fflux 빌드가 성공합니다.
+
+    동작 방식:
+      1. HasMisb / HasAiSubtitle 로 .csproj 파일 존재 여부를 감지
+      2. fflux.UI.csproj 에서 이 변수를 읽어 ProjectReference 와 DefineConstants 를 조건부 설정
+      3. C# 코드에서 #if MISB / #if AI_SUBTITLE 로 private 모듈 의존 코드를 가드
+  -->
+  <PropertyGroup>
+    <HasMisb       Condition="Exists('$(MSBuildThisFileDirectory)fflux.Misb/fflux.Misb/fflux.Misb.csproj')">true</HasMisb>
+    <HasAiSubtitle Condition="Exists('$(MSBuildThisFileDirectory)fflux.AiSubtitle/fflux.AiSubtitle/fflux.AiSubtitle.csproj')">true</HasAiSubtitle>
+  </PropertyGroup>
+</Project>

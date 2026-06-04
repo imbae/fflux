@@ -1,14 +1,24 @@
 # fflux
 
-ffmpeg.autogen 기반 WPF 비디오 플레이어. 개발자 지향 고급 기능(실시간 통계, 구간 녹화, 자막 편집, AI 자막 생성, MISB KLV 파싱)을 제공합니다.
+**ffmpeg.autogen 기반 WPF 비디오 플레이어** — Developer-focused media player built on ffmpeg.autogen + WPF (.NET 10)
 
-> **플랫폼**: Windows 10/11 (x64) · **.NET 10** · ffmpeg.autogen 8.1.0
+[![License: LGPL](https://img.shields.io/badge/License-LGPL-blue.svg)](LICENSE.txt)
+[![.NET](https://img.shields.io/badge/.NET-10.0-purple.svg)](https://dotnet.microsoft.com/download/dotnet/10.0)
+[![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-lightgrey.svg)]()
+[![ffmpeg.autogen](https://img.shields.io/badge/ffmpeg.autogen-8.1.0-green.svg)](https://github.com/Ruslan-B/FFmpeg.AutoGen)
+
+개발자 지향 고급 기능(실시간 통계, 구간 녹화, 자막 편집, AI 자막 생성, MISB KLV 파싱)을 ffmpeg.autogen API로 직접 구현한 WPF 비디오 플레이어입니다. 외부 ffmpeg.exe 프로세스 호출 없이 라이브러리를 직접 사용하며, GPL 코덱 없이 LGPL 조건을 완전히 준수합니다.
+
+---
+
+![fflux Player](docs/screenshots/player.png)
 
 ---
 
 ## 목차
 
 - [기능 개요](#기능-개요)
+- [스크린샷](#스크린샷)
 - [시작하기](#시작하기)
   - [사전 요구사항](#사전-요구사항)
   - [FFmpeg 바이너리 설정](#ffmpeg-바이너리-설정)
@@ -16,9 +26,6 @@ ffmpeg.autogen 기반 WPF 비디오 플레이어. 개발자 지향 고급 기능
 - [자막 편집기](#자막-편집기)
 - [FFmpeg Explorer](#ffmpeg-explorer)
 - [AI 자막 생성 (PRO)](#ai-자막-생성-pro)
-  - [환경 변수 설정](#환경-변수-설정-env)
-  - [Python Whisper 서버 설치 및 실행](#python-whisper-서버-설치-및-실행)
-  - [AI 자막 생성 워크플로우](#ai-자막-생성-워크플로우)
 - [MISB KLV 메타데이터 (PRO)](#misb-klv-메타데이터-pro)
 - [소스 빌드](#소스-빌드)
 - [라이선스](#라이선스)
@@ -34,13 +41,47 @@ ffmpeg.autogen 기반 WPF 비디오 플레이어. 개발자 지향 고급 기능
 | 오디오 출력 | WASAPI 저지연 출력, 볼륨/음소거 | ✅ |
 | 재생 제어 | 배속 조정(0.25×~2×), 프레임 스텝, 시크 | ✅ |
 | 실시간 통계 | FPS · 비트레이트 · 프레임 번호 실시간 표시 | ✅ |
-| 미디어 정보 패널 | 코덱 · 해상도 · 스트림 정보 | ✅ |
+| 미디어 정보 패널 | 코덱 · 해상도 · 스트림 정보 슬라이딩 패널 | ✅ |
 | 구간 녹화 | Stream Copy 무손실 녹화, GIF 내보내기 | ✅ |
 | 자막 편집기 | SRT/VTT 읽기·편집·저장, 재생 위치 연동 | ✅ |
 | FFmpeg Explorer | FFmpeg 옵션 GUI 빌더 + 커맨드 생성기 | ✅ |
 | **AI 자막 생성** | Whisper 전사 + Groq/DeepL 번역 → .srt 출력 | 🔒 PRO |
 | **실시간 AI 번역** | 재생 중 음성을 실시간 전사·번역 오버레이 | 🔒 PRO |
 | **MISB KLV** | KLV 메타데이터 파싱 + VMTI 바운딩 박스 오버레이 | 🔒 PRO |
+
+---
+
+## 스크린샷
+
+### 비디오 플레이어 — 미디어 정보 패널 · 구간 녹화
+
+![Player with media info panel](docs/screenshots/player.png)
+
+재생 중 우측 패널에서 코덱·해상도·비트레이트·스트림 정보를 실시간 확인합니다. 하단 컨트롤 바에서 구간 녹화(Stream Copy)를 시작하면 재인코딩 없이 원본 품질로 저장됩니다.
+
+### 자막 편집기
+
+![Subtitle Editor](docs/screenshots/subtitle-editor.png)
+
+SRT/VTT 파일을 불러와 타임스탬프·텍스트를 인라인 편집하고, 해당 구간의 영상을 미리보기 패널에서 바로 확인합니다.
+
+### FFmpeg Explorer
+
+![FFmpeg Explorer](docs/screenshots/ffmpeg-explorer.png)
+
+복잡한 FFmpeg 옵션을 GUI로 조립하고 커맨드라인을 자동 생성합니다. 복사 또는 즉시 실행이 가능합니다.
+
+### AI 자막 생성 (PRO)
+
+![AI Subtitle](docs/screenshots/ai-subtitle.png)
+
+Whisper 서버를 내장 UI로 시작하고, 동영상에서 음성을 전사한 뒤 Groq(Llama 4) 또는 DeepL로 번역하여 `.srt` 파일을 생성합니다.
+
+### 설정
+
+![Settings](docs/screenshots/settings.png)
+
+FFmpeg 경로, 테마, 하드웨어 가속(D3D11VA·DXVA2·CUDA·QSV), 디코더 스레드 수 등을 설정합니다.
 
 ---
 
@@ -55,7 +96,7 @@ ffmpeg.autogen 기반 WPF 비디오 플레이어. 개발자 지향 고급 기능
 | [FFmpeg LGPL 빌드](https://github.com/BtbN/FFmpeg-Builds/releases) | 7.x / 8.x | `ffmpeg.exe` 포함 폴더 |
 | Python *(AI 자막 기능만)* | 3.9 이상 | PATH 등록 필수 |
 
-> ⚠️ **FFmpeg GPL 빌드 사용 금지** — fflux는 LGPL 라이선스를 준수합니다. GPL 코덱(x264, x265 등)이 포함된 빌드를 사용하면 LGPL 조건을 위반합니다.
+> ⚠️ **FFmpeg GPL 빌드 사용 금지** — fflux는 LGPL 라이선스를 준수합니다. GPL 코덱(x264, x265 등)이 포함된 빌드를 사용하면 LGPL 조건을 위반합니다.  
 > [BtbN FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds/releases) 에서 `ffmpeg-master-latest-win64-lgpl.zip`을 다운로드하세요.
 
 ### FFmpeg 바이너리 설정
@@ -99,7 +140,7 @@ ffmpeg.autogen 기반 WPF 비디오 플레이어. 개발자 지향 고급 기능
 
 ### 구간 녹화
 
-하단 컨트롤 바 **[녹화]** 버튼 → 원하는 시점에 **[중지]** 버튼
+하단 컨트롤 바 **[녹화]** 버튼 → 원하는 시점에 **[중지]** 버튼  
 (Stream Copy — 재인코딩 없이 원본 품질 그대로 MKV/MP4/TS로 저장)
 
 ---
@@ -107,6 +148,8 @@ ffmpeg.autogen 기반 WPF 비디오 플레이어. 개발자 지향 고급 기능
 ## 자막 편집기
 
 좌측 메뉴 **Subtitle Editor** 진입
+
+![Subtitle Editor](docs/screenshots/subtitle-editor.png)
 
 - SRT / VTT 파일을 드롭하거나 **[자막 열기]** 버튼으로 불러오기
 - 동영상 파일을 드롭하면 동일 이름의 자막이 있으면 함께 로드
@@ -120,6 +163,8 @@ ffmpeg.autogen 기반 WPF 비디오 플레이어. 개발자 지향 고급 기능
 
 좌측 메뉴 **FFmpeg Explorer** 진입
 
+![FFmpeg Explorer](docs/screenshots/ffmpeg-explorer.png)
+
 복잡한 FFmpeg 커맨드 라인을 GUI로 조립합니다.
 
 - 입력 파일 · 출력 파일 선택
@@ -132,11 +177,13 @@ ffmpeg.autogen 기반 WPF 비디오 플레이어. 개발자 지향 고급 기능
 
 > PRO 기능 — `fflux.AiSubtitle` private 서브모듈이 포함된 빌드에서만 활성화됩니다.
 
+![AI Subtitle](docs/screenshots/ai-subtitle.png)
+
 동영상 파일에서 **Whisper**로 음성을 전사하고 **Groq(Llama 4)** 또는 **DeepL**로 번역하여 `.srt` 파일을 생성합니다.
 
 ### 환경 변수 설정 (`.env`)
 
-프로젝트 루트 또는 실행 파일 디렉터리에 `.env` 파일을 생성합니다
+프로젝트 루트 또는 실행 파일 디렉터리에 `.env` 파일을 생성합니다  
 (`.env.example`을 복사하여 편집하세요).
 
 ```dotenv
@@ -146,125 +193,72 @@ ffmpeg.autogen 기반 WPF 비디오 플레이어. 개발자 지향 고급 기능
 GROQ_API_KEY=gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 # ── 번역 AI 모델 (선택 — 기본값으로 동작) ────────────────────
-# Groq에서 제공하는 Llama 4 모델 식별자
-# 최신 모델 목록: https://console.groq.com → Models
 AI_MODEL=meta-llama/llama-4-scout-17b-16e-instruct
 
 # ── OpenAI 호환 엔드포인트 (선택 — 변경 불필요) ──────────────
 AI_PROVIDER=https://api.groq.com/openai/v1
 
 # ── Python Whisper 서버 URL ───────────────────────────────────
-# 로컬 서버: http://localhost:8765
-# 원격 서버: https://your-deployed-server
 PYTHON_API_URL=http://localhost:8765
 
 # ── DeepL API 키 (선택) ───────────────────────────────────────
-# 발급: https://www.deepl.com/pro-api (무료 플랜 500,000자/월)
-# 없으면 DeepL 번역 엔진이 비활성화됩니다
 # DEEPL_API_KEY=
 ```
-
-> `.env` 파일은 **절대 Git에 커밋하지 마세요.** `.gitignore`에 이미 포함되어 있습니다.
-
-#### 환경 변수 설명
 
 | 변수 | 필수 | 설명 | 발급처 |
 |------|:----:|------|--------|
 | `GROQ_API_KEY` | ✅ | Groq LLM/Whisper API 인증 키 | [console.groq.com](https://console.groq.com) |
-| `AI_MODEL` | — | 번역에 사용할 Llama 모델명 (기본값 사용 권장) | — |
-| `AI_PROVIDER` | — | OpenAI 호환 엔드포인트 URL (Groq 기본값) | — |
+| `AI_MODEL` | — | 번역에 사용할 Llama 모델명 | — |
+| `AI_PROVIDER` | — | OpenAI 호환 엔드포인트 URL | — |
 | `PYTHON_API_URL` | ✅ | Whisper 전사 서버 URL | 직접 실행 또는 원격 서버 |
 | `DEEPL_API_KEY` | — | DeepL 번역 엔진 (없으면 Groq 번역만 사용) | [deepl.com/pro-api](https://www.deepl.com/pro-api) |
-
----
 
 ### Python Whisper 서버 설치 및 실행
 
 AI 자막 생성은 [faster-whisper](https://github.com/SYSTRAN/faster-whisper) 기반 로컬 Python 서버에서 음성 전사를 수행합니다.
 
-#### 1단계 — Python 패키지 설치 (최초 1회)
-
 ```bash
 cd fflux.AiSubtitle/python
-
 pip install -r requirements.txt
 ```
 
-주요 패키지: `faster-whisper`, `fastapi`, `uvicorn`
+> GPU(CUDA) 사용 시 [pytorch.org](https://pytorch.org/get-started/locally/) 에서 CUDA 버전에 맞는 PyTorch를 먼저 설치하세요. CUDA 12.6 권장.
 
-> GPU(CUDA) 사용 시 PyTorch CUDA 버전이 필요합니다.
-> [pytorch.org](https://pytorch.org/get-started/locally/) 에서 CUDA 버전에 맞는 설치 명령을 확인하세요.
-> CUDA 12.6 버전 설치 권장 (13버전 이후 지원 안됨)
+**앱 내에서 시작 (권장)**: 좌측 메뉴 **AI Subtitle** → Whisper 서버 카드에서 모델 선택 → **[서버 시작]**
 
-#### 2단계 — 서버 실행
-
-**방법 A: fflux 앱 내에서 시작 (권장)**
-
-1. 좌측 메뉴 **AI Subtitle** 진입
-2. **Whisper 서버** 카드에서 모델 선택
-3. GPU 사용 가능 시 **GPU 사용 (CUDA)** 체크
-4. **[서버 시작]** 클릭 → 하단 로그 패널에서 진행 확인
-5. "● 서버 연결됨" 상태가 되면 자막 생성 버튼 활성화
-
-**방법 B: 직접 실행**
-
+**직접 실행**:
 ```bash
-# CPU, base 모델 (기본)
-python whisper_server.py
-
-# GPU + 고정밀 모델
-python whisper_server.py --model large-v3 --device cuda --port 8765
+python whisper_server.py                                          # CPU, base 모델
+python whisper_server.py --model large-v3 --device cuda          # GPU + 고정밀
 ```
-
-`.env`의 `PYTHON_API_URL`을 실행한 서버 주소와 일치시키세요.
 
 #### Whisper 모델 비교
 
-| 모델 | 크기 | 상대 속도 | 정확도 | 권장 용도 |
-|------|------|--------:|--------|----------|
-| `tiny` | ~75 MB | 32× | 낮음 | 빠른 초안 확인 |
-| `base` | ~145 MB | 16× | 보통 | 일반 대화 |
-| `small` | ~465 MB | 6× | 좋음 | 강연·인터뷰 |
-| `medium` | ~1.5 GB | 2× | 매우 좋음 | 전문 콘텐츠 |
-| `large-v3` | ~3 GB | 1× | 최고 | 고품질 필요 시 |
-
-> GPU(CUDA) 환경에서는 `large-v3` 모델도 실용적인 속도로 동작합니다.
-
----
+| 모델 | 크기 | 속도 | 정확도 |
+|------|------|-----:|--------|
+| `tiny` | ~75 MB | 32× | 낮음 |
+| `base` | ~145 MB | 16× | 보통 |
+| `small` | ~465 MB | 6× | 좋음 |
+| `medium` | ~1.5 GB | 2× | 매우 좋음 |
+| `large-v3` | ~3 GB | 1× | 최고 |
 
 ### AI 자막 생성 워크플로우
 
 ```
-① Python 서버 시작
-        ↓
-② 서버 상태 "● 서버 연결됨" 확인 → 자막 생성 버튼 활성화
+① Python 서버 시작 → ② 서버 연결됨 확인
         ↓
 ③ 소스 동영상 파일 선택
         ↓
-④ 번역 설정
-   · 소스 언어: 자동 감지 또는 수동 선택
-   · 대상 언어: 번역 결과 언어
-   · 번역 엔진: Groq (Llama 4) 또는 DeepL
-   · 번역 스타일: 일반 / 자막형 / 격식체 등
+④ 번역 설정 (소스 언어 · 대상 언어 · 번역 엔진 · 번역 스타일)
         ↓
 ⑤ [🎬 자막 생성 시작] 클릭
         ↓
-⑥ 하단 로그 패널에서 진행 확인
-   · 🎙 전사 시작… → 완료
-   · 🌐 번역 시작… → 완료
-   · 💾 저장 중…
+⑥ 전사 → 번역 → 저장 (하단 로그 패널에서 진행 확인)
         ↓
 ⑦ 동영상과 같은 폴더에 .srt 파일 저장 완료
 ```
 
-#### 긴 영상 처리
-
-영상이 길면 600초 단위 청크로 자동 분할하여 순차 처리합니다.
-Groq API 무료 플랜은 분당 요청 수 제한(RPM)이 있으므로 긴 영상은 시간이 소요됩니다.
-
-#### 번역 캐시
-
-동일한 구문은 SQLite 캐시(`%APPDATA%\fflux\AiSubtitle\translation_cache.db`)에서 즉시 반환하여 API 호출을 최소화합니다.
+번역된 구문은 SQLite 캐시(`%APPDATA%\fflux\AiSubtitle\translation_cache.db`)에 저장되어 동일 구문의 중복 API 호출을 방지합니다.
 
 ---
 
@@ -272,42 +266,27 @@ Groq API 무료 플랜은 분당 요청 수 제한(RPM)이 있으므로 긴 영�
 
 > PRO 기능 — `fflux.Misb` private 서브모듈이 포함된 빌드에서만 활성화됩니다.
 
-**MISB(Motion Imagery Standards Board) ST 0601** KLV 메타데이터를 파싱하여 항공 영상의 센서 위치·자세·VMTI 표적 정보를 실시간으로 오버레이합니다.
-
-### 활성화 방법
-
-1. 플레이어 우상단 **PRO 패널** → 📍(Location) 아이콘 클릭
-2. KLV가 포함된 영상 파일 열기 → 자동으로 타임라인 인덱싱 시작
-3. 인덱싱 완료 후 오버레이 및 메타데이터 패널 활성화
-
-### 기능
+**MISB ST 0601** KLV 메타데이터를 파싱하여 항공 영상의 센서 위치·자세·VMTI 표적 정보를 실시간으로 오버레이합니다.
 
 | 기능 | 설명 |
 |------|------|
 | VMTI 바운딩 박스 | 프레임별 표적 위치에 바운딩 박스 + 분류 레이블 오버레이 |
-| 메타데이터 패널 | 센서 위치(위도/경도/고도), 플랫폼 자세(Heading/Pitch/Roll), 센서 FOV 실시간 표시 |
-| 프레임 중심 | 프레임 센터 좌표 및 4개 모서리 GeoPoint 표시 |
+| 메타데이터 패널 | 센서 위치(위도/경도/고도), 플랫폼 자세(Heading/Pitch/Roll), FOV 실시간 표시 |
+| 프레임 중심 좌표 | 프레임 센터 및 4개 모서리 GeoPoint 표시 |
 | 타임라인 동기화 | 시크 시 해당 위치의 KLV 메타데이터 즉시 업데이트 |
 
-### 지원 표준
-
-- **MISB ST 0601** — UAS Datalink Local Set
-- **MISB ST 0903** — VMTI (Video Moving Target Indicator)
+지원 표준: **MISB ST 0601** (UAS Datalink Local Set) · **MISB ST 0903** (VMTI)
 
 ---
 
 ## 소스 빌드
-
-### 빌드 환경
 
 ```
 .NET 10 SDK
 Visual Studio 2022 17.10+ 또는 JetBrains Rider 2024.1+
 ```
 
-### Public 빌드 (서브모듈 없이)
-
-`fflux.Misb` / `fflux.AiSubtitle` 서브모듈 없이 빌드하면 PRO 기능 없이 동작하는 바이너리가 생성됩니다.
+### Public 빌드 (PRO 기능 없이)
 
 ```bash
 git clone https://github.com/imbae/fflux.git
@@ -315,7 +294,7 @@ cd fflux
 dotnet build fflux/fflux.UI.csproj
 ```
 
-`Directory.Build.props`가 서브모듈 존재 여부를 자동 감지하며, 없으면 `#if MISB` / `#if AI_SUBTITLE` 블록이 컴파일에서 제외됩니다.
+`Directory.Build.props`가 서브모듈 존재 여부를 자동 감지합니다. 서브모듈이 없으면 `#if MISB` / `#if AI_SUBTITLE` 블록이 컴파일에서 제외되고 PRO 기능만 비활성화된 상태로 빌드됩니다.
 
 ### PRO 빌드 (서브모듈 포함)
 
@@ -325,9 +304,7 @@ cd fflux
 dotnet build fflux.slnx
 ```
 
----
-
-## 프로젝트 구조
+### 프로젝트 구조
 
 ```
 fflux/
@@ -346,7 +323,7 @@ fflux/
 ├── fflux.Misb/            ← MISB KLV 파싱 엔진 (PRO)
 └── fflux.AiSubtitle/      ← AI 자막·번역 엔진 (PRO)
     └── python/
-        ├── whisper_server.py    ← faster-whisper FastAPI 서버
+        ├── whisper_server.py
         └── requirements.txt
 ```
 

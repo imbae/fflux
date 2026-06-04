@@ -187,13 +187,13 @@ public partial class App : Application
         var settingsService = _host.Services.GetRequiredService<ISettingsService>();
         await settingsService.LoadAsync();
 
-        // 2. 저장된 언어 적용 (테마보다 먼저 — UI 초기화 전)
+        // 2. 저장된 언어 적용
         LocalizationManager.Instance.SetLanguage(settingsService.Current.Language);
 
-        // 3. 저장된 테마 적용
-        ApplyTheme(settingsService.Current.Theme);
+        // 3. 다크 테마 적용 (고정)
+        ApplicationThemeManager.Apply(ApplicationTheme.Dark, WindowBackdropType.Mica);
 
-        // 3. 다크 퍼플 액센트 적용
+        // 4. 다크 퍼플 액센트 적용
         ApplicationAccentColorManager.Apply(
             systemAccent: Color.FromRgb(0x5B, 0x2D, 0x92),
             applicationTheme: ApplicationTheme.Dark
@@ -341,15 +341,4 @@ public partial class App : Application
         }
     }
 
-    // ── 테마 적용 헬퍼 ──────────────────────────────────────
-    private static void ApplyTheme(AppTheme theme)
-    {
-        var wpfTheme = theme switch
-        {
-            AppTheme.Light  => ApplicationTheme.Light,
-            AppTheme.Dark   => ApplicationTheme.Dark,
-            _               => ApplicationTheme.Dark  // System → Dark 처리
-        };
-        ApplicationThemeManager.Apply(wpfTheme, WindowBackdropType.Mica);
-    }
 }

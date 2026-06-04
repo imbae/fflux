@@ -58,7 +58,7 @@ public sealed partial class SubtitleEditorViewModel : ObservableObject, IDisposa
     // ── 상태 ────────────────────────────────────────────────────────
 
     [ObservableProperty]
-    private string _statusText = "SRT / VTT 파일을 열거나 끌어다 놓으세요";
+    private string _statusText = "";
 
     [ObservableProperty]
     private string? _filePath;
@@ -140,8 +140,19 @@ public sealed partial class SubtitleEditorViewModel : ObservableObject, IDisposa
         _services = services;
         PlayerVm  = playerVm;
 
+        StatusText = Loc["SubtitleEditor.Empty.Title"];
+
         PlayerVm.PositionChanged += OnPlayerPositionChanged;
         Cues.CollectionChanged   += OnCuesCollectionChanged;
+        LocalizationManager.Instance.PropertyChanged += OnLocalizationChanged;
+    }
+
+    private void OnLocalizationChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (!HasCues && FilePath is null)
+            StatusText = Loc["SubtitleEditor.Empty.Title"];
+        else
+            RefreshStatus();
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -274,7 +285,7 @@ public sealed partial class SubtitleEditorViewModel : ObservableObject, IDisposa
 
         var dlg = new SaveFileDialog
         {
-            Title      = "자막 파일 저장 (SRT)",
+            Title      = Loc["SubtitleEditor.Dialog.SaveAs"],
             Filter     = "SubRip|*.srt",
             FileName   = baseName + ".srt",
             DefaultExt = ".srt",
@@ -528,9 +539,9 @@ public sealed partial class SubtitleEditorViewModel : ObservableObject, IDisposa
 
     private void RefreshStatus()
     {
-        var name = FilePath is not null ? Path.GetFileName(FilePath) : "(저장 안 됨)";
-        var mod  = IsModified ? " • 수정됨" : "";
-        StatusText = $"{name} • {Cues.Count}개 자막{mod}";
+        var name = FilePath is not null ? Path.GetFileName(FilePath) : Loc["SubtitleEditor.Status.Unsaved"];
+        var mod  = IsModified ? Loc["SubtitleEditor.Status.Modified"] : "";
+        StatusText = $"{name} • {Cues.Count} {Loc["SubtitleEditor.Status.Cues"]}{mod}";
     }
 
     // ── IDisposable ──────────────────────────────────────────────────
@@ -539,6 +550,7 @@ public sealed partial class SubtitleEditorViewModel : ObservableObject, IDisposa
     {
         PlayerVm.PositionChanged -= OnPlayerPositionChanged;
         Cues.CollectionChanged   -= OnCuesCollectionChanged;
+        LocalizationManager.Instance.PropertyChanged -= OnLocalizationChanged;
 
         foreach (var cue in Cues)
             cue.PropertyChanged -= OnCuePropertyChanged;

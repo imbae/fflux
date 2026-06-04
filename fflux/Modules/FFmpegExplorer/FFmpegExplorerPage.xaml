@@ -103,7 +103,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="{loc:L FFmpegExplorer.VideoCodec.Label}" Style="{StaticResource FormLabel}" />
                                 <ComboBox Grid.Column="1"
-                                          ItemsSource="{x:Static local:FFmpegExplorerViewModel.VideoCodecDisplayNames}"
+                                          ItemsSource="{Binding VideoCodecDisplayNames}"
                                           SelectedIndex="{Binding VideoCodecIndex, Mode=TwoWay}" FontSize="12" />
                             </Grid>
 
@@ -162,7 +162,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="{loc:L FFmpegExplorer.Resolution.Label}" Style="{StaticResource FormLabel}" />
                                 <ComboBox Grid.Column="1"
-                                          ItemsSource="{x:Static local:FFmpegExplorerViewModel.ResolutionDisplayNames}"
+                                          ItemsSource="{Binding ResolutionDisplayNames}"
                                           SelectedIndex="{Binding ResolutionIndex, Mode=TwoWay}"
                                           IsEnabled="{Binding IsVideoEncodeEnabled}" FontSize="12" />
                             </Grid>
@@ -183,7 +183,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="{loc:L FFmpegExplorer.AudioCodec.Label}" Style="{StaticResource FormLabel}" />
                                 <ComboBox Grid.Column="1"
-                                          ItemsSource="{x:Static local:FFmpegExplorerViewModel.AudioCodecDisplayNames}"
+                                          ItemsSource="{Binding AudioCodecDisplayNames}"
                                           SelectedIndex="{Binding AudioCodecIndex, Mode=TwoWay}" FontSize="12" />
                             </Grid>
                             <Grid Style="{StaticResource FormRow}">
@@ -208,7 +208,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="{loc:L FFmpegExplorer.SampleRate.Label}" Style="{StaticResource FormLabel}" />
                                 <ComboBox Grid.Column="1"
-                                          ItemsSource="{x:Static local:FFmpegExplorerViewModel.SampleRateDisplayNames}"
+                                          ItemsSource="{Binding SampleRateDisplayNames}"
                                           SelectedIndex="{Binding SampleRateIndex, Mode=TwoWay}"
                                           IsEnabled="{Binding IsAudioEncodeEnabled}" FontSize="12" />
                             </Grid>
@@ -219,7 +219,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="{loc:L FFmpegExplorer.Channels.Label}" Style="{StaticResource FormLabel}" />
                                 <ComboBox Grid.Column="1"
-                                          ItemsSource="{x:Static local:FFmpegExplorerViewModel.ChannelDisplayNames}"
+                                          ItemsSource="{Binding ChannelDisplayNames}"
                                           SelectedIndex="{Binding ChannelsIndex, Mode=TwoWay}"
                                           IsEnabled="{Binding IsAudioEncodeEnabled}" FontSize="12" />
                             </Grid>

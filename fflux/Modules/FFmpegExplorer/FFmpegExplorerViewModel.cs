@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Text;
 using System.Windows;
 using fflux.Core.Abstractions;
@@ -21,12 +22,12 @@ public sealed partial class FFmpegExplorerViewModel : ObservableObject
     private CancellationTokenSource? _executeCts;
 
     // ────────────────────────────────────────────────────────────────
-    // ComboBox 데이터 소스 (static — View에서 ItemsSource로 바인딩)
+    // ComboBox 데이터 소스 (인스턴스 프로퍼티 — 언어 전환 시 재빌드)
     // ────────────────────────────────────────────────────────────────
 
-    public static string[] VideoCodecDisplayNames { get; } =
+    public string[] VideoCodecDisplayNames =>
     [
-        "copy  (스트림 복사, 무손실)",
+        Loc["FFmpegExplorer.Codec.Copy"],
         "libx264  (H.264 / AVC)",
         "libx265  (H.265 / HEVC)",
         "libvpx-vp9  (VP9)",
@@ -35,9 +36,9 @@ public sealed partial class FFmpegExplorerViewModel : ObservableObject
     private static readonly string[] VideoCodecValues =
         ["copy", "libx264", "libx265", "libvpx-vp9", "libaom-av1"];
 
-    public static string[] ResolutionDisplayNames { get; } =
+    public string[] ResolutionDisplayNames =>
     [
-        "(원본 유지)",
+        Loc["FFmpegExplorer.Keep.Original"],
         "3840×2160  (4K)",
         "1920×1080  (1080p)",
         "1280×720   (720p)",
@@ -47,9 +48,9 @@ public sealed partial class FFmpegExplorerViewModel : ObservableObject
     private static readonly string?[] ResolutionValues =
         [null, "3840x2160", "1920x1080", "1280x720", "854x480", "640x360"];
 
-    public static string[] AudioCodecDisplayNames { get; } =
+    public string[] AudioCodecDisplayNames =>
     [
-        "copy  (스트림 복사, 무손실)",
+        Loc["FFmpegExplorer.Codec.Copy"],
         "aac",
         "libmp3lame  (MP3)",
         "libopus  (Opus)",
@@ -59,13 +60,13 @@ public sealed partial class FFmpegExplorerViewModel : ObservableObject
     private static readonly string[] AudioCodecValues =
         ["copy", "aac", "libmp3lame", "libopus", "flac", "pcm_s16le"];
 
-    public static string[] SampleRateDisplayNames { get; } =
-        ["(원본 유지)", "48000 Hz", "44100 Hz", "22050 Hz", "16000 Hz"];
+    public string[] SampleRateDisplayNames =>
+        [Loc["FFmpegExplorer.Keep.Original"], "48000 Hz", "44100 Hz", "22050 Hz", "16000 Hz"];
     private static readonly int?[] SampleRateValues =
         [null, 48000, 44100, 22050, 16000];
 
-    public static string[] ChannelDisplayNames { get; } =
-        ["(원본 유지)", "1  (Mono)", "2  (Stereo)", "6  (5.1 Surround)"];
+    public string[] ChannelDisplayNames =>
+        [Loc["FFmpegExplorer.Keep.Original"], "1  (Mono)", "2  (Stereo)", "6  (5.1 Surround)"];
     private static readonly int?[] ChannelValues = [null, 1, 2, 6];
 
     // ────────────────────────────────────────────────────────────────
@@ -140,7 +141,7 @@ public sealed partial class FFmpegExplorerViewModel : ObservableObject
 
     [ObservableProperty] private double _progressValue;
     [ObservableProperty] private string _progressText = "";
-    [ObservableProperty] private string _statusText   = "준비";
+    [ObservableProperty] private string _statusText   = "";
     [ObservableProperty] private bool   _showLog;
 
     private readonly StringBuilder _logBuilder = new();
@@ -163,7 +164,7 @@ public sealed partial class FFmpegExplorerViewModel : ObservableObject
         get
         {
             if (string.IsNullOrEmpty(InputFilePath) && string.IsNullOrEmpty(OutputFilePath))
-                return "(입력·출력 파일을 선택하면 커맨드가 생성됩니다)";
+                return Loc["FFmpegExplorer.Command.Hint"];
             return "ffmpeg " + _commandService.BuildArguments(BuildOptions());
         }
     }
@@ -180,6 +181,20 @@ public sealed partial class FFmpegExplorerViewModel : ObservableObject
         _commandService = commandService;
         _settings       = settings;
         _logger         = logger;
+
+        StatusText = Loc["FFmpegExplorer.Status.Ready"];
+        LocalizationManager.Instance.PropertyChanged += OnLocalizationChanged;
+    }
+
+    private void OnLocalizationChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        StatusText = Loc["FFmpegExplorer.Status.Ready"];
+        OnPropertyChanged(nameof(VideoCodecDisplayNames));
+        OnPropertyChanged(nameof(ResolutionDisplayNames));
+        OnPropertyChanged(nameof(AudioCodecDisplayNames));
+        OnPropertyChanged(nameof(SampleRateDisplayNames));
+        OnPropertyChanged(nameof(ChannelDisplayNames));
+        OnPropertyChanged(nameof(GeneratedCommand));
     }
 
     // ────────────────────────────────────────────────────────────────
@@ -191,8 +206,8 @@ public sealed partial class FFmpegExplorerViewModel : ObservableObject
     {
         var dlg = new OpenFileDialog
         {
-            Title  = "입력 파일 선택",
-            Filter = "미디어 파일|*.mp4;*.mkv;*.avi;*.mov;*.wmv;*.flv;*.webm;*.ts;*.m2ts|모든 파일|*.*",
+            Title  = Loc["FFmpegExplorer.Dialog.Input"],
+            Filter = Loc["FFmpegExplorer.Dialog.InputFilter"],
         };
         if (dlg.ShowDialog() == true)
         {
@@ -208,8 +223,8 @@ public sealed partial class FFmpegExplorerViewModel : ObservableObject
     {
         var dlg = new SaveFileDialog
         {
-            Title  = "출력 파일 저장",
-            Filter = "MP4|*.mp4|MKV|*.mkv|WebM|*.webm|모든 파일|*.*",
+            Title  = Loc["FFmpegExplorer.Dialog.Output"],
+            Filter = Loc["FFmpegExplorer.Dialog.OutputFilter"],
         };
         if (!string.IsNullOrEmpty(InputFilePath))
         {
@@ -238,7 +253,7 @@ public sealed partial class FFmpegExplorerViewModel : ObservableObject
             AppendLog(string.Format(Loc["FFmpegExplorer.Error.NotFound"], ffmpegExe));
             AppendLog("       " + Loc["FFmpegExplorer.Error.CheckSettings"]);
             ShowLog    = true;
-            StatusText = "FFmpeg 경로 오류";
+            StatusText = Loc["FFmpegExplorer.Status.PathError"];
             return;
         }
 
@@ -302,7 +317,7 @@ public sealed partial class FFmpegExplorerViewModel : ObservableObject
     private void Cancel()
     {
         _executeCts?.Cancel();
-        StatusText = "취소 요청…";
+        StatusText = Loc["FFmpegExplorer.Status.Cancelling"];
     }
 
     private bool CanCancel() => IsRunning;
@@ -320,7 +335,7 @@ public sealed partial class FFmpegExplorerViewModel : ObservableObject
             ProgressValue = p.Percent.Value;
 
         if (p.CurrentTime.HasValue)
-            ProgressText = $"처리 중: {p.CurrentTime:hh\\:mm\\:ss\\.ff}";
+            ProgressText = string.Format(Loc["FFmpegExplorer.Progress.Format"], p.CurrentTime.Value.ToString(@"hh\:mm\:ss\.ff"));
     }
 
     private void AppendLog(string line)

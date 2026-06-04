@@ -25,6 +25,8 @@ namespace fflux.UI.Modules.Player;
 // AI_SUBTITLE이 있으면 PlayerViewModel.AiSubtitle.cs의 partial 선언에서 인터페이스가 추가됩니다.
 public sealed partial class PlayerViewModel : ObservableObject, IDisposable
 {
+    private static LocalizationManager Loc => LocalizationManager.Instance;
+
     // ── 의존성 ──────────────────────────────────────────────────────
 
     private readonly IServiceProvider _services;
@@ -395,9 +397,8 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
         _pausedPosition = TimeSpan.FromSeconds(PositionSeconds);
         StopPlaybackLoop(pauseAudio: true);
         IsPlaying = false;
-        UpdateStatus("일시 정지");
-        _mainVm.PlaybackStatusText = "일시 정지";
-        _mainVm.PlaybackStatusIcon = "Pause24";
+        UpdateStatus(Loc["MainWindow.Status.Paused"]);
+        _mainVm.SetPlaybackStatus("MainWindow.Status.Paused", "Pause24");
     }
 
     [RelayCommand(CanExecute = nameof(CanStop))]
@@ -416,9 +417,8 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
         _isUpdatingPositionFromPlayback = false;
 
         UpdateTimecode(TimeSpan.Zero);
-        UpdateStatus("정지");
-        _mainVm.PlaybackStatusText = "정지";
-        _mainVm.PlaybackStatusIcon = "Stop24";
+        UpdateStatus(Loc["MainWindow.Status.Stopped"]);
+        _mainVm.SetPlaybackStatus("MainWindow.Status.Stopped", "Stop24");
     }
 
     // ── MISB / AI 커맨드 스텁 (서브모듈 없을 때만 컴파일) ───────────────
@@ -966,9 +966,8 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
             UpdateTimecode(TimeSpan.Zero);
 
             // 상태바 표시: 라이브는 URL 그대로, 파일은 파일명만
-            _mainVm.CurrentFileName = isLive ? source : Path.GetFileName(source);
-            _mainVm.PlaybackStatusText = "준비";
-            _mainVm.PlaybackStatusIcon = "Stop24";
+            _mainVm.SetCurrentFile(isLive ? source : Path.GetFileName(source));
+            _mainVm.SetPlaybackStatus("MainWindow.Status.Ready", "Stop24");
         }
         catch (Exception ex)
         {
@@ -1201,9 +1200,8 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
         // StatusText는 플레이어 내부 상태 표시용입니다.
         // PlayAsync(재개), OpenSourceInternalAsync(최초 재생) 모두 여기를 거치므로
         // 단일 진입점에서 동기화합니다.
-        UpdateStatus(IsLiveStream ? "● LIVE 연결됨" : "재생 중");
-        _mainVm.PlaybackStatusText = "재생 중";
-        _mainVm.PlaybackStatusIcon = "Play24";
+        UpdateStatus(IsLiveStream ? "● LIVE 연결됨" : Loc["MainWindow.Status.Playing"]);
+        _mainVm.SetPlaybackStatus("MainWindow.Status.Playing", "Play24");
 
         _playbackCts = new CancellationTokenSource();
         var ct = _playbackCts.Token;
@@ -1341,8 +1339,7 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
                 IsLiveStream = false;
                 _pausedPosition = TimeSpan.Zero;
                 UpdateStatus(wasLive ? "스트림 연결 끊김" : "재생 완료");
-                _mainVm.PlaybackStatusText = "정지";
-                _mainVm.PlaybackStatusIcon = "Stop24";
+                _mainVm.SetPlaybackStatus("MainWindow.Status.Stopped", "Stop24");
             });
         }
         catch (OperationCanceledException)
@@ -1358,8 +1355,7 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
             {
                 IsPlaying = false;
                 StatusText = $"재생 오류: {ex.Message}";
-                _mainVm.PlaybackStatusText = "오류";
-                _mainVm.PlaybackStatusIcon = "Stop24";
+                _mainVm.SetPlaybackStatus("MainWindow.Status.Error", "Stop24");
             });
         }
     }

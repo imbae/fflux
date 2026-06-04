@@ -133,11 +133,6 @@
   <data name="Settings.FFmpeg.Description" xml:space="preserve"><value>Specify the folder path containing the FFmpeg LGPL binary (folder with ffmpeg.exe).</value></data>
   <data name="Settings.FFmpeg.Placeholder" xml:space="preserve"><value>e.g. C:\ffmpeg\bin</value></data>
   <data name="Settings.Browse" xml:space="preserve"><value>Browse</value></data>
-  <data name="Settings.Section.Appearance" xml:space="preserve"><value>Appearance</value></data>
-  <data name="Settings.Appearance.Description" xml:space="preserve"><value>Select app theme. Changes apply immediately.</value></data>
-  <data name="Settings.Theme.System" xml:space="preserve"><value>🌐  System</value></data>
-  <data name="Settings.Theme.Light" xml:space="preserve"><value>☀️  Light</value></data>
-  <data name="Settings.Theme.Dark" xml:space="preserve"><value>🌙  Dark</value></data>
   <data name="Settings.Section.Output" xml:space="preserve"><value>Output Settings</value></data>
   <data name="Settings.Output.Description" xml:space="preserve"><value>Default folder where encoding results are saved.</value></data>
   <data name="Settings.Output.Placeholder" xml:space="preserve"><value>e.g. D:\Output</value></data>
@@ -232,4 +227,29 @@
   <data name="FFmpegExplorer.Log.Exception" xml:space="preserve"><value>[Exception] {0}</value></data>
   <data name="Player.Status.Default" xml:space="preserve"><value>Open a file to start</value></data>
   <data name="MainWindow.Status.Stopped" xml:space="preserve"><value>Stopped</value></data>
+  <data name="MainWindow.Status.Ready" xml:space="preserve"><value>Ready</value></data>
+  <data name="MainWindow.Status.Playing" xml:space="preserve"><value>Playing</value></data>
+  <data name="MainWindow.Status.Paused" xml:space="preserve"><value>Paused</value></data>
+  <data name="MainWindow.Status.Error" xml:space="preserve"><value>Error</value></data>
+  <data name="FFmpegExplorer.Status.Ready" xml:space="preserve"><value>Ready</value></data>
+  <data name="FFmpegExplorer.Status.PathError" xml:space="preserve"><value>FFmpeg path error</value></data>
+  <data name="FFmpegExplorer.Status.Cancelling" xml:space="preserve"><value>Cancelling...</value></data>
+  <data name="FFmpegExplorer.Command.Hint" xml:space="preserve"><value>(Select input/output files to generate command)</value></data>
+  <data name="FFmpegExplorer.Progress.Format" xml:space="preserve"><value>Processing: {0}</value></data>
+  <data name="FFmpegExplorer.Codec.Copy" xml:space="preserve"><value>copy  (Stream Copy, lossless)</value></data>
+  <data name="FFmpegExplorer.Keep.Original" xml:space="preserve"><value>(keep original)</value></data>
+  <data name="FFmpegExplorer.Dialog.InputFilter" xml:space="preserve"><value>Media Files|*.mp4;*.mkv;*.avi;*.mov;*.wmv;*.flv;*.webm;*.ts;*.m2ts|All Files|*.*</value></data>
+  <data name="FFmpegExplorer.Dialog.OutputFilter" xml:space="preserve"><value>MP4|*.mp4|MKV|*.mkv|WebM|*.webm|All Files|*.*</value></data>
+  <data name="SubtitleEditor.Status.Unsaved" xml:space="preserve"><value>(unsaved)</value></data>
+  <data name="SubtitleEditor.Status.Modified" xml:space="preserve"><value> • modified</value></data>
+  <data name="SubtitleEditor.Status.Cues" xml:space="preserve"><value>cues</value></data>
+  <data name="AiSubtitle.Server.Disconnected" xml:space="preserve"><value>○ Server disconnected</value></data>
+  <data name="AiSubtitle.SourceLang.Auto" xml:space="preserve"><value>Auto detect</value></data>
+  <data name="AiSubtitle.Style.Default" xml:space="preserve"><value>Default</value></data>
+  <data name="AiSubtitle.Style.Documentary" xml:space="preserve"><value>Documentary</value></data>
+  <data name="AiSubtitle.Style.Romance" xml:space="preserve"><value>Romance</value></data>
+  <data name="AiSubtitle.Style.Action" xml:space="preserve"><value>Action</value></data>
+  <data name="AiSubtitle.Style.Horror" xml:space="preserve"><value>Horror</value></data>
+  <data name="AiSubtitle.Style.Comedy" xml:space="preserve"><value>Comedy</value></data>
+  <data name="AiSubtitle.Style.Anime" xml:space="preserve"><value>Animation</value></data>
 </root>

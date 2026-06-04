@@ -133,7 +133,7 @@
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="{loc:L AiSubtitle.SourceLang.Label}" FontSize="12"
                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
-                                <ComboBox ItemsSource="{x:Static local:AiSubtitleViewModel.SourceLanguages}"
+                                <ComboBox ItemsSource="{Binding SourceLanguages}"
                                           SelectedValuePath="Code" SelectedValue="{Binding SourceLanguage}"
                                           DisplayMemberPath="DisplayName" />
                             </StackPanel>
@@ -154,7 +154,7 @@
                         <StackPanel Margin="0,12,0,0">
                             <TextBlock Text="{loc:L AiSubtitle.Style.Label}" FontSize="12"
                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
-                            <ComboBox ItemsSource="{x:Static local:AiSubtitleViewModel.TranslationStyles}"
+                            <ComboBox ItemsSource="{Binding TranslationStyles}"
                                       SelectedValuePath="Style" SelectedValue="{Binding TranslationStyle}"
                                       DisplayMemberPath="DisplayName" />
                         </StackPanel>

@@ -29,7 +29,7 @@
             <Setter Property="Width"             Value="32" />
             <Setter Property="Height"            Value="32" />
             <Setter Property="Cursor"            Value="Hand" />
-            <Setter Property="Foreground"        Value="{DynamicResource TextFillColorPrimaryBrush}" />
+            <Setter Property="Foreground"        Value="White" />
             <Setter Property="Delay"             Value="400" />
             <Setter Property="Interval"          Value="80" />
             <Setter Property="Template">
@@ -109,13 +109,13 @@
         <Grid IsHitTestVisible="False" Visibility="{Binding IsFileOpen, Converter={StaticResource InvBoolToVis}}">
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                 <ui:SymbolIcon Symbol="FolderOpen28" FontSize="56"
-                               Foreground="{DynamicResource FFluxSecondaryBrush}" HorizontalAlignment="Center" />
+                               Foreground="#88FFFFFF" HorizontalAlignment="Center" />
                 <TextBlock Text="{loc:L Player.Hint.OpenFile}" FontSize="14" Margin="0,16,0,0"
-                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" HorizontalAlignment="Center" />
+                           Foreground="#AAFFFFFF" HorizontalAlignment="Center" />
                 <TextBlock Text="{loc:L Player.Hint.Formats}" FontSize="12" Margin="0,6,0,0"
-                           Foreground="{DynamicResource TextFillColorDisabledBrush}" HorizontalAlignment="Center" />
+                           Foreground="#66FFFFFF" HorizontalAlignment="Center" />
                 <TextBlock Text="{loc:L Player.Hint.Streaming}" FontSize="12" Margin="0,4,0,0"
-                           Foreground="{DynamicResource TextFillColorDisabledBrush}" HorizontalAlignment="Center" />
+                           Foreground="#66FFFFFF" HorizontalAlignment="Center" />
             </StackPanel>
         </Grid>
 
@@ -466,7 +466,7 @@
                     <TextBlock Grid.Column="1"
                                Text="{Binding StatusText}"
                                FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Center"
-                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                               Foreground="#AAFFFFFF" />
 
                     <!-- 우측: 볼륨 · 속도 · 타임코드 · 풀스크린 -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
@@ -484,7 +484,7 @@
 
                         <TextBlock Text="{loc:L Player.Speed.Label}"
                                    FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0"
-                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                   Foreground="#AAFFFFFF" />
 
                         <ComboBox Width="80" Margin="10,0"
                                   SelectedIndex="{Binding SelectedSpeedIndex, Mode=TwoWay}"
@@ -503,7 +503,7 @@
                                    Text="{Binding TimecodeText}"
                                    FontSize="12" VerticalAlignment="Center"
                                    FontFamily="Consolas, Courier New"
-                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                   Foreground="White" />
 
                         <ui:Button Width="36" Height="32"
                                    Command="{Binding ToggleFullscreenCommand}" Appearance="Transparent"

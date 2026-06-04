@@ -5,6 +5,7 @@ using fflux.AiSubtitle.DependencyInjection;
 using fflux.AiSubtitle.Services.Subtitle;
 using fflux.AiSubtitle.Services.Translation;
 using fflux.AiSubtitle.Models;
+using fflux.UI.Shared.Services;
 using Microsoft.Extensions.Options;
 using Microsoft.Win32;
 
@@ -36,7 +37,7 @@ public sealed partial class AiSubtitleViewModel : ObservableObject, IDisposable
     [NotifyCanExecuteChangedFor(nameof(StartServerCommand))]
     private bool _isStartingServer;
 
-    [ObservableProperty] private string _serverStatusText = "○ 서버 미연결";
+    [ObservableProperty] private string _serverStatusText = "";
 
     /// <summary>현재 서버 URL이 로컬호스트인지 여부 (서버 시작 버튼 표시 조건).</summary>
     public bool IsLocalServer =>
@@ -86,6 +87,8 @@ public sealed partial class AiSubtitleViewModel : ObservableObject, IDisposable
 
     // ── 정적 목록 ────────────────────────────────────────────────────
 
+    private static LocalizationManager Loc => LocalizationManager.Instance;
+
     public static IReadOnlyList<LanguageItem> SupportedLanguages { get; } =
     [
         new("한국어", "ko"),
@@ -93,9 +96,9 @@ public sealed partial class AiSubtitleViewModel : ObservableObject, IDisposable
         new("日本語", "ja"),
     ];
 
-    public static IReadOnlyList<LanguageItem> SourceLanguages { get; } =
+    public IReadOnlyList<LanguageItem> SourceLanguages =>
     [
-        new("자동 감지", ""),
+        new(Loc["AiSubtitle.SourceLang.Auto"], ""),
         new("English",   "en"),
         new("日本語",     "ja"),
         new("한국어",     "ko"),
@@ -107,8 +110,16 @@ public sealed partial class AiSubtitleViewModel : ObservableObject, IDisposable
         "DeepL",
     ];
 
-    public static IReadOnlyList<TranslationStyleInfo> TranslationStyles { get; } =
-        TranslationStyleHelper.All;
+    public IReadOnlyList<LocalizedStyleInfo> TranslationStyles =>
+    [
+        new(Loc["AiSubtitle.Style.Default"],      TranslationStyle.Default),
+        new(Loc["AiSubtitle.Style.Documentary"],   TranslationStyle.Documentary),
+        new(Loc["AiSubtitle.Style.Romance"],       TranslationStyle.Romance),
+        new(Loc["AiSubtitle.Style.Action"],        TranslationStyle.Action),
+        new(Loc["AiSubtitle.Style.Horror"],        TranslationStyle.Horror),
+        new(Loc["AiSubtitle.Style.Comedy"],        TranslationStyle.Comedy),
+        new(Loc["AiSubtitle.Style.Anime"],         TranslationStyle.Anime),
+    ];
 
     // ── 생성자 ──────────────────────────────────────────────────────
 
@@ -121,8 +132,19 @@ public sealed partial class AiSubtitleViewModel : ObservableObject, IDisposable
         _options = options.Value;
         _logger = logger;
 
-        AddLog($"Python API URL: {(_options.PythonApiUrl is { Length: > 0 } u ? u : "(미설정)")}");
-        AddLog("모델을 선택한 뒤 [서버 시작] 또는 [상태 확인]을 눌러주세요.");
+        ServerStatusText = Loc["AiSubtitle.Server.Disconnected"];
+        Loc.PropertyChanged += OnLocalizationChanged;
+
+        AddLog($"Python API URL: {(_options.PythonApiUrl is { Length: > 0 } u ? u : "(not set)")}");
+        AddLog("Select a model then click [Start Server] or [Check Status].");
+    }
+
+    private void OnLocalizationChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (!IsServerRunning)
+            ServerStatusText = Loc["AiSubtitle.Server.Disconnected"];
+        OnPropertyChanged(nameof(SourceLanguages));
+        OnPropertyChanged(nameof(TranslationStyles));
     }
 
     /// <summary>
@@ -141,26 +163,26 @@ public sealed partial class AiSubtitleViewModel : ObservableObject, IDisposable
     private async Task CheckServerAsync()
     {
         var url = _options.PythonApiUrl;
-        if (string.IsNullOrWhiteSpace(url)) { SetServerStatus(false, "⚠ PYTHON_API_URL 미설정"); return; }
+        if (string.IsNullOrWhiteSpace(url)) { SetServerStatus(false, "⚠ PYTHON_API_URL not set"); return; }
 
         try
         {
             var resp = await _http.GetAsync($"{url.TrimEnd('/')}/health");
             if (resp.IsSuccessStatusCode)
             {
-                SetServerStatus(true, "● 서버 연결됨");
-                AddLog("서버 연결 확인 완료");
+                SetServerStatus(true, "● Server connected");
+                AddLog("Server connection verified");
             }
             else
             {
-                SetServerStatus(false, $"⚠ 서버 응답 오류 ({(int)resp.StatusCode})");
-                AddLog($"서버 상태 확인 실패: HTTP {(int)resp.StatusCode}");
+                SetServerStatus(false, $"⚠ Server error ({(int)resp.StatusCode})");
+                AddLog($"Server check failed: HTTP {(int)resp.StatusCode}");
             }
         }
         catch (Exception ex)
         {
-            SetServerStatus(false, "○ 서버 미연결");
-            AddLog($"서버 연결 실패: {ex.Message}");
+            SetServerStatus(false, Loc["AiSubtitle.Server.Disconnected"]);
+            AddLog($"Connection failed: {ex.Message}");
         }
     }
 
@@ -169,20 +191,20 @@ public sealed partial class AiSubtitleViewModel : ObservableObject, IDisposable
     private async Task StartServerAsync()
     {
         IsStartingServer = true;
-        SetServerStatus(false, "◑ 서버 시작 중…");
+        SetServerStatus(false, "◑ Starting server…");
 
         var scriptPath = FindServerScript();
         if (scriptPath is null)
         {
-            AddLog("❌ whisper_server.py를 찾을 수 없습니다.");
-            AddLog("   fflux.AiSubtitle/python/ 폴더를 확인하세요.");
-            SetServerStatus(false, "⚠ 스크립트 없음");
+            AddLog("❌ whisper_server.py not found.");
+            AddLog("   Check fflux.AiSubtitle/python/ folder.");
+            SetServerStatus(false, "⚠ Script not found");
             IsStartingServer = false;
             return;
         }
 
-        AddLog($"스크립트 경로: {scriptPath}");
-        AddLog($"모델: {SelectedWhisperModel}  디바이스: {(UseGpu ? "cuda" : "cpu")}");
+        AddLog($"Script: {scriptPath}");
+        AddLog($"Model: {SelectedWhisperModel}  Device: {(UseGpu ? "cuda" : "cpu")}");
 
         try
         {
@@ -202,15 +224,15 @@ public sealed partial class AiSubtitleViewModel : ObservableObject, IDisposable
             // 새 프로세스가 같은 포트를 열려 해 WinSock 10048(WSAEADDRINUSE)이 발생합니다.
             if (_serverProcess is { HasExited: false })
             {
-                AddLog("기존 서버 프로세스 종료 중…");
+                AddLog("Stopping existing server process…");
                 try
                 {
                     _serverProcess.Kill(entireProcessTree: true);
                     using var killCts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
                     await _serverProcess.WaitForExitAsync(killCts.Token);
-                    AddLog("기존 프로세스 종료 완료.");
+                    AddLog("Existing process stopped.");
                 }
-                catch { /* 이미 종료됐거나 권한 없음 — 무시 */ }
+                catch { /* already exited or no permission — ignore */ }
             }
             _serverProcess?.Dispose();
             _serverProcess = null;
@@ -224,19 +246,18 @@ public sealed partial class AiSubtitleViewModel : ObservableObject, IDisposable
             _serverProcess.ErrorDataReceived += (_, e) => { if (e.Data != null) AddLog(e.Data); };
             _serverProcess.Exited += async (_, _) =>
             {
-                // stderr/stdout 버퍼가 이벤트로 전달될 시간을 줍니다.
                 await Task.Delay(400);
 
                 var code = -1;
                 try { code = _serverProcess?.ExitCode ?? -1; } catch { }
 
-                AddLog($"⚠ 서버 프로세스 종료 (exit code: {code})");
+                AddLog($"⚠ Server process exited (exit code: {code})");
                 if (code != 0)
                 {
-                    AddLog("  → 위 로그의 Python 오류 메시지를 확인하세요.");
-                    AddLog("  → 패키지 미설치 시: pip install -r requirements.txt");
+                    AddLog("  → Check Python error messages in the log above.");
+                    AddLog("  → If packages missing: pip install -r requirements.txt");
                 }
-                SetServerStatus(false, "○ 서버 종료됨");
+                SetServerStatus(false, "○ Server stopped");
             };
 
             // Python 실행 가능 여부 및 버전 사전 확인
@@ -247,29 +268,29 @@ public sealed partial class AiSubtitleViewModel : ObservableObject, IDisposable
             _serverProcess.BeginOutputReadLine();
             _serverProcess.BeginErrorReadLine();
 
-            AddLog($"프로세스 시작 (PID {_serverProcess.Id}). 준비 대기 중…");
+            AddLog($"Process started (PID {_serverProcess.Id}). Waiting for ready…");
 
             // 최대 60초 폴링 — 프로세스 종료 시 즉시 탈출
             var ready = await WaitForServerReadyAsync(TimeSpan.FromSeconds(60));
             if (ready)
             {
-                SetServerStatus(true, "● 서버 준비 완료");
-                AddLog("✅ 서버가 준비되었습니다.");
+                SetServerStatus(true, "● Server ready");
+                AddLog("✅ Server is ready.");
             }
             else if (_serverProcess?.HasExited == true)
             {
-                // Exited 핸들러에서 이미 처리됨
+                // handled by Exited handler
             }
             else
             {
-                SetServerStatus(false, "⚠ 서버 시작 타임아웃");
-                AddLog("❌ 60초 내에 서버가 응답하지 않았습니다.");
+                SetServerStatus(false, "⚠ Server start timeout");
+                AddLog("❌ Server did not respond within 60 seconds.");
             }
         }
         catch (Exception ex)
         {
-            SetServerStatus(false, "⚠ 시작 실패");
-            AddLog($"❌ 서버 시작 오류: {ex.Message}");
+            SetServerStatus(false, "⚠ Start failed");
+            AddLog($"❌ Server start error: {ex.Message}");
         }
         finally
         {
@@ -288,13 +309,13 @@ public sealed partial class AiSubtitleViewModel : ObservableObject, IDisposable
     {
         var dlg = new OpenFileDialog
         {
-            Title = "동영상 파일 선택",
-            Filter = "미디어 파일|*.mp4;*.mkv;*.avi;*.mov;*.wmv;*.flv;*.webm;*.ts;*.m2ts|모든 파일|*.*",
+            Title = Loc["FFmpegExplorer.Dialog.Input"],
+            Filter = Loc["FFmpegExplorer.Dialog.InputFilter"],
         };
         if (dlg.ShowDialog() != true) return;
         MediaFilePath = dlg.FileName;
         OutputSrtPath = string.Empty;
-        AddLog($"파일 선택: {Path.GetFileName(dlg.FileName)}");
+        AddLog($"File: {Path.GetFileName(dlg.FileName)}");
     }
 
     [RelayCommand]
@@ -302,7 +323,7 @@ public sealed partial class AiSubtitleViewModel : ObservableObject, IDisposable
     {
         var dlg = new SaveFileDialog
         {
-            Title = "저장할 .srt 경로 선택",
+            Title = Loc["SubtitleEditor.Dialog.SaveAs"],
             Filter = "SRT 자막|*.srt",
             FileName = string.IsNullOrWhiteSpace(MediaFilePath) ? "subtitle.srt"
                                    : Path.ChangeExtension(Path.GetFileName(MediaFilePath), ".srt"),
@@ -333,8 +354,8 @@ public sealed partial class AiSubtitleViewModel : ObservableObject, IDisposable
             Style: TranslationStyle);
 
         _lastStage = null;
-        AddLog($"자막 생성 시작 — {Path.GetFileName(MediaFilePath)}");
-        AddLog($"대상 언어: {TargetLanguage}  엔진: {(engine == TranslationEngine.DeepL ? "DeepL" : "Groq")}");
+        AddLog($"[Start] {Path.GetFileName(MediaFilePath)}");
+        AddLog($"Target: {TargetLanguage}  Engine: {(engine == TranslationEngine.DeepL ? "DeepL" : "Groq")}");
 
         var progress = new Progress<SubtitleGenerationProgress>(p =>
         {
@@ -347,9 +368,9 @@ public sealed partial class AiSubtitleViewModel : ObservableObject, IDisposable
                 _lastStage = p.Stage;
                 AddLog(p.Stage switch
                 {
-                    SubtitleGenerationStage.Transcribing => "🎙 전사 시작…",
-                    SubtitleGenerationStage.Translating => "🌐 번역 시작…",
-                    SubtitleGenerationStage.Saving => "💾 저장 중…",
+                    SubtitleGenerationStage.Transcribing => "🎙 Transcribing...",
+                    SubtitleGenerationStage.Translating => "🌐 Translating...",
+                    SubtitleGenerationStage.Saving => "💾 Saving...",
                     _ => string.Empty,
                 });
             }
@@ -359,8 +380,8 @@ public sealed partial class AiSubtitleViewModel : ObservableObject, IDisposable
             {
                 AddLog(p.Stage switch
                 {
-                    SubtitleGenerationStage.Transcribing => "🎙 전사 완료",
-                    SubtitleGenerationStage.Translating => "🌐 번역 완료",
+                    SubtitleGenerationStage.Transcribing => "🎙 Transcription done",
+                    SubtitleGenerationStage.Translating => "🌐 Translation done",
                     _ => string.Empty,
                 });
             }
@@ -369,24 +390,24 @@ public sealed partial class AiSubtitleViewModel : ObservableObject, IDisposable
         try
         {
             var path = await _generationService.GenerateAsync(request, progress, _generateCts.Token);
-            ResultMessage = $"✅ 저장 완료: {Path.GetFileName(path)}";
+            ResultMessage = $"✅ Saved: {Path.GetFileName(path)}";
             ResultColor = Brushes.LightGreen;
             OverallProgress = 1.0;
-            AddLog($"✅ 완료: {path}");
+            AddLog($"✅ Done: {path}");
         }
         catch (OperationCanceledException)
         {
-            ResultMessage = "⛔ 취소되었습니다.";
+            ResultMessage = "⛔ Cancelled.";
             ResultColor = Brushes.Orange;
             OverallProgress = 0.0;
-            AddLog("⛔ 사용자가 취소했습니다.");
+            AddLog("⛔ Cancelled by user.");
         }
         catch (Exception ex)
         {
-            ResultMessage = $"❌ 오류: {ex.Message}";
+            ResultMessage = $"❌ Error: {ex.Message}";
             ResultColor = Brushes.Red;
-            AddLog($"❌ 오류: {ex.Message}");
-            _logger.LogError(ex, "자막 생성 실패: {File}", MediaFilePath);
+            AddLog($"❌ Error: {ex.Message}");
+            _logger.LogError(ex, "Generation failed: {File}", MediaFilePath);
         }
         finally
         {
@@ -398,7 +419,7 @@ public sealed partial class AiSubtitleViewModel : ObservableObject, IDisposable
     private void Cancel()
     {
         _generateCts?.Cancel();
-        AddLog("취소 요청…");
+        AddLog("Cancelling...");
     }
 
     [RelayCommand]
@@ -442,9 +463,9 @@ public sealed partial class AiSubtitleViewModel : ObservableObject, IDisposable
         };
         StageText = p.Stage switch
         {
-            SubtitleGenerationStage.Transcribing => $"🎙 전사 중… {p.StageProgress:P0}",
-            SubtitleGenerationStage.Translating => $"🌐 번역 중… {p.StageProgress:P0}",
-            SubtitleGenerationStage.Saving => "💾 저장 중…",
+            SubtitleGenerationStage.Transcribing => $"🎙 Transcribing… {p.StageProgress:P0}",
+            SubtitleGenerationStage.Translating => $"🌐 Translating… {p.StageProgress:P0}",
+            SubtitleGenerationStage.Saving => "💾 Saving…",
             _ => StageText,
         };
     }
@@ -456,10 +477,9 @@ public sealed partial class AiSubtitleViewModel : ObservableObject, IDisposable
 
         while (DateTime.UtcNow < until)
         {
-            // 프로세스가 이미 죽었으면 즉시 탈출
             if (_serverProcess?.HasExited == true)
             {
-                AddLog("프로세스가 예기치 않게 종료되었습니다. 로그를 확인하세요.");
+                AddLog("Process exited unexpectedly. Check the log above.");
                 return false;
             }
 
@@ -504,19 +524,19 @@ public sealed partial class AiSubtitleViewModel : ObservableObject, IDisposable
             var version = (stdout + stderr).Trim();
             if (proc.ExitCode == 0)
             {
-                AddLog($"Python 확인: {version}");
+                AddLog($"Python: {version}");
                 return true;
             }
 
-            AddLog($"❌ python 실행 실패 (exit code: {proc.ExitCode}): {version}");
-            SetServerStatus(false, "🔴 Python 실행 불가");
+            AddLog($"❌ python failed (exit code: {proc.ExitCode}): {version}");
+            SetServerStatus(false, "🔴 Python unavailable");
             return false;
         }
         catch (Exception ex)
         {
-            AddLog($"❌ python을 찾을 수 없습니다: {ex.Message}");
-            AddLog("  → Python이 PATH에 등록되어 있는지 확인하세요.");
-            SetServerStatus(false, "🔴 Python 없음");
+            AddLog($"❌ python not found: {ex.Message}");
+            AddLog("  → Check that Python is registered in PATH.");
+            SetServerStatus(false, "🔴 Python not found");
             return false;
         }
     }
@@ -554,6 +574,7 @@ public sealed partial class AiSubtitleViewModel : ObservableObject, IDisposable
         _generateCts?.Cancel();
         _generateCts?.Dispose();
         _http.Dispose();
+        Loc.PropertyChanged -= OnLocalizationChanged;
 
         if (_serverProcess is { HasExited: false })
         {
@@ -573,6 +594,9 @@ public sealed partial class AiSubtitleViewModel : ObservableObject, IDisposable
 /// <summary>언어 표시명 + 코드 쌍.</summary>
 public sealed record LanguageItem(string DisplayName, string Code);
 
+/// <summary>UI ComboBox용 번역 스타일 표시 정보 (지역화 래퍼).</summary>
+public sealed record LocalizedStyleInfo(string DisplayName, TranslationStyle Style);
+
 #else
 
 // ── 스텁 (fflux.AiSubtitle 서브모듈 없을 때) ───────────────────────────────
@@ -582,13 +606,15 @@ namespace fflux.UI.Modules.AiSubtitle;
 
 public sealed record LanguageItem(string DisplayName, string Code);
 
+public sealed record LocalizedStyleInfo(string DisplayName, object Style);
+
 public sealed partial class AiSubtitleViewModel : ObservableObject
 {
-    public static IReadOnlyList<LanguageItem> SupportedLanguages { get; } = [];
-    public static IReadOnlyList<LanguageItem> SourceLanguages    { get; } = [];
-    public static IReadOnlyList<string>        EngineNames        { get; } = [];
-    public static IReadOnlyList<object>        TranslationStyles  { get; } = [];
-    public static IReadOnlyList<string>        WhisperModels      { get; } = [];
+    public static IReadOnlyList<LanguageItem>        SupportedLanguages { get; } = [];
+    public IReadOnlyList<LanguageItem>               SourceLanguages    => [];
+    public static IReadOnlyList<string>              EngineNames        { get; } = [];
+    public IReadOnlyList<LocalizedStyleInfo>         TranslationStyles  => [];
+    public static IReadOnlyList<string>              WhisperModels      { get; } = [];
 
     [ObservableProperty] private string _mediaFilePath   = string.Empty;
     [ObservableProperty] private string _outputSrtPath   = string.Empty;
@@ -605,7 +631,7 @@ public sealed partial class AiSubtitleViewModel : ObservableObject
 
     [ObservableProperty] private bool   _isServerRunning;
     [ObservableProperty] private bool   _isStartingServer;
-    [ObservableProperty] private string _serverStatusText = "○ 서버 미연결";
+    [ObservableProperty] private string _serverStatusText = "";
     [ObservableProperty] private string _selectedWhisperModel = "base";
     [ObservableProperty] private bool   _useGpu;
 

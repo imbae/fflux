@@ -11,7 +11,6 @@ using fflux.UI.Shared.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using Wpf.Ui;
-using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 
 namespace fflux.UI.Modules.Settings;
@@ -35,14 +34,6 @@ public sealed partial class SettingsViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(HasUnsavedChanges))]
     [NotifyPropertyChangedFor(nameof(OutputFolderValidation))]
     private string _defaultOutputFolder = string.Empty;
-
-    // ── 테마 ────────────────────────────────────────────────────────
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasUnsavedChanges))]
-    [NotifyPropertyChangedFor(nameof(IsSystemTheme))]
-    [NotifyPropertyChangedFor(nameof(IsLightTheme))]
-    [NotifyPropertyChangedFor(nameof(IsDarkTheme))]
-    private AppTheme _selectedTheme = AppTheme.System;
 
     // ── 언어 ────────────────────────────────────────────────────────
     [ObservableProperty]
@@ -121,11 +112,6 @@ public sealed partial class SettingsViewModel : ObservableObject
     // RadioButton / ComboBox 편의 프로퍼티
     // ════════════════════════════════════════════════════════════════
 
-    // 테마
-    public bool IsSystemTheme { get => SelectedTheme == AppTheme.System; set { if (value) SelectedTheme = AppTheme.System; } }
-    public bool IsLightTheme  { get => SelectedTheme == AppTheme.Light;  set { if (value) SelectedTheme = AppTheme.Light;  } }
-    public bool IsDarkTheme   { get => SelectedTheme == AppTheme.Dark;   set { if (value) SelectedTheme = AppTheme.Dark;   } }
-
     // 언어
     public bool IsKoreanLanguage { get => SelectedLanguage == AppLanguage.Korean;  set { if (value) SelectedLanguage = AppLanguage.Korean;  } }
     public bool IsEnglishLanguage{ get => SelectedLanguage == AppLanguage.English; set { if (value) SelectedLanguage = AppLanguage.English; } }
@@ -156,7 +142,6 @@ public sealed partial class SettingsViewModel : ObservableObject
 
             return FFmpegBinaryPath    != s.FFmpegBinaryPath    ||
                    DefaultOutputFolder != s.DefaultOutputFolder ||
-                   SelectedTheme       != s.Theme               ||
                    SelectedLanguage    != s.Language            ||
                    // 디코더 공통
                    HwAccel            != sd.HwAccel             ||
@@ -226,18 +211,6 @@ public sealed partial class SettingsViewModel : ObservableObject
         OnPropertyChanged(nameof(IsEnglishLanguage));
     }
 
-    // ── 테마 변경 즉시 적용 ──────────────────────────────────────────
-    partial void OnSelectedThemeChanged(AppTheme value)
-    {
-        var wpfTheme = value switch
-        {
-            AppTheme.Light => ApplicationTheme.Light,
-            AppTheme.Dark  => ApplicationTheme.Dark,
-            _              => ApplicationTheme.Dark
-        };
-        ApplicationThemeManager.Apply(wpfTheme);
-    }
-
     // ════════════════════════════════════════════════════════════════
     // Commands
     // ════════════════════════════════════════════════════════════════
@@ -269,7 +242,6 @@ public sealed partial class SettingsViewModel : ObservableObject
             {
                 FFmpegBinaryPath    = FFmpegBinaryPath,
                 DefaultOutputFolder = DefaultOutputFolder,
-                Theme               = SelectedTheme,
                 Language            = SelectedLanguage,
                 Decoder = new DecoderOptions
                 {
@@ -365,7 +337,6 @@ public sealed partial class SettingsViewModel : ObservableObject
     {
         FFmpegBinaryPath    = s.FFmpegBinaryPath;
         DefaultOutputFolder = s.DefaultOutputFolder;
-        SelectedTheme       = s.Theme;
         SelectedLanguage    = s.Language;
 
         var sd = s.Decoder;

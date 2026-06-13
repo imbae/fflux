@@ -1,6 +1,4 @@
-using System;
 using System.Globalization;
-using System.Windows;
 using System.Windows.Data;
 
 namespace fflux.UI.Shared.Converters;
@@ -16,8 +14,8 @@ public sealed class NullToCollapsedConverter : IValueConverter
 
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        bool isNull  = value is null;
-        bool invert  = parameter is string s && s.Equals("Invert", StringComparison.OrdinalIgnoreCase);
+        bool isNull = value is null;
+        bool invert = parameter is string s && s.Equals("Invert", StringComparison.OrdinalIgnoreCase);
         bool visible = invert ? isNull : !isNull;
         return visible ? Visibility.Visible : Visibility.Collapsed;
     }

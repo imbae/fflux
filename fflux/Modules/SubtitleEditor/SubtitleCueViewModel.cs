@@ -1,4 +1,3 @@
-using System.Windows.Media;
 using fflux.Core.Models;
 
 namespace fflux.UI.Modules.SubtitleEditor;
@@ -87,7 +86,7 @@ public sealed partial class SubtitleCueViewModel : ObservableObject
     public TimeSpan? End => ParseTimestamp(EndText);
 
     partial void OnStartTextChanged(string value) => HasStartError = ParseTimestamp(value) is null;
-    partial void OnEndTextChanged(string value)   => HasEndError   = ParseTimestamp(value) is null;
+    partial void OnEndTextChanged(string value) => HasEndError = ParseTimestamp(value) is null;
 
     // ── 팩토리 ─────────────────────────────────────────────────────
 
@@ -95,10 +94,10 @@ public sealed partial class SubtitleCueViewModel : ObservableObject
     public static SubtitleCueViewModel FromEntry(int index, SubtitleEntry entry)
         => new()
         {
-            Index     = index,
+            Index = index,
             StartText = FormatTimestamp(entry.Start),
-            EndText   = FormatTimestamp(entry.End),
-            Text      = entry.Text,
+            EndText = FormatTimestamp(entry.End),
+            Text = entry.Text,
             ColorText = entry.Color ?? "",
         };
 

@@ -1,13 +1,11 @@
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.ComponentModel;
-using System.Windows.Media;
 using fflux.Core.Abstractions;
 using fflux.Core.Models;
 using fflux.UI.Modules.Player;
 using fflux.UI.Shared.Services;
-using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 
 namespace fflux.UI.Modules.SubtitleEditor;
 
@@ -104,9 +102,9 @@ public sealed partial class SubtitleEditorViewModel : ObservableObject, IDisposa
         if (_videoExtensions.Contains(ext))
         {
             // 비디오 파일: 기존 오버레이 상태 초기화 후 플레이어에 로드
-            _activeCue      = null;
-            ActiveCueText   = string.Empty;
-            ActiveCueBrush  = Brushes.White;
+            _activeCue = null;
+            ActiveCueText = string.Empty;
+            ActiveCueBrush = Brushes.White;
             await PlayerVm.OpenDroppedFileAsync(path);
         }
         else if (_subtitleExtensions.Contains(ext))
@@ -138,12 +136,12 @@ public sealed partial class SubtitleEditorViewModel : ObservableObject, IDisposa
     public SubtitleEditorViewModel(IServiceProvider services, PlayerViewModel playerVm)
     {
         _services = services;
-        PlayerVm  = playerVm;
+        PlayerVm = playerVm;
 
         StatusText = Loc["SubtitleEditor.Empty.Title"];
 
         PlayerVm.PositionChanged += OnPlayerPositionChanged;
-        Cues.CollectionChanged   += OnCuesCollectionChanged;
+        Cues.CollectionChanged += OnCuesCollectionChanged;
         LocalizationManager.Instance.PropertyChanged += OnLocalizationChanged;
     }
 
@@ -164,7 +162,7 @@ public sealed partial class SubtitleEditorViewModel : ObservableObject, IDisposa
     {
         var dlg = new OpenFileDialog
         {
-            Title  = Loc["SubtitleEditor.Dialog.Open"],
+            Title = Loc["SubtitleEditor.Dialog.Open"],
             Filter = Loc["SubtitleEditor.Dialog.OpenFilter"],
         };
         if (dlg.ShowDialog() != true) return;
@@ -175,7 +173,7 @@ public sealed partial class SubtitleEditorViewModel : ObservableObject, IDisposa
     /// <summary>코드비하인드의 DragDrop 핸들러 및 명령에서 공통으로 사용합니다.</summary>
     public async Task LoadFromPathAsync(string path)
     {
-        var ext    = Path.GetExtension(path).ToLowerInvariant().TrimStart('.');
+        var ext = Path.GetExtension(path).ToLowerInvariant().TrimStart('.');
         var parser = _services.GetKeyedService<ISubtitleParser>(ext);
 
         if (parser is null)
@@ -206,7 +204,7 @@ public sealed partial class SubtitleEditorViewModel : ObservableObject, IDisposa
     /// </summary>
     private async Task TryAutoOpenVideoAsync(string subtitlePath)
     {
-        var dir  = Path.GetDirectoryName(subtitlePath) ?? string.Empty;
+        var dir = Path.GetDirectoryName(subtitlePath) ?? string.Empty;
         var stem = Path.GetFileNameWithoutExtension(subtitlePath);
 
         string? videoPath = null;
@@ -248,10 +246,10 @@ public sealed partial class SubtitleEditorViewModel : ObservableObject, IDisposa
         if (path != null)
             FilePath = path;
 
-        IsModified      = false;
-        _activeCue      = null;
-        ActiveCueText   = string.Empty;
-        ActiveCueBrush  = Brushes.White;
+        IsModified = false;
+        _activeCue = null;
+        ActiveCueText = string.Empty;
+        ActiveCueBrush = Brushes.White;
         RefreshStatus();
     }
 
@@ -285,9 +283,9 @@ public sealed partial class SubtitleEditorViewModel : ObservableObject, IDisposa
 
         var dlg = new SaveFileDialog
         {
-            Title      = Loc["SubtitleEditor.Dialog.SaveAs"],
-            Filter     = "SubRip|*.srt",
-            FileName   = baseName + ".srt",
+            Title = Loc["SubtitleEditor.Dialog.SaveAs"],
+            Filter = "SubRip|*.srt",
+            FileName = baseName + ".srt",
             DefaultExt = ".srt",
         };
         if (dlg.ShowDialog() != true) return;
@@ -307,7 +305,7 @@ public sealed partial class SubtitleEditorViewModel : ObservableObject, IDisposa
 
         bool hasErrors = Cues.Any(c => c.HasError);
         var serializer = _services.GetRequiredService<ISubtitleSerializer>();
-        var content    = serializer.Serialize(entries);
+        var content = serializer.Serialize(entries);
 
         await File.WriteAllTextAsync(path, content, System.Text.Encoding.UTF8);
 
@@ -338,15 +336,15 @@ public sealed partial class SubtitleEditorViewModel : ObservableObject, IDisposa
         var vm = new SubtitleCueViewModel
         {
             StartText = SubtitleCueViewModel.FormatTimestamp(prevEnd),
-            EndText   = SubtitleCueViewModel.FormatTimestamp(prevEnd + TimeSpan.FromSeconds(2)),
-            Text      = "",
+            EndText = SubtitleCueViewModel.FormatTimestamp(prevEnd + TimeSpan.FromSeconds(2)),
+            Text = "",
         };
         vm.PropertyChanged += OnCuePropertyChanged;
 
         Cues.Insert(insertAt, vm);
         RenumberCues();
         SelectedCue = vm;
-        IsModified  = true;
+        IsModified = true;
         RefreshStatus();
     }
 
@@ -364,9 +362,9 @@ public sealed partial class SubtitleEditorViewModel : ObservableObject, IDisposa
         if (ReferenceEquals(_activeCue, SelectedCue))
         {
             _activeCue.IsActive = false;
-            _activeCue          = null;
-            ActiveCueText       = string.Empty;
-            ActiveCueBrush      = Brushes.White;
+            _activeCue = null;
+            ActiveCueText = string.Empty;
+            ActiveCueBrush = Brushes.White;
         }
 
         Cues.Remove(SelectedCue);
@@ -432,7 +430,7 @@ public sealed partial class SubtitleEditorViewModel : ObservableObject, IDisposa
             {
                 _activeCue.IsActive = false;
                 _activeCue = null;
-                ActiveCueText  = string.Empty;
+                ActiveCueText = string.Empty;
                 ActiveCueBrush = Brushes.White;
             }
             return;
@@ -448,13 +446,13 @@ public sealed partial class SubtitleEditorViewModel : ObservableObject, IDisposa
         if (newActive is not null)
         {
             newActive.IsActive = true;
-            ActiveCueText      = newActive.Text;
-            ActiveCueBrush     = newActive.ColorBrush;
+            ActiveCueText = newActive.Text;
+            ActiveCueBrush = newActive.ColorBrush;
             RequestScrollToCue?.Invoke(this, newActive);
         }
         else
         {
-            ActiveCueText  = string.Empty;
+            ActiveCueText = string.Empty;
             ActiveCueBrush = Brushes.White;
         }
     }
@@ -479,7 +477,7 @@ public sealed partial class SubtitleEditorViewModel : ObservableObject, IDisposa
             && e.PropertyName is nameof(SubtitleCueViewModel.ColorBrush)
                                or nameof(SubtitleCueViewModel.Text))
         {
-            ActiveCueText  = cue.Text;
+            ActiveCueText = cue.Text;
             ActiveCueBrush = cue.ColorBrush;
         }
     }
@@ -506,8 +504,8 @@ public sealed partial class SubtitleEditorViewModel : ObservableObject, IDisposa
         {
             int mid = (lo + hi) >> 1;
             var cue = Cues[mid];
-            var s   = cue.Start;
-            var e   = cue.End;
+            var s = cue.Start;
+            var e = cue.End;
 
             if (s is null || e is null)
             {
@@ -540,7 +538,7 @@ public sealed partial class SubtitleEditorViewModel : ObservableObject, IDisposa
     private void RefreshStatus()
     {
         var name = FilePath is not null ? Path.GetFileName(FilePath) : Loc["SubtitleEditor.Status.Unsaved"];
-        var mod  = IsModified ? Loc["SubtitleEditor.Status.Modified"] : "";
+        var mod = IsModified ? Loc["SubtitleEditor.Status.Modified"] : "";
         StatusText = $"{name} • {Cues.Count} {Loc["SubtitleEditor.Status.Cues"]}{mod}";
     }
 
@@ -549,7 +547,7 @@ public sealed partial class SubtitleEditorViewModel : ObservableObject, IDisposa
     public void Dispose()
     {
         PlayerVm.PositionChanged -= OnPlayerPositionChanged;
-        Cues.CollectionChanged   -= OnCuesCollectionChanged;
+        Cues.CollectionChanged -= OnCuesCollectionChanged;
         LocalizationManager.Instance.PropertyChanged -= OnLocalizationChanged;
 
         foreach (var cue in Cues)

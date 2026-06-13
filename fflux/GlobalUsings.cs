@@ -1,3 +1,8 @@
+global using CommunityToolkit.Mvvm.ComponentModel;
+global using CommunityToolkit.Mvvm.Input;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Hosting;
+global using Microsoft.Extensions.Logging;
 global using System;
 global using System.Collections.Generic;
 global using System.Diagnostics;
@@ -7,8 +12,3 @@ global using System.Threading.Tasks;
 global using System.Windows;
 global using System.Windows.Media;
 global using System.Windows.Media.Imaging;
-global using CommunityToolkit.Mvvm.ComponentModel;
-global using CommunityToolkit.Mvvm.Input;
-global using Microsoft.Extensions.DependencyInjection;
-global using Microsoft.Extensions.Hosting;
-global using Microsoft.Extensions.Logging;

@@ -1,6 +1,4 @@
-using System;
 using System.Text.RegularExpressions;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
@@ -124,24 +122,24 @@ public sealed class TimecodeTextBox : TextBox
             <= 2 => TimecodeSegment.Hours,
             <= 5 => TimecodeSegment.Minutes,
             <= 8 => TimecodeSegment.Seconds,
-            _    => TimecodeSegment.Milliseconds
+            _ => TimecodeSegment.Milliseconds
         };
     }
 
     private static TimeSpan AdjustSegment(TimeSpan ts, TimecodeSegment segment, int delta)
         => segment switch
         {
-            TimecodeSegment.Hours        => ts + TimeSpan.FromHours(delta),
-            TimecodeSegment.Minutes      => ts + TimeSpan.FromMinutes(delta),
-            TimecodeSegment.Seconds      => ts + TimeSpan.FromSeconds(delta),
+            TimecodeSegment.Hours => ts + TimeSpan.FromHours(delta),
+            TimecodeSegment.Minutes => ts + TimeSpan.FromMinutes(delta),
+            TimecodeSegment.Seconds => ts + TimeSpan.FromSeconds(delta),
             TimecodeSegment.Milliseconds => ts + TimeSpan.FromMilliseconds(delta * 100),
             _ => ts
         };
 
     private TimeSpan Clamp(TimeSpan ts)
     {
-        if (ts < TimeSpan.Zero)   return TimeSpan.Zero;
-        if (ts > MaxValue)        return MaxValue;
+        if (ts < TimeSpan.Zero) return TimeSpan.Zero;
+        if (ts > MaxValue) return MaxValue;
         return ts;
     }
 
@@ -157,9 +155,9 @@ public sealed class TimecodeTextBox : TextBox
         var m = TimecodeRegex.Match(text.Trim());
         if (!m.Success) return false;
 
-        int h  = int.Parse(m.Groups[1].Value);
+        int h = int.Parse(m.Groups[1].Value);
         int mi = int.Parse(m.Groups[2].Value);
-        int s  = int.Parse(m.Groups[3].Value);
+        int s = int.Parse(m.Groups[3].Value);
 
         // 밀리초 문자열을 3자리로 정규화 (예: "5" → 500, "05" → 50)
         var msStr = m.Groups[4].Value.PadRight(3, '0');

@@ -104,7 +104,7 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
     // UI 스레드에서만 접근하므로 동기화 불필요.
 
     private readonly Stopwatch _statsStopwatch = Stopwatch.StartNew();
-    private int  _statsFpsCount     = 0;
+    private int _statsFpsCount = 0;
     private long _statsBitrateBytes = 0;
 
     // ── 공개 프로퍼티 ────────────────────────────────────────────────
@@ -277,11 +277,11 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
         ISettingsService settingsService,
         ILogger<PlayerViewModel> logger)
     {
-        _services        = services;
-        _mainVm          = mainVm;
-        _dialogService   = dialogService;
+        _services = services;
+        _mainVm = mainVm;
+        _dialogService = dialogService;
         _settingsService = settingsService;
-        _logger          = logger;
+        _logger = logger;
 
         // MainWindowViewModel.IsPremiumUser 변경을 이 VM의 바인딩으로 전파합니다.
         _mainVm.PropertyChanged += (_, e) =>
@@ -489,7 +489,7 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
         // 출력 파일 경로 선택
         var dlg = new Microsoft.Win32.SaveFileDialog
         {
-            Title  = "녹화 파일 저장",
+            Title = "녹화 파일 저장",
             Filter = "MKV 파일|*.mkv|MP4 파일|*.mp4|TS 파일|*.ts|모든 파일|*.*",
             FileName = $"record_{DateTime.Now:yyyyMMdd_HHmmss}",
             DefaultExt = ".mkv",
@@ -527,13 +527,13 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
         }
 
         // 구간 및 출력 파일 입력 다이얼로그
-        var startBox    = new System.Windows.Controls.TextBox { Text = FormatTs(TimeSpan.FromSeconds(PositionSeconds)), MinWidth = 120 };
+        var startBox = new System.Windows.Controls.TextBox { Text = FormatTs(TimeSpan.FromSeconds(PositionSeconds)), MinWidth = 120 };
         var durationBox = new System.Windows.Controls.TextBox { Text = "5", MinWidth = 80 };
 
         var panel = new StackPanel { Margin = new Thickness(0, 4, 0, 0) };
         panel.Children.Add(new System.Windows.Controls.TextBlock { Text = "시작 위치 (현재 재생 위치)", FontSize = 12 });
         panel.Children.Add(startBox);
-        panel.Children.Add(new System.Windows.Controls.TextBlock { Text = "구간 길이 (초)", FontSize = 12, Margin = new Thickness(0,8,0,0) });
+        panel.Children.Add(new System.Windows.Controls.TextBlock { Text = "구간 길이 (초)", FontSize = 12, Margin = new Thickness(0, 8, 0, 0) });
         panel.Children.Add(durationBox);
         panel.Children.Add(new System.Windows.Controls.TextBlock
         {
@@ -545,11 +545,11 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
 
         var gifDialog = new ContentDialog
         {
-            Title             = "GIF 내보내기",
-            Content           = panel,
+            Title = "GIF 내보내기",
+            Content = panel,
             PrimaryButtonText = "내보내기",
-            CloseButtonText   = "취소",
-            DefaultButton     = ContentDialogButton.Primary,
+            CloseButtonText = "취소",
+            DefaultButton = ContentDialogButton.Primary,
         };
 
         var result = await _dialogService.ShowAsync(gifDialog, CancellationToken.None);
@@ -563,14 +563,14 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
 
         var dlg = new Microsoft.Win32.SaveFileDialog
         {
-            Title      = "GIF 파일 저장",
-            Filter     = "GIF 파일|*.gif",
-            FileName   = $"export_{DateTime.Now:yyyyMMdd_HHmmss}.gif",
+            Title = "GIF 파일 저장",
+            Filter = "GIF 파일|*.gif",
+            FileName = $"export_{DateTime.Now:yyyyMMdd_HHmmss}.gif",
             DefaultExt = ".gif",
         };
         if (dlg.ShowDialog() != true) return;
 
-        var startTime  = TimeSpan.FromSeconds(PositionSeconds);
+        var startTime = TimeSpan.FromSeconds(PositionSeconds);
         var gifDuration = TimeSpan.FromSeconds(durSec);
 
         StatusText = "GIF 내보내기 중…";
@@ -649,7 +649,7 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
         RecordingDurationText = string.Empty;
     }
 
-// ── 자막 커맨드 ──────────────────────────────────────────────────
+    // ── 자막 커맨드 ──────────────────────────────────────────────────
 
     [RelayCommand]
     private async Task LoadSubtitleAsync()
@@ -706,7 +706,7 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
     {
         if (!IsSubtitleVisible || _subtitleEntries.Count == 0)
         {
-            SubtitleText  = string.Empty;
+            SubtitleText = string.Empty;
             SubtitleColor = Brushes.White;
             return;
         }
@@ -926,11 +926,11 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
 
         // 자막 초기화 (라이브 스트림에서는 자막 미지원)
         _subtitleEntries = [];
-        SubtitleText  = string.Empty;
+        SubtitleText = string.Empty;
         SubtitleColor = Brushes.White;
 
         // MISB 오버레이 초기화
-        IsMisbLoaded   = false;
+        IsMisbLoaded = false;
         MisbStatusText = string.Empty;
 #if MISB
         ClearMisbOverlay();
@@ -986,7 +986,7 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
             await TryAutoLoadSubtitleAsync(source);
 
         // ── 현재 소스 경로 갱신 ──────────────────────────────────────────
-        _currentSourcePath  = source;
+        _currentSourcePath = source;
 
         _lastOpenedFilePath = isLive ? null : source;
 #if MISB
@@ -1477,7 +1477,7 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
         try
         {
             var reader = _services.GetRequiredService<IMediaFileReader>();
-            var info   = await reader.ReadAsync(filePath);
+            var info = await reader.ReadAsync(filePath);
 
             await Application.Current.Dispatcher.InvokeAsync(
                 () => CurrentMediaInfo = info);
@@ -1503,10 +1503,10 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
         var elapsed = _statsStopwatch.Elapsed.TotalSeconds;
         if (elapsed >= 1.0)
         {
-            CurrentFps          = _statsFpsCount / elapsed;
-            CurrentBitrateKbps  = _statsBitrateBytes * 8.0 / 1000.0 / elapsed;
-            _statsFpsCount      = 0;
-            _statsBitrateBytes  = 0;
+            CurrentFps = _statsFpsCount / elapsed;
+            CurrentBitrateKbps = _statsBitrateBytes * 8.0 / 1000.0 / elapsed;
+            _statsFpsCount = 0;
+            _statsBitrateBytes = 0;
             _statsStopwatch.Restart();
         }
 
@@ -1518,12 +1518,12 @@ public sealed partial class PlayerViewModel : ObservableObject, IDisposable
     /// <summary>새 파일 열기 또는 정지 시 통계를 초기화합니다.</summary>
     private void ResetPlaybackStats()
     {
-        _statsFpsCount     = 0;
+        _statsFpsCount = 0;
         _statsBitrateBytes = 0;
         _statsStopwatch.Restart();
-        CurrentFps          = 0;
-        CurrentBitrateKbps  = 0;
-        CurrentFrameNumber  = 0;
+        CurrentFps = 0;
+        CurrentBitrateKbps = 0;
+        CurrentFrameNumber = 0;
     }
 
     private void UpdateTimecode(TimeSpan position)

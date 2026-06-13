@@ -16,11 +16,11 @@ namespace fflux.UI.Shared.Services;
 /// </remarks>
 internal sealed class NAudioPlayer : IAudioPlayer
 {
-    private WaveOutEvent?         _waveOut;
+    private WaveOutEvent? _waveOut;
     private BufferedWaveProvider? _buffer;
-    private float                 _volume = 0.8f;
-    private bool                  _isMuted;
-    private bool                  _disposed;
+    private float _volume = 0.8f;
+    private bool _isMuted;
+    private bool _disposed;
 
     // ── IAudioPlayer 프로퍼티 ────────────────────────────────────────
 
@@ -49,7 +49,7 @@ internal sealed class NAudioPlayer : IAudioPlayer
 
         _buffer = new BufferedWaveProvider(fmt)
         {
-            BufferDuration          = TimeSpan.FromSeconds(2),
+            BufferDuration = TimeSpan.FromSeconds(2),
             DiscardOnBufferOverflow = true,
         };
         // WaveOutEvent는 Play() 호출 시 생성합니다 (지연 생성).
@@ -116,7 +116,7 @@ internal sealed class NAudioPlayer : IAudioPlayer
     /// <inheritdoc/>
     public void SetVolume(float volume, bool muted)
     {
-        _volume  = Math.Clamp(volume, 0f, 1f);
+        _volume = Math.Clamp(volume, 0f, 1f);
         _isMuted = muted;
         if (_waveOut != null)
             _waveOut.Volume = _isMuted ? 0f : _volume;

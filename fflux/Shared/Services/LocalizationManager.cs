@@ -1,7 +1,6 @@
+using fflux.UI.Shared.Models;
 using System.Globalization;
 using System.Resources;
-using CommunityToolkit.Mvvm.ComponentModel;
-using fflux.UI.Shared.Models;
 
 namespace fflux.UI.Shared.Services;
 
@@ -38,11 +37,11 @@ public sealed partial class LocalizationManager : ObservableObject
         _culture = language switch
         {
             AppLanguage.English => new CultureInfo("en"),
-            _                   => new CultureInfo("ko"),
+            _ => new CultureInfo("ko"),
         };
         _rm.ReleaseAllResources();
         Thread.CurrentThread.CurrentUICulture = _culture;
-        Thread.CurrentThread.CurrentCulture   = _culture;
+        Thread.CurrentThread.CurrentCulture = _culture;
         // "Item[]" — WPF 인덱서 바인딩 전체 갱신
         OnPropertyChanged("Item[]");
     }

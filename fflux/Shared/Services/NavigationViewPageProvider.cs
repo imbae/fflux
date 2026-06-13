@@ -1,4 +1,3 @@
-using System;
 using Wpf.Ui.Abstractions;
 
 namespace fflux.UI.Shared.Services;

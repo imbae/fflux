@@ -1,5 +1,3 @@
-using System;
-using System.Windows;
 using fflux.UI.Modules.Player;
 using Wpf.Ui;
 using Wpf.Ui.Controls;

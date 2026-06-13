@@ -1,13 +1,13 @@
 #if AI_SUBTITLE
-using System.Collections.ObjectModel;
-using System.Net.Http;
 using fflux.AiSubtitle.DependencyInjection;
+using fflux.AiSubtitle.Models;
 using fflux.AiSubtitle.Services.Subtitle;
 using fflux.AiSubtitle.Services.Translation;
-using fflux.AiSubtitle.Models;
 using fflux.UI.Shared.Services;
 using Microsoft.Extensions.Options;
 using Microsoft.Win32;
+using System.Collections.ObjectModel;
+using System.Net.Http;
 
 namespace fflux.UI.Modules.AiSubtitle;
 

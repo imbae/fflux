@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using System.IO;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
@@ -23,13 +22,13 @@ public partial class PlayerPage : Page
 
     private WindowStyle _savedStyle;
     private WindowState _savedState;
-    private bool        _fullscreenApplied;
+    private bool _fullscreenApplied;
 
     // ── 생성자 ──────────────────────────────────────────────────────
 
     public PlayerPage(PlayerViewModel viewModel)
     {
-        ViewModel   = viewModel;
+        ViewModel = viewModel;
         DataContext = viewModel;
         InitializeComponent();
         Loaded += OnLoaded;
@@ -91,7 +90,7 @@ public partial class PlayerPage : Page
         {
             if (current is ScrollViewer sv)
             {
-                sv.VerticalScrollBarVisibility   = ScrollBarVisibility.Disabled;
+                sv.VerticalScrollBarVisibility = ScrollBarVisibility.Disabled;
                 sv.HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled;
             }
 
@@ -115,7 +114,7 @@ public partial class PlayerPage : Page
     /// </summary>
     private void ConstrainLayout(double width, double height)
     {
-        if (width > 0) RootGrid.MaxWidth  = width;
+        if (width > 0) RootGrid.MaxWidth = width;
         if (height > 0) RootGrid.MaxHeight = height;
 
         // MisbPanel은 Margin="0,0,0,80" (하단 트랜스포트 바 높이만큼).
@@ -157,7 +156,7 @@ public partial class PlayerPage : Page
             return;
 
         var file = files[0];
-        var ext  = Path.GetExtension(file).ToLowerInvariant();
+        var ext = Path.GetExtension(file).ToLowerInvariant();
 
         // 자막 파일이면 자막 로드, 그 외에는 미디어 파일로 열기
         if (ext is ".srt" or ".vtt")
@@ -253,13 +252,13 @@ public partial class PlayerPage : Page
 
             case Key.Left:
                 if (ctrl) ViewModel.StepFrameBackwardCommand.Execute(null);
-                else       _ = ViewModel.SeekRelativeAsync(-5.0);
+                else _ = ViewModel.SeekRelativeAsync(-5.0);
                 e.Handled = true;
                 break;
 
             case Key.Right:
                 if (ctrl) ViewModel.StepFrameForwardCommand.Execute(null);
-                else       _ = ViewModel.SeekRelativeAsync(+5.0);
+                else _ = ViewModel.SeekRelativeAsync(+5.0);
                 e.Handled = true;
                 break;
 

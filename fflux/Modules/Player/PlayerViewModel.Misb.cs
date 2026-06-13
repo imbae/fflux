@@ -14,9 +14,9 @@ namespace fflux.UI.Modules.Player;
 public sealed partial class PlayerViewModel
 {
     // ── MISB 전용 필드 ──────────────────────────────────────────────
-    private IMetadataTimelineService?  _misbTimeline;
-    private IMisbPlaybackSyncService?  _misbSyncService;
-    private CancellationTokenSource?   _misbLoadCts;
+    private IMetadataTimelineService? _misbTimeline;
+    private IMisbPlaybackSyncService? _misbSyncService;
+    private CancellationTokenSource? _misbLoadCts;
 
     // ── MISB 커맨드 ──────────────────────────────────────────────────
 
@@ -70,7 +70,7 @@ public sealed partial class PlayerViewModel
         _misbLoadCts = new CancellationTokenSource();
         var ct = _misbLoadCts.Token;
 
-        IsMisbLoaded   = false;
+        IsMisbLoaded = false;
         MisbStatusText = "MISB 로드 중…";
 
         try
@@ -82,7 +82,7 @@ public sealed partial class PlayerViewModel
 
             await timeline.LoadAsync(filePath, progress, ct);
 
-            IsMisbLoaded   = timeline.IsLoaded && timeline.IndexedCount > 0;
+            IsMisbLoaded = timeline.IsLoaded && timeline.IndexedCount > 0;
             MisbStatusText = IsMisbLoaded
                 ? $"MISB: {timeline.IndexedCount:N0}개 레코드"
                 : "MISB 데이터 없음";
@@ -93,7 +93,7 @@ public sealed partial class PlayerViewModel
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "MISB 로드 실패: {File}", filePath);
-            IsMisbLoaded   = false;
+            IsMisbLoaded = false;
             MisbStatusText = "MISB 로드 실패";
         }
     }
@@ -125,16 +125,16 @@ public sealed partial class PlayerViewModel
             if (target.BoundingBoxTopLeft == 0 && target.BoundingBoxBottomRight == 0)
                 continue;
 
-            var (x0, y0) = PixelCoordinateHelper.GetCoordinate(target.BoundingBoxTopLeft,  frameWidth);
+            var (x0, y0) = PixelCoordinateHelper.GetCoordinate(target.BoundingBoxTopLeft, frameWidth);
             var (x1, y1) = PixelCoordinateHelper.GetCoordinate(target.BoundingBoxBottomRight, frameWidth);
 
             yield return new VmtiOverlayItem
             {
-                X      = Math.Min(x0, x1),
-                Y      = Math.Min(y0, y1),
-                Width  = Math.Abs(x1 - x0),
+                X = Math.Min(x0, x1),
+                Y = Math.Min(y0, y1),
+                Width = Math.Abs(x1 - x0),
                 Height = Math.Abs(y1 - y0),
-                Label  = BuildTargetLabel(target, vmti.Ontologies),
+                Label = BuildTargetLabel(target, vmti.Ontologies),
             };
         }
     }
@@ -142,10 +142,10 @@ public sealed partial class PlayerViewModel
     private static string BuildTargetLabel(VmtiTarget target, IReadOnlyList<VmtiOntology> ontologies)
     {
         if (target.Objects.Count == 0) return $"T{target.TargetId}";
-        var obj      = target.Objects[0];
+        var obj = target.Objects[0];
         var ontology = ontologies.FirstOrDefault(o => o.OntologyId == obj.OntologyId);
-        var name     = ontology?.Label ?? "Unknown";
-        var conf     = double.IsNaN(obj.Confidence) ? "" : $" {obj.Confidence:F0}%";
+        var name = ontology?.Label ?? "Unknown";
+        var conf = double.IsNaN(obj.Confidence) ? "" : $" {obj.Confidence:F0}%";
         return $"T{target.TargetId}: {name}{conf}";
     }
 

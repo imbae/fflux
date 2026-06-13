@@ -1,14 +1,7 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
-using System.Windows;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using fflux.Core.Abstractions;
 using fflux.Core.Exceptions;
 using fflux.UI.Shared.Models;
 using fflux.UI.Shared.Services;
-using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using Wpf.Ui;
 using Wpf.Ui.Controls;
@@ -113,12 +106,12 @@ public sealed partial class SettingsViewModel : ObservableObject
     // ════════════════════════════════════════════════════════════════
 
     // 언어
-    public bool IsKoreanLanguage { get => SelectedLanguage == AppLanguage.Korean;  set { if (value) SelectedLanguage = AppLanguage.Korean;  } }
-    public bool IsEnglishLanguage{ get => SelectedLanguage == AppLanguage.English; set { if (value) SelectedLanguage = AppLanguage.English; } }
+    public bool IsKoreanLanguage { get => SelectedLanguage == AppLanguage.Korean; set { if (value) SelectedLanguage = AppLanguage.Korean; } }
+    public bool IsEnglishLanguage { get => SelectedLanguage == AppLanguage.English; set { if (value) SelectedLanguage = AppLanguage.English; } }
 
     // RTSP 전송 프로토콜
-    public bool IsRtspTcp  { get => RtspTransport == "tcp";  set { if (value) RtspTransport = "tcp";  } }
-    public bool IsRtspUdp  { get => RtspTransport == "udp";  set { if (value) RtspTransport = "udp";  } }
+    public bool IsRtspTcp { get => RtspTransport == "tcp"; set { if (value) RtspTransport = "tcp"; } }
+    public bool IsRtspUdp { get => RtspTransport == "udp"; set { if (value) RtspTransport = "udp"; } }
     public bool IsRtspHttp { get => RtspTransport == "http"; set { if (value) RtspTransport = "http"; } }
 
     partial void OnRtspTransportChanged(string value)
@@ -136,29 +129,29 @@ public sealed partial class SettingsViewModel : ObservableObject
     {
         get
         {
-            var s  = _settingsService.Current;
+            var s = _settingsService.Current;
             var sd = s.Decoder;
             var st = s.Streaming;
 
-            return FFmpegBinaryPath    != s.FFmpegBinaryPath    ||
+            return FFmpegBinaryPath != s.FFmpegBinaryPath ||
                    DefaultOutputFolder != s.DefaultOutputFolder ||
-                   SelectedLanguage    != s.Language            ||
+                   SelectedLanguage != s.Language ||
                    // 디코더 공통
-                   HwAccel            != sd.HwAccel             ||
-                   FileThreadCount    != sd.FileThreadCount      ||
-                   SkipLoopFilter     != sd.SkipLoopFilter       ||
-                   SkipFrame          != sd.SkipFrame            ||
+                   HwAccel != sd.HwAccel ||
+                   FileThreadCount != sd.FileThreadCount ||
+                   SkipLoopFilter != sd.SkipLoopFilter ||
+                   SkipFrame != sd.SkipFrame ||
                    // 스트리밍
-                   RtspTransport      != st.RtspTransport        ||
-                   TimeoutSeconds     != st.TimeoutSeconds       ||
-                   ProbeSizeKb        != st.ProbeSizeKb          ||
+                   RtspTransport != st.RtspTransport ||
+                   TimeoutSeconds != st.TimeoutSeconds ||
+                   ProbeSizeKb != st.ProbeSizeKb ||
                    Math.Abs(AnalyzeDurationSeconds - st.AnalyzeDurationSeconds) > 0.001 ||
-                   NoBuffer           != st.NoBuffer             ||
-                   MaxDelayMs         != st.MaxDelayMs           ||
-                   LiveThreadCount    != st.LiveThreadCount      ||
-                   RecvBufferSizeKb   != st.RecvBufferSizeKb     ||
-                   ReorderQueueSize   != st.ReorderQueueSize     ||
-                   Reconnect          != st.Reconnect            ||
+                   NoBuffer != st.NoBuffer ||
+                   MaxDelayMs != st.MaxDelayMs ||
+                   LiveThreadCount != st.LiveThreadCount ||
+                   RecvBufferSizeKb != st.RecvBufferSizeKb ||
+                   ReorderQueueSize != st.ReorderQueueSize ||
+                   Reconnect != st.Reconnect ||
                    ReconnectDelayMaxSeconds != st.ReconnectDelayMaxSeconds;
         }
     }
@@ -194,11 +187,11 @@ public sealed partial class SettingsViewModel : ObservableObject
         IFFmpegInitializer ffmpegInitializer,
         ILogger<SettingsViewModel> logger)
     {
-        _settingsService   = settingsService;
-        _dialogService     = dialogService;
-        _snackbarService   = snackbarService;
+        _settingsService = settingsService;
+        _dialogService = dialogService;
+        _snackbarService = snackbarService;
         _ffmpegInitializer = ffmpegInitializer;
-        _logger            = logger;
+        _logger = logger;
 
         LoadFromSettings(_settingsService.Current);
     }
@@ -240,28 +233,28 @@ public sealed partial class SettingsViewModel : ObservableObject
 
             var newSettings = new AppSettings
             {
-                FFmpegBinaryPath    = FFmpegBinaryPath,
+                FFmpegBinaryPath = FFmpegBinaryPath,
                 DefaultOutputFolder = DefaultOutputFolder,
-                Language            = SelectedLanguage,
+                Language = SelectedLanguage,
                 Decoder = new DecoderOptions
                 {
-                    HwAccel        = HwAccel,
+                    HwAccel = HwAccel,
                     FileThreadCount = FileThreadCount,
                     SkipLoopFilter = SkipLoopFilter,
-                    SkipFrame      = SkipFrame,
+                    SkipFrame = SkipFrame,
                 },
                 Streaming = new StreamingOptions
                 {
-                    RtspTransport          = RtspTransport,
-                    TimeoutSeconds         = TimeoutSeconds,
-                    ProbeSizeKb            = ProbeSizeKb,
+                    RtspTransport = RtspTransport,
+                    TimeoutSeconds = TimeoutSeconds,
+                    ProbeSizeKb = ProbeSizeKb,
                     AnalyzeDurationSeconds = AnalyzeDurationSeconds,
-                    NoBuffer               = NoBuffer,
-                    MaxDelayMs             = MaxDelayMs,
-                    LiveThreadCount        = LiveThreadCount,
-                    RecvBufferSizeKb       = RecvBufferSizeKb,
-                    ReorderQueueSize       = ReorderQueueSize,
-                    Reconnect              = Reconnect,
+                    NoBuffer = NoBuffer,
+                    MaxDelayMs = MaxDelayMs,
+                    LiveThreadCount = LiveThreadCount,
+                    RecvBufferSizeKb = RecvBufferSizeKb,
+                    ReorderQueueSize = ReorderQueueSize,
+                    Reconnect = Reconnect,
                     ReconnectDelayMaxSeconds = ReconnectDelayMaxSeconds,
                 },
             };
@@ -313,7 +306,7 @@ public sealed partial class SettingsViewModel : ObservableObject
             Loc["Dialog.Reset.Title"],
             Loc["Dialog.Reset.Message"],
             confirmText: Loc["Dialog.Reset.Confirm"],
-            cancelText:  Loc["Dialog.Reset.Cancel"]);
+            cancelText: Loc["Dialog.Reset.Cancel"]);
 
         if (!confirmed) return;
 
@@ -335,27 +328,27 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     private void LoadFromSettings(AppSettings s)
     {
-        FFmpegBinaryPath    = s.FFmpegBinaryPath;
+        FFmpegBinaryPath = s.FFmpegBinaryPath;
         DefaultOutputFolder = s.DefaultOutputFolder;
-        SelectedLanguage    = s.Language;
+        SelectedLanguage = s.Language;
 
         var sd = s.Decoder;
-        HwAccel         = sd.HwAccel;
+        HwAccel = sd.HwAccel;
         FileThreadCount = sd.FileThreadCount;
-        SkipLoopFilter  = sd.SkipLoopFilter;
-        SkipFrame       = sd.SkipFrame;
+        SkipLoopFilter = sd.SkipLoopFilter;
+        SkipFrame = sd.SkipFrame;
 
         var st = s.Streaming;
-        RtspTransport            = st.RtspTransport;
-        TimeoutSeconds           = st.TimeoutSeconds;
-        ProbeSizeKb              = st.ProbeSizeKb;
-        AnalyzeDurationSeconds   = st.AnalyzeDurationSeconds;
-        NoBuffer                 = st.NoBuffer;
-        MaxDelayMs               = st.MaxDelayMs;
-        LiveThreadCount          = st.LiveThreadCount;
-        RecvBufferSizeKb         = st.RecvBufferSizeKb;
-        ReorderQueueSize         = st.ReorderQueueSize;
-        Reconnect                = st.Reconnect;
+        RtspTransport = st.RtspTransport;
+        TimeoutSeconds = st.TimeoutSeconds;
+        ProbeSizeKb = st.ProbeSizeKb;
+        AnalyzeDurationSeconds = st.AnalyzeDurationSeconds;
+        NoBuffer = st.NoBuffer;
+        MaxDelayMs = st.MaxDelayMs;
+        LiveThreadCount = st.LiveThreadCount;
+        RecvBufferSizeKb = st.RecvBufferSizeKb;
+        ReorderQueueSize = st.ReorderQueueSize;
+        Reconnect = st.Reconnect;
         ReconnectDelayMaxSeconds = st.ReconnectDelayMaxSeconds;
 
         OnPropertyChanged(nameof(HasUnsavedChanges));

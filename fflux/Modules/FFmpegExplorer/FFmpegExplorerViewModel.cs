@@ -1,10 +1,9 @@
-using System.ComponentModel;
-using System.Text;
-using System.Windows;
 using fflux.Core.Abstractions;
 using fflux.Core.Models;
 using fflux.UI.Shared.Services;
 using Microsoft.Win32;
+using System.ComponentModel;
+using System.Text;
 
 namespace fflux.UI.Modules.FFmpegExplorer;
 
@@ -13,8 +12,8 @@ public sealed partial class FFmpegExplorerViewModel : ObservableObject
     private static LocalizationManager Loc => LocalizationManager.Instance;
     // ── 의존성 ──────────────────────────────────────────────────────
 
-    private readonly IFFmpegCommandService      _commandService;
-    private readonly ISettingsService           _settings;
+    private readonly IFFmpegCommandService _commandService;
+    private readonly ISettingsService _settings;
     private readonly ILogger<FFmpegExplorerViewModel> _logger;
 
     // ── 실행 취소 토큰 ───────────────────────────────────────────────
@@ -74,11 +73,13 @@ public sealed partial class FFmpegExplorerViewModel : ObservableObject
     // ────────────────────────────────────────────────────────────────
 
     // 파일
-    [ObservableProperty][NotifyPropertyChangedFor(nameof(GeneratedCommand))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(GeneratedCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExecuteCommand))]
     private string _inputFilePath = "";
 
-    [ObservableProperty][NotifyPropertyChangedFor(nameof(GeneratedCommand))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(GeneratedCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExecuteCommand))]
     private string _outputFilePath = "";
 
@@ -88,20 +89,25 @@ public sealed partial class FFmpegExplorerViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsVideoEncodeEnabled))]
     private int _videoCodecIndex = 0; // copy
 
-    [ObservableProperty][NotifyPropertyChangedFor(nameof(GeneratedCommand))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(GeneratedCommand))]
     private int _crfValue = 23;
 
-    [ObservableProperty][NotifyPropertyChangedFor(nameof(GeneratedCommand))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(GeneratedCommand))]
     private string _videoBitrateText = "";
 
-    [ObservableProperty][NotifyPropertyChangedFor(nameof(GeneratedCommand))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(GeneratedCommand))]
     private string _fpsText = "";
 
-    [ObservableProperty][NotifyPropertyChangedFor(nameof(GeneratedCommand))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(GeneratedCommand))]
     private int _resolutionIndex = 0; // 원본 유지
 
     /// <summary>true이면 CRF 사용, false이면 비트레이트 사용.</summary>
-    [ObservableProperty][NotifyPropertyChangedFor(nameof(GeneratedCommand))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(GeneratedCommand))]
     private bool _useCrf = true;
 
     // 오디오
@@ -110,24 +116,30 @@ public sealed partial class FFmpegExplorerViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsAudioEncodeEnabled))]
     private int _audioCodecIndex = 0; // copy
 
-    [ObservableProperty][NotifyPropertyChangedFor(nameof(GeneratedCommand))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(GeneratedCommand))]
     private string _audioBitrateText = "";
 
-    [ObservableProperty][NotifyPropertyChangedFor(nameof(GeneratedCommand))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(GeneratedCommand))]
     private int _sampleRateIndex = 0;
 
-    [ObservableProperty][NotifyPropertyChangedFor(nameof(GeneratedCommand))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(GeneratedCommand))]
     private int _channelsIndex = 0;
 
     // 필터
-    [ObservableProperty][NotifyPropertyChangedFor(nameof(GeneratedCommand))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(GeneratedCommand))]
     private string _videoFilterText = "";
 
-    [ObservableProperty][NotifyPropertyChangedFor(nameof(GeneratedCommand))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(GeneratedCommand))]
     private string _audioFilterText = "";
 
     // 고급
-    [ObservableProperty][NotifyPropertyChangedFor(nameof(GeneratedCommand))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(GeneratedCommand))]
     private string _extraArgsText = "";
 
     // ────────────────────────────────────────────────────────────────
@@ -141,8 +153,8 @@ public sealed partial class FFmpegExplorerViewModel : ObservableObject
 
     [ObservableProperty] private double _progressValue;
     [ObservableProperty] private string _progressText = "";
-    [ObservableProperty] private string _statusText   = "";
-    [ObservableProperty] private bool   _showLog;
+    [ObservableProperty] private string _statusText = "";
+    [ObservableProperty] private bool _showLog;
 
     private readonly StringBuilder _logBuilder = new();
 
@@ -174,13 +186,13 @@ public sealed partial class FFmpegExplorerViewModel : ObservableObject
     // ────────────────────────────────────────────────────────────────
 
     public FFmpegExplorerViewModel(
-        IFFmpegCommandService           commandService,
-        ISettingsService                settings,
+        IFFmpegCommandService commandService,
+        ISettingsService settings,
         ILogger<FFmpegExplorerViewModel> logger)
     {
         _commandService = commandService;
-        _settings       = settings;
-        _logger         = logger;
+        _settings = settings;
+        _logger = logger;
 
         StatusText = Loc["FFmpegExplorer.Status.Ready"];
         LocalizationManager.Instance.PropertyChanged += OnLocalizationChanged;
@@ -206,7 +218,7 @@ public sealed partial class FFmpegExplorerViewModel : ObservableObject
     {
         var dlg = new OpenFileDialog
         {
-            Title  = Loc["FFmpegExplorer.Dialog.Input"],
+            Title = Loc["FFmpegExplorer.Dialog.Input"],
             Filter = Loc["FFmpegExplorer.Dialog.InputFilter"],
         };
         if (dlg.ShowDialog() == true)
@@ -223,13 +235,13 @@ public sealed partial class FFmpegExplorerViewModel : ObservableObject
     {
         var dlg = new SaveFileDialog
         {
-            Title  = Loc["FFmpegExplorer.Dialog.Output"],
+            Title = Loc["FFmpegExplorer.Dialog.Output"],
             Filter = Loc["FFmpegExplorer.Dialog.OutputFilter"],
         };
         if (!string.IsNullOrEmpty(InputFilePath))
         {
             dlg.InitialDirectory = Path.GetDirectoryName(InputFilePath);
-            dlg.FileName         = Path.GetFileName(SuggestOutputPath(InputFilePath));
+            dlg.FileName = Path.GetFileName(SuggestOutputPath(InputFilePath));
         }
         if (dlg.ShowDialog() == true)
             OutputFilePath = dlg.FileName ?? "";
@@ -252,18 +264,18 @@ public sealed partial class FFmpegExplorerViewModel : ObservableObject
         {
             AppendLog(string.Format(Loc["FFmpegExplorer.Error.NotFound"], ffmpegExe));
             AppendLog("       " + Loc["FFmpegExplorer.Error.CheckSettings"]);
-            ShowLog    = true;
+            ShowLog = true;
             StatusText = Loc["FFmpegExplorer.Status.PathError"];
             return;
         }
 
         _logBuilder.Clear();
-        LogText       = "";
+        LogText = "";
         ProgressValue = 0;
-        ProgressText  = "";
-        IsRunning     = true;
-        ShowLog       = true;
-        StatusText    = Loc["FFmpegExplorer.Execute.Label"] + "…";
+        ProgressText = "";
+        IsRunning = true;
+        ShowLog = true;
+        StatusText = Loc["FFmpegExplorer.Execute.Label"] + "…";
 
         AppendLog($"$ ffmpeg {_commandService.BuildArguments(BuildOptions())}");
         AppendLog(new string('─', 60));
@@ -278,7 +290,7 @@ public sealed partial class FFmpegExplorerViewModel : ObservableObject
 
             if (exitCode == 0)
             {
-                StatusText    = Loc["FFmpegExplorer.Execute.Label"];
+                StatusText = Loc["FFmpegExplorer.Execute.Label"];
                 ProgressValue = 100;
                 AppendLog(new string('─', 60));
                 AppendLog(Loc["FFmpegExplorer.Log.Success"]);
@@ -346,38 +358,38 @@ public sealed partial class FFmpegExplorerViewModel : ObservableObject
 
     private FFmpegCommandOptions BuildOptions() => new()
     {
-        InputFile  = InputFilePath,
+        InputFile = InputFilePath,
         OutputFile = OutputFilePath,
 
-        VideoCodec   = VideoCodecIndex < VideoCodecValues.Length ? VideoCodecValues[VideoCodecIndex] : null,
-        Crf          = IsVideoEncodeEnabled && UseCrf && CrfValue > 0                            ? CrfValue : null,
+        VideoCodec = VideoCodecIndex < VideoCodecValues.Length ? VideoCodecValues[VideoCodecIndex] : null,
+        Crf = IsVideoEncodeEnabled && UseCrf && CrfValue > 0 ? CrfValue : null,
         VideoBitrate = IsVideoEncodeEnabled && !UseCrf
-                       && int.TryParse(VideoBitrateText, out int vbr) && vbr > 0               ? vbr : null,
-        Fps          = IsVideoEncodeEnabled
+                       && int.TryParse(VideoBitrateText, out int vbr) && vbr > 0 ? vbr : null,
+        Fps = IsVideoEncodeEnabled
                        && double.TryParse(FpsText, System.Globalization.NumberStyles.Any,
                           System.Globalization.CultureInfo.InvariantCulture, out double fps)
-                       && fps > 0                                                                ? fps : null,
-        Resolution   = IsVideoEncodeEnabled && ResolutionIndex > 0
+                       && fps > 0 ? fps : null,
+        Resolution = IsVideoEncodeEnabled && ResolutionIndex > 0
                        && ResolutionIndex < ResolutionValues.Length ? ResolutionValues[ResolutionIndex] : null,
 
-        AudioCodec      = AudioCodecIndex < AudioCodecValues.Length ? AudioCodecValues[AudioCodecIndex] : null,
-        AudioBitrate    = IsAudioEncodeEnabled
-                          && int.TryParse(AudioBitrateText, out int abr) && abr > 0             ? abr : null,
+        AudioCodec = AudioCodecIndex < AudioCodecValues.Length ? AudioCodecValues[AudioCodecIndex] : null,
+        AudioBitrate = IsAudioEncodeEnabled
+                          && int.TryParse(AudioBitrateText, out int abr) && abr > 0 ? abr : null,
         AudioSampleRate = IsAudioEncodeEnabled && SampleRateIndex > 0
                           && SampleRateIndex < SampleRateValues.Length
-                          ? SampleRateValues[SampleRateIndex]                                    : null,
-        AudioChannels   = IsAudioEncodeEnabled && ChannelsIndex > 0
+                          ? SampleRateValues[SampleRateIndex] : null,
+        AudioChannels = IsAudioEncodeEnabled && ChannelsIndex > 0
                           && ChannelsIndex < ChannelValues.Length
-                          ? ChannelValues[ChannelsIndex]                                         : null,
+                          ? ChannelValues[ChannelsIndex] : null,
 
         VideoFilter = VideoFilterText.Trim().NullIfEmpty(),
         AudioFilter = AudioFilterText.Trim().NullIfEmpty(),
-        ExtraArgs   = ExtraArgsText.Trim().NullIfEmpty(),
+        ExtraArgs = ExtraArgsText.Trim().NullIfEmpty(),
     };
 
     private static string? SuggestOutputPath(string inputPath)
     {
-        var dir  = Path.GetDirectoryName(inputPath) ?? "";
+        var dir = Path.GetDirectoryName(inputPath) ?? "";
         var stem = Path.GetFileNameWithoutExtension(inputPath);
         return Path.Combine(dir, $"{stem}_output.mp4");
     }

@@ -25,7 +25,6 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <PackageReference Include="LiveChartsCore.SkiaSharpView.WPF" Version="2.0.4" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.*" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.*" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="10.*" />
@@ -65,23 +64,11 @@
       <AiSubtitleOutputs Include="$(OutDir)fflux.AiSubtitle.dll;$(OutDir)fflux.AiSubtitle.pdb" />
     </ItemGroup>
 
-    <MakeDir
-      Condition="'$(HasMisb)' == 'true' Or '$(HasAiSubtitle)' == 'true'"
-      Directories="$(OutDir)modules\" />
+    <MakeDir Condition="'$(HasMisb)' == 'true' Or '$(HasAiSubtitle)' == 'true'" Directories="$(OutDir)modules\" />
 
-    <Move
-      Condition="'$(HasMisb)' == 'true'"
-      SourceFiles="@(MisbOutputs)"
-      DestinationFolder="$(OutDir)modules\"
-      OverwriteReadOnlyFiles="true"
-      ContinueOnError="true" />
+    <Move Condition="'$(HasMisb)' == 'true'" SourceFiles="@(MisbOutputs)" DestinationFolder="$(OutDir)modules\" OverwriteReadOnlyFiles="true" ContinueOnError="true" />
 
-    <Move
-      Condition="'$(HasAiSubtitle)' == 'true'"
-      SourceFiles="@(AiSubtitleOutputs)"
-      DestinationFolder="$(OutDir)modules\"
-      OverwriteReadOnlyFiles="true"
-      ContinueOnError="true" />
+    <Move Condition="'$(HasAiSubtitle)' == 'true'" SourceFiles="@(AiSubtitleOutputs)" DestinationFolder="$(OutDir)modules\" OverwriteReadOnlyFiles="true" ContinueOnError="true" />
 
   </Target>
 

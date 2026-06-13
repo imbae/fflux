@@ -8,7 +8,7 @@ public partial class FFmpegExplorerPage : Page
 
     public FFmpegExplorerPage(FFmpegExplorerViewModel viewModel)
     {
-        ViewModel   = viewModel;
+        ViewModel = viewModel;
         DataContext = viewModel;
         InitializeComponent();
         Loaded += (_, _) => LogTextBox.TextChanged += (_, _) => LogTextBox.ScrollToEnd();

@@ -1,11 +1,8 @@
-using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
 #if AI_SUBTITLE
 using fflux.AiSubtitle.DependencyInjection;
 using fflux.AiSubtitle.Infrastructure.Database;
@@ -18,14 +15,7 @@ using fflux.Core.Abstractions;
 using fflux.Misb;
 #endif
 using fflux.Core.Exceptions;
-using fflux.UI.Shared.Models;
 using fflux.UI.Shared.Services;
-using System.Globalization;
-using LiveChartsCore;
-using LiveChartsCore.SkiaSharpView;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 
@@ -46,7 +36,7 @@ public partial class App : Application
     // ── Pro 모듈 가용성 플래그 ────────────────────────────────────────
     // modules/ 서브폴더에 해당 DLL이 존재할 때만 true로 설정됩니다.
     // UI 레이어 전체에서 읽기 전용으로 참조합니다.
-    public static bool IsMisbEnabled       { get; private set; }
+    public static bool IsMisbEnabled { get; private set; }
     public static bool IsAiSubtitleEnabled { get; private set; }
 
     public App()
@@ -57,14 +47,8 @@ public partial class App : Application
 
         // ── Step 2: Private 모듈 DLL 존재 여부 감지 ───────────────────
         string modulesDir = Path.Combine(AppContext.BaseDirectory, "modules");
-        IsMisbEnabled        = File.Exists(Path.Combine(modulesDir, "fflux.Misb.dll"));
-        IsAiSubtitleEnabled  = File.Exists(Path.Combine(modulesDir, "fflux.AiSubtitle.dll"));
-
-        // ── LiveChartsCore 초기화 ─────────────────────────────────────
-        LiveCharts.Configure(config => config
-            .AddSkiaSharp()
-            .AddDefaultMappers()
-            .AddDarkTheme());
+        IsMisbEnabled = File.Exists(Path.Combine(modulesDir, "fflux.Misb.dll"));
+        IsAiSubtitleEnabled = File.Exists(Path.Combine(modulesDir, "fflux.AiSubtitle.dll"));
 
         // ── 전역 ScrollViewer 마우스 휠 핸들러 등록 ─────────────────
         // WPF-UI NavigationView 내 Page의 ScrollViewer는 포커스가 없어도
@@ -332,7 +316,7 @@ public partial class App : Application
             int eq = trimmed.IndexOf('=');
             if (eq < 1) continue;
 
-            string key   = trimmed[..eq].Trim();
+            string key = trimmed[..eq].Trim();
             string value = trimmed[(eq + 1)..].Trim();
 
             // 이미 설정된 시스템 환경변수는 덮어쓰지 않음

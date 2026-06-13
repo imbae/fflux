@@ -24,7 +24,7 @@ public sealed class LExtension : MarkupExtension
         var binding = new Binding($"[{Key}]")
         {
             Source = LocalizationManager.Instance,
-            Mode   = BindingMode.OneWay,
+            Mode = BindingMode.OneWay,
         };
         return binding.ProvideValue(serviceProvider);
     }

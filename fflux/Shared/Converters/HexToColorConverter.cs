@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Windows.Data;
-using System.Windows.Media;
 
 namespace fflux.UI.Shared.Converters;
 

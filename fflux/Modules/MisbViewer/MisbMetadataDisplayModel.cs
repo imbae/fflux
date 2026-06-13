@@ -13,34 +13,34 @@ public sealed partial class MisbMetadataDisplayModel : ObservableObject
     // ── 타임스탬프 ────────────────────────────────────────────────────
 
     [ObservableProperty] private string _precisionTimestamp = "—";
-    [ObservableProperty] private string _playbackTimestamp  = "—";
+    [ObservableProperty] private string _playbackTimestamp = "—";
 
     // ── 플랫폼 식별 ───────────────────────────────────────────────────
 
-    [ObservableProperty] private string _missionId    = "—";
-    [ObservableProperty] private string _tailNumber   = "—";
+    [ObservableProperty] private string _missionId = "—";
+    [ObservableProperty] private string _tailNumber = "—";
     [ObservableProperty] private string _versionNumber = "—";
 
     // ── 센서 위치 ─────────────────────────────────────────────────────
 
-    [ObservableProperty] private string _sensorLatitude         = "—";
-    [ObservableProperty] private string _sensorLongitude        = "—";
-    [ObservableProperty] private string _sensorAltitude         = "—";
-    [ObservableProperty] private string _sensorEllipsoidHeight  = "—";
+    [ObservableProperty] private string _sensorLatitude = "—";
+    [ObservableProperty] private string _sensorLongitude = "—";
+    [ObservableProperty] private string _sensorAltitude = "—";
+    [ObservableProperty] private string _sensorEllipsoidHeight = "—";
 
     // ── 플랫폼 자세 ───────────────────────────────────────────────────
 
     [ObservableProperty] private string _heading = "—";
-    [ObservableProperty] private string _pitch   = "—";
-    [ObservableProperty] private string _roll    = "—";
+    [ObservableProperty] private string _pitch = "—";
+    [ObservableProperty] private string _roll = "—";
 
     // ── 센서 FOV / 방위각 ─────────────────────────────────────────────
 
-    [ObservableProperty] private string _horizontalFov     = "—";
-    [ObservableProperty] private string _verticalFov       = "—";
-    [ObservableProperty] private string _relativeAzimuth   = "—";
+    [ObservableProperty] private string _horizontalFov = "—";
+    [ObservableProperty] private string _verticalFov = "—";
+    [ObservableProperty] private string _relativeAzimuth = "—";
     [ObservableProperty] private string _relativeElevation = "—";
-    [ObservableProperty] private string _relativeRoll      = "—";
+    [ObservableProperty] private string _relativeRoll = "—";
 
     // ── 프레임 중심 ───────────────────────────────────────────────────
 
@@ -50,7 +50,7 @@ public sealed partial class MisbMetadataDisplayModel : ObservableObject
 
     // ── 프레임 모서리 ─────────────────────────────────────────────────
 
-    [ObservableProperty] private bool   _hasCornerPoints = false;
+    [ObservableProperty] private bool _hasCornerPoints = false;
     [ObservableProperty] private string _cornerTL = "—";
     [ObservableProperty] private string _cornerTR = "—";
     [ObservableProperty] private string _cornerBR = "—";
@@ -58,10 +58,10 @@ public sealed partial class MisbMetadataDisplayModel : ObservableObject
 
     // ── VMTI ─────────────────────────────────────────────────────────
 
-    [ObservableProperty] private bool   _hasVmti            = false;
-    [ObservableProperty] private string _vmtiSystem         = "—";
+    [ObservableProperty] private bool _hasVmti = false;
+    [ObservableProperty] private string _vmtiSystem = "—";
     [ObservableProperty] private string _vmtiTargetCountText = "—";
-    [ObservableProperty] private string _vmtiTargetsText    = "—";
+    [ObservableProperty] private string _vmtiTargetsText = "—";
 
     // ══════════════════════════════════════════════════════════════════
     // 업데이트
@@ -81,29 +81,29 @@ public sealed partial class MisbMetadataDisplayModel : ObservableObject
         PlaybackTimestamp = FormatTs(metadata.Timestamp);
 
         // ── 플랫폼 식별
-        MissionId     = metadata.MissionId          ?? "—";
-        TailNumber    = metadata.PlatformTailNumber ?? "—";
+        MissionId = metadata.MissionId ?? "—";
+        TailNumber = metadata.PlatformTailNumber ?? "—";
         VersionNumber = metadata.VersionNumber.HasValue
             ? $"v{metadata.VersionNumber.Value}"
             : "—";
 
         // ── 센서 위치
-        SensorLatitude        = FormatDeg(metadata.SensorPosition.Latitude);
-        SensorLongitude       = FormatDeg(metadata.SensorPosition.Longitude);
-        SensorAltitude        = FormatAlt(metadata.SensorPosition.Altitude);
+        SensorLatitude = FormatDeg(metadata.SensorPosition.Latitude);
+        SensorLongitude = FormatDeg(metadata.SensorPosition.Longitude);
+        SensorAltitude = FormatAlt(metadata.SensorPosition.Altitude);
         SensorEllipsoidHeight = FormatAlt(metadata.SensorEllipsoidHeight);
 
         // ── 플랫폼 자세
         Heading = FormatDeg(metadata.Attitude.Heading);
-        Pitch   = FormatDeg(metadata.Attitude.Pitch);
-        Roll    = FormatDeg(metadata.Attitude.Roll);
+        Pitch = FormatDeg(metadata.Attitude.Pitch);
+        Roll = FormatDeg(metadata.Attitude.Roll);
 
         // ── 센서 FOV / 방위각
-        HorizontalFov     = FormatDeg(metadata.Sensor.HorizontalFov);
-        VerticalFov       = FormatDeg(metadata.Sensor.VerticalFov);
-        RelativeAzimuth   = FormatDeg(metadata.Sensor.RelativeAzimuth);
+        HorizontalFov = FormatDeg(metadata.Sensor.HorizontalFov);
+        VerticalFov = FormatDeg(metadata.Sensor.VerticalFov);
+        RelativeAzimuth = FormatDeg(metadata.Sensor.RelativeAzimuth);
         RelativeElevation = FormatDeg(metadata.Sensor.RelativeElevation);
-        RelativeRoll      = FormatDeg(metadata.Sensor.RelativeRollAngle);
+        RelativeRoll = FormatDeg(metadata.Sensor.RelativeRollAngle);
 
         // ── 프레임 중심
         FrameCenterLat = FormatDeg(metadata.FrameCenter.Latitude);
@@ -173,9 +173,9 @@ public sealed partial class MisbMetadataDisplayModel : ObservableObject
             string classification = "—";
             if (target.Objects.Count > 0)
             {
-                var obj      = target.Objects[0];
+                var obj = target.Objects[0];
                 var ontology = vmti.Ontologies.FirstOrDefault(o => o.OntologyId == obj.OntologyId);
-                var label    = ontology?.Label ?? "Unknown";
+                var label = ontology?.Label ?? "Unknown";
                 classification = double.IsNaN(obj.Confidence)
                     ? label
                     : $"{label} {obj.Confidence:F0}%";

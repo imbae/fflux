@@ -37,7 +37,7 @@ public sealed partial class PlayerViewModel
             svc.Stop();
             svc.TranslationReady -= OnRealTimeTranslationReady;
             IsRealTimeTranslationEnabled = false;
-            RealTimeTranslationText      = string.Empty;
+            RealTimeTranslationText = string.Empty;
         }
         else
         {
@@ -46,9 +46,9 @@ public sealed partial class PlayerViewModel
             // AI Subtitle 페이지의 번역 설정과 연동
             var aiVm = _services.GetService<AiSubtitleViewModel>();
             svc.Start(
-                targetLanguage: aiVm?.TargetLanguage   ?? "ko",
-                sourceLanguage: aiVm?.SourceLanguage   ?? "",
-                style:          aiVm?.TranslationStyle ?? TranslationStyle.Default);
+                targetLanguage: aiVm?.TargetLanguage ?? "ko",
+                sourceLanguage: aiVm?.SourceLanguage ?? "",
+                style: aiVm?.TranslationStyle ?? TranslationStyle.Default);
             IsRealTimeTranslationEnabled = true;
         }
     }

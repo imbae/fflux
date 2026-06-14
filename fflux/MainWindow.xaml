@@ -12,6 +12,7 @@
     xmlns:settings="clr-namespace:fflux.UI.Modules.Settings"
     xmlns:aisubtitle="clr-namespace:fflux.UI.Modules.AiSubtitle"
     xmlns:subtitle="clr-namespace:fflux.UI.Modules.SubtitleEditor"
+    xmlns:recorder="clr-namespace:fflux.UI.Modules.ScreenRecorder"
     mc:Ignorable="d"
     Title="fflux"
     Width="1600"
@@ -84,6 +85,16 @@
                     <ui:NavigationViewItem.Icon>
                         <ui:SymbolIcon
                             Symbol="Subtitles24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+
+                <!-- 🎥 Screen Recorder -->
+                <ui:NavigationViewItem
+                    Content="Screen Recorder"
+                    TargetPageType="{x:Type recorder:ScreenRecorderPage}">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon
+                            Symbol="Record24" />
                     </ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
 

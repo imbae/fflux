@@ -9,6 +9,8 @@
     <LangVersion>latest</LangVersion>
     <ApplicationIcon>fflux.ico</ApplicationIcon>
     <StartupObject />
+    <!-- DXGI Desktop Duplication unsafe 코드 허용 (ScreenCaptureService) -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,6 +32,8 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="10.*" />
     <PackageReference Include="NAudio" Version="2.3.0" />
     <PackageReference Include="WPF-UI" Version="4.3.0" />
+    <!-- Screen Recorder: DXGI Desktop Duplication API 래퍼 -->
+    <PackageReference Include="Vortice.Direct3D11" Version="3.8.3" />
   </ItemGroup>
 
   <!-- Private 서브모듈 존재 시에만 컴파일 심볼 + ProjectReference 추가 -->

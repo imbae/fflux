@@ -4,6 +4,11 @@ using fflux.AiSubtitle.Services.Subtitle;
 using fflux.UI.Modules.AiSubtitle;
 using fflux.UI.Modules.FFmpegExplorer;
 using fflux.UI.Modules.Player;
+using fflux.UI.Modules.ScreenRecorder;
+using fflux.UI.Modules.ScreenRecorder.Core.Services;
+using fflux.UI.Modules.ScreenRecorder.Drawing;
+using fflux.Core.Abstractions;
+using fflux.Core.Muxers;
 using fflux.UI.Modules.Settings;
 using fflux.UI.Modules.SubtitleEditor;
 using Wpf.Ui;
@@ -36,12 +41,25 @@ public static class UIServiceCollectionExtensions
         services.AddSingleton<FFmpegExplorerPage>();
         services.AddSingleton<SettingsPage>();
         services.AddSingleton<SubtitleEditorPage>();
+        services.AddSingleton<ScreenRecorderPage>();
 
         // ── ViewModels (Page별) ──────────────────────────────
         services.AddSingleton<SettingsViewModel>();
         services.AddSingleton<PlayerViewModel>();
         services.AddSingleton<FFmpegExplorerViewModel>();
         services.AddSingleton<SubtitleEditorViewModel>();
+        services.AddSingleton<ScreenRecorderViewModel>();
+
+        // ── Screen Recorder 서비스 ───────────────────────────
+        services.AddSingleton<IScreenCaptureService, ScreenCaptureService>();
+        services.AddSingleton<IAudioCaptureService, AudioCaptureService>();
+        services.AddSingleton<IScreenRecordingEncoder, ScreenRecordingEncoder>();
+        services.AddSingleton<IGlobalHotkeyService, GlobalHotkeyService>();
+        // DrawingOverlayViewModel은 IDrawingOverlaySource로도 노출
+        services.AddSingleton<DrawingOverlayViewModel>();
+        services.AddSingleton<IDrawingOverlaySource>(sp =>
+            sp.GetRequiredService<DrawingOverlayViewModel>());
+        services.AddSingleton<IRecordingSessionService, RecordingSessionService>();
 
         // ── AI Subtitle — modules/fflux.AiSubtitle.dll 존재 시에만 등록 ──
         // IsAiSubtitleEnabled=false 일 때는 AiSubtitlePage 네비 아이템이 숨겨지므로

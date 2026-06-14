@@ -1,0 +1,119 @@
+<Window
+    x:Class="fflux.UI.Modules.ScreenRecorder.Views.RecorderOverlayWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    WindowStyle="None"
+    AllowsTransparency="True"
+    Background="Transparent"
+    Topmost="True"
+    SizeToContent="WidthAndHeight"
+    ShowInTaskbar="False"
+    Left="40" Top="40"
+    ResizeMode="NoResize"
+    Title="fflux Recorder">
+
+    <!-- 드래그로 이동 -->
+    <Window.InputBindings>
+        <MouseBinding MouseAction="LeftClick" Command="{Binding DragMoveCommand}" />
+    </Window.InputBindings>
+
+    <Border
+        Background="#CC111111"
+        CornerRadius="12"
+        Padding="14,8"
+        MouseLeftButtonDown="OnDragMove">
+
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+            <!-- 녹화 중 펄스 인디케이터 -->
+            <Ellipse
+                x:Name="RecDot"
+                Width="10" Height="10"
+                VerticalAlignment="Center"
+                Margin="0,0,10,0">
+                <Ellipse.Style>
+                    <Style TargetType="Ellipse">
+                        <Setter Property="Fill" Value="#FF4444" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsPaused}" Value="True">
+                                <Setter Property="Fill" Value="#FFAA00" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Ellipse.Style>
+                <Ellipse.Triggers>
+                    <EventTrigger RoutedEvent="Loaded">
+                        <BeginStoryboard>
+                            <Storyboard RepeatBehavior="Forever">
+                                <DoubleAnimation
+                                    Storyboard.TargetProperty="Opacity"
+                                    From="1" To="0.25" Duration="0:0:0.8"
+                                    AutoReverse="True" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </Ellipse.Triggers>
+            </Ellipse>
+
+            <!-- 경과 시간 -->
+            <TextBlock
+                Text="{Binding ElapsedText}"
+                Foreground="White"
+                FontSize="14"
+                FontFamily="Consolas"
+                VerticalAlignment="Center"
+                Margin="0,0,16,0" />
+
+            <!-- 일시정지 / 재개 -->
+            <ui:Button
+                Command="{Binding TogglePauseCommand}"
+                Appearance="Secondary"
+                Padding="8,4"
+                Margin="0,0,6,0"
+                ToolTip="일시정지 / 재개 (F10)">
+                <ui:Button.Style>
+                    <Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+                        <Setter Property="Content" Value="⏸" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsPaused}" Value="True">
+                                <Setter Property="Content" Value="▶" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ui:Button.Style>
+            </ui:Button>
+
+            <!-- 정지 -->
+            <ui:Button
+                Command="{Binding StopCommand}"
+                Appearance="Danger"
+                Padding="8,4"
+                Content="⏹"
+                ToolTip="녹화 정지 (F9)" />
+
+            <!-- 그리기 오버레이 토글 -->
+            <ui:Button
+                Command="{Binding RelativeSource={RelativeSource AncestorType=Window},
+                                  Path=RecorderVm.ToggleDrawCommand}"
+                Padding="8,4"
+                Margin="6,0,0,0"
+                ToolTip="그리기 오버레이 ON/OFF">
+                <ui:Button.Style>
+                    <Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+                        <Setter Property="Content" Value="✏" />
+                        <Style.Triggers>
+                            <DataTrigger
+                                Binding="{Binding RelativeSource={RelativeSource AncestorType=Window},
+                                                  Path=RecorderVm.IsDrawingActive}"
+                                Value="True">
+                                <Setter Property="Appearance" Value="Primary" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ui:Button.Style>
+            </ui:Button>
+
+        </StackPanel>
+    </Border>
+</Window>

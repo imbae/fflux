@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Ink;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -13,28 +12,30 @@ using fflux.UI.Modules.ScreenRecorder.Drawing.Commands;
 
 namespace fflux.UI.Modules.ScreenRecorder.Drawing;
 
-/// <summary>
-/// 그리기 오버레이 ViewModel.
-/// IDrawingOverlaySource를 구현하여 RecordingSessionService가 프레임 합성에 활용합니다.
-/// </summary>
 public sealed partial class DrawingOverlayViewModel : ObservableObject, IDrawingOverlaySource
 {
-    // ── UI 참조 (Initialize()에서 주입) ───────────────────────────
-    private InkCanvas? _inkCanvas;
-    private Canvas?    _shapeCanvas;
-    private Window?    _window;
+    // ── UI 참조 ───────────────────────────────────────────────────
+    private Canvas? _canvas;
+    private Window? _window;
 
     // ── Undo / Redo ───────────────────────────────────────────────
     private readonly Stack<IDrawingCommand> _undoStack = new();
     private readonly Stack<IDrawingCommand> _redoStack = new();
 
-    // ── 진행 중인 도형 미리보기 ────────────────────────────────────
-    private Point      _dragStart;
-    private UIElement? _previewShape;
+    // ── 진행 중 상태 ──────────────────────────────────────────────
+    private Polyline? _currentStroke;   // 펜: 그리는 중인 Polyline
+    private Point      _dragStart;       // 도형: 드래그 시작점
+    private UIElement? _previewShape;    // 도형: 미리보기 요소
     private bool       _isDragging;
+    private TextBox?   _activeTextBox;
 
-    // ── TextBox (텍스트 입력 중) ───────────────────────────────────
-    private TextBox? _activeTextBox;
+    // ── 오버레이 픽셀 캐시 ────────────────────────────────────────
+    // 캔버스가 변경됐을 때만 재렌더링하고, 나머지 프레임은 캐시를 즉시 반환해
+    // 매 프레임 UI 스레드 점유와 8MB 픽셀 복사를 방지한다.
+    // _isDirty: UI 스레드가 쓰고 캡처 루프(BG 스레드)가 읽으므로 volatile 필수.
+    private volatile bool _isDirty;
+    private byte[]?       _cachedPixels;
+    private int           _cachedWidth, _cachedHeight;
 
     // ── 관찰 가능 속성 ────────────────────────────────────────────
 
@@ -60,217 +61,273 @@ public sealed partial class DrawingOverlayViewModel : ObservableObject, IDrawing
 
     [ObservableProperty] private Color  _selectedColor   = Colors.Red;
     [ObservableProperty] private double _strokeThickness = 3.0;
-    [ObservableProperty] private bool   _isClickThrough  = false;
 
     // ── IDrawingOverlaySource ────────────────────────────────────
 
-    public bool HasVisibleContent
-    {
-        get
-        {
-            if (_inkCanvas is null && _shapeCanvas is null) return false;
-            return (_inkCanvas?.Strokes.Count > 0) ||
-                   (_shapeCanvas?.Children.Count > 0);
-        }
-    }
+    // volatile: 백그라운드 스레드(캡처 루프)에서 안전하게 읽기 위한 장치.
+    // _canvas.Children.Count를 백그라운드 스레드에서 직접 읽으면 WPF 스레드 어피니티
+    // 위반으로 항상 0을 반환하거나 예외가 발생하므로, UI 스레드에서만 갱신한다.
+    private volatile bool _hasDrawings;
+
+    public bool HasVisibleContent => _hasDrawings;
 
     public async Task<byte[]?> GetPixelsAsync(int width, int height)
     {
-        if (!HasVisibleContent || _inkCanvas is null || _shapeCanvas is null)
-            return null;
+        if (!_hasDrawings || _canvas is null) return null;
+
+        // 캔버스 변경 없고 치수도 같으면 캐시 즉시 반환 — UI 스레드 점유 없음
+        if (!_isDirty && _cachedPixels is not null
+            && _cachedWidth == width && _cachedHeight == height)
+            return _cachedPixels;
 
         byte[]? pixels = null;
-
         await Application.Current.Dispatcher.InvokeAsync(() =>
         {
+            var canvas = _canvas;
+            if (canvas is null || canvas.Children.Count == 0) return;
+            if (canvas.ActualWidth <= 0 || canvas.ActualHeight <= 0) return;
+
+            // ViewboxUnits=Absolute: 캔버스 전체 좌표계 기준 렌더링 (바운딩박스 왜곡 방지)
+            var brush = new VisualBrush(canvas)
+            {
+                Stretch      = Stretch.Fill,
+                ViewboxUnits = BrushMappingMode.Absolute,
+                Viewbox      = new Rect(0, 0, canvas.ActualWidth, canvas.ActualHeight),
+            };
+
             var rtb    = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
             var visual = new DrawingVisual();
-
             using (var dc = visual.RenderOpen())
-            {
-                if (_inkCanvas.Strokes.Count > 0)
-                    dc.DrawRectangle(
-                        new VisualBrush(_inkCanvas) { Stretch = Stretch.Fill },
-                        null, new Rect(0, 0, width, height));
-
-                if (_shapeCanvas.Children.Count > 0)
-                    dc.DrawRectangle(
-                        new VisualBrush(_shapeCanvas) { Stretch = Stretch.Fill },
-                        null, new Rect(0, 0, width, height));
-            }
-
+                dc.DrawRectangle(brush, null, new Rect(0, 0, width, height));
             rtb.Render(visual);
-            pixels = new byte[width * height * 4];
-            rtb.CopyPixels(pixels, width * 4, 0);
 
+            // 치수가 같으면 버퍼 재사용해 GC 압박 방지
+            if (_cachedPixels is null || _cachedPixels.Length != width * height * 4)
+                _cachedPixels = new byte[width * height * 4];
+            rtb.CopyPixels(_cachedPixels, width * 4, 0);
+
+            _cachedWidth  = width;
+            _cachedHeight = height;
+            pixels        = _cachedPixels;
+
+            // volatile write: BG 스레드가 _isDirty=false 읽을 때 _cachedPixels 갱신도 보장
+            _isDirty = false;
         }, DispatcherPriority.Render);
 
-        return pixels;
+        return pixels ?? _cachedPixels;
     }
 
-    // ── 초기화 (코드 비하인드에서 호출) ─────────────────────────────
-
-    public void Initialize(InkCanvas inkCanvas, Canvas shapeCanvas, Window window)
+    // 캔버스 상태 동기화. UI 스레드에서만 호출.
+    private void RefreshHasDrawings()
     {
-        _inkCanvas   = inkCanvas;
-        _shapeCanvas = shapeCanvas;
-        _window      = window;
-
-        ApplyTool();
-
-        _inkCanvas.StrokeCollected += OnStrokeCollected;
+        _hasDrawings = _canvas is not null && _canvas.Children.Count > 0;
+        _isDirty     = true;  // 캔버스 변경 → 다음 GetPixelsAsync에서 재렌더링
+        if (!_hasDrawings)
+            _cachedPixels = null;  // 내용 없으면 캐시 해제
     }
 
-    // ── 도구 선택 → InkCanvas 모드 전환 ────────────────────────────
+    // ── 초기화 / 정리 ────────────────────────────────────────────
 
-    partial void OnSelectedToolChanged(DrawingTool value) => ApplyTool();
-
-    private void ApplyTool()
+    public void Initialize(Canvas canvas, Window window)
     {
-        if (_inkCanvas is null) return;
+        Cleanup();
+        _canvas = canvas;
+        _window = window;
+    }
 
-        if (SelectedTool == DrawingTool.Pen)
+    public void Cleanup()
+    {
+        _currentStroke = null;
+        _previewShape  = null;
+        _isDragging    = false;
+
+        if (_activeTextBox is not null)
         {
-            _inkCanvas.EditingMode   = InkCanvasEditingMode.Ink;
-            _inkCanvas.DefaultDrawingAttributes = BuildDrawingAttributes();
+            _activeTextBox.KeyDown   -= OnTextBoxKeyDown;
+            _activeTextBox.LostFocus -= OnTextBoxLostFocus;
+            _activeTextBox = null;
         }
-        else
-        {
-            _inkCanvas.EditingMode = InkCanvasEditingMode.None;
-        }
+
+        _undoStack.Clear();
+        _redoStack.Clear();
+        RefreshUndoRedoState();
+
+        _canvas       = null;
+        _window       = null;
+        _hasDrawings  = false;
+        _isDirty      = false;
+        _cachedPixels = null;
     }
 
-    private DrawingAttributes BuildDrawingAttributes() => new()
-    {
-        Color  = SelectedColor,
-        Width  = StrokeThickness,
-        Height = StrokeThickness,
-        FitToCurve = true,
-    };
-
-    partial void OnSelectedColorChanged(Color value)
-    {
-        if (_inkCanvas is not null)
-            _inkCanvas.DefaultDrawingAttributes.Color = value;
-    }
-
-    partial void OnStrokeThicknessChanged(double value)
-    {
-        if (_inkCanvas is not null)
-        {
-            _inkCanvas.DefaultDrawingAttributes.Width  = value;
-            _inkCanvas.DefaultDrawingAttributes.Height = value;
-        }
-    }
-
-    // ── Click-through 토글 ───────────────────────────────────────
-
-    partial void OnIsClickThroughChanged(bool value)
-        => (_window as Views.DrawingOverlayWindow)?.SetClickThrough(value);
-
-    [RelayCommand]
-    private void ToggleClickThrough() => IsClickThrough = !IsClickThrough;
-
-    // ── 마우스 이벤트 (도형 그리기) ─────────────────────────────────
+    // ── 마우스 이벤트 (전역 훅 → DrawingOverlayWindow가 호출) ────
 
     public void OnMouseDown(Point pos)
     {
-        if (SelectedTool == DrawingTool.Pen || _shapeCanvas is null) return;
+        if (_canvas is null) return;
 
-        if (SelectedTool == DrawingTool.Text)
+        switch (SelectedTool)
         {
-            StartTextInput(pos);
-            return;
-        }
+            case DrawingTool.Pen:
+                StartPenStroke(pos);
+                break;
 
-        CommitActiveTextBox();
-        _dragStart   = pos;
-        _isDragging  = true;
-        _previewShape = CreatePreviewShape(pos);
-        if (_previewShape is not null)
-            _shapeCanvas.Children.Add(_previewShape);
+            case DrawingTool.Text:
+                CommitActiveTextBox();
+                StartTextInput(pos);
+                break;
+
+            default:
+                CommitActiveTextBox();
+                _dragStart    = pos;
+                _isDragging   = true;
+                _previewShape = CreatePreviewShape(pos);
+                if (_previewShape is not null)
+                    _canvas.Children.Add(_previewShape);
+                break;
+        }
     }
 
     public void OnMouseMove(Point pos)
     {
-        if (!_isDragging || _previewShape is null || _shapeCanvas is null) return;
-        UpdatePreviewShape(_previewShape, _dragStart, pos);
+        if (SelectedTool == DrawingTool.Pen)
+            ContinuePenStroke(pos);
+        else if (_isDragging && _previewShape is not null)
+        {
+            UpdatePreviewShape(_previewShape, _dragStart, pos);
+            _isDirty = true;
+        }
     }
 
     public void OnMouseUp(Point pos)
     {
-        if (!_isDragging || _previewShape is null || _shapeCanvas is null)
+        if (SelectedTool == DrawingTool.Pen)
         {
-            _isDragging = false;
+            FinishPenStroke();
             return;
         }
 
+        if (!_isDragging) return;
         _isDragging = false;
+
+        if (_previewShape is null) return;
         UpdatePreviewShape(_previewShape, _dragStart, pos);
 
-        // 크기가 너무 작으면 무시
         var w = Math.Abs(pos.X - _dragStart.X);
         var h = Math.Abs(pos.Y - _dragStart.Y);
         if (w < 3 && h < 3)
         {
-            _shapeCanvas.Children.Remove(_previewShape);
+            _canvas?.Children.Remove(_previewShape);
             _previewShape = null;
             return;
         }
 
-        // 커맨드 히스토리에 기록
+        // ★ 이미 Canvas에 추가된 요소 → RegisterCommand (Execute 재호출 금지)
         var shape = _previewShape;
         _previewShape = null;
-        PushCommand(new AddShapeCommand(_shapeCanvas, shape));
+        RegisterCommand(new AddShapeCommand(_canvas!, shape));
     }
+
+    // ── 펜 그리기 (Polyline) ──────────────────────────────────────
+
+    private void StartPenStroke(Point pos)
+    {
+        _currentStroke = new Polyline
+        {
+            Stroke             = new SolidColorBrush(SelectedColor),
+            StrokeThickness    = StrokeThickness,
+            StrokeLineJoin     = PenLineJoin.Round,
+            StrokeStartLineCap = PenLineCap.Round,
+            StrokeEndLineCap   = PenLineCap.Round,
+            IsHitTestVisible   = false,
+        };
+        _currentStroke.Points.Add(pos);
+        _canvas!.Children.Add(_currentStroke);  // 라이브 프리뷰용 선 추가
+    }
+
+    private void ContinuePenStroke(Point pos)
+    {
+        if (_currentStroke is null) return;
+        _currentStroke.Points.Add(pos);
+        _isDirty = true;
+    }
+
+    private void FinishPenStroke()
+    {
+        if (_currentStroke is null || _canvas is null) return;
+        var stroke = _currentStroke;
+        _currentStroke = null;
+
+        if (stroke.Points.Count < 2)
+        {
+            _canvas.Children.Remove(stroke);
+            return;
+        }
+
+        // ★ 이미 Canvas에 추가된 Polyline → RegisterCommand (Execute 재호출 금지)
+        RegisterCommand(new AddShapeCommand(_canvas, stroke));
+    }
+
+    // ── 도형 생성 / 업데이트 ─────────────────────────────────────
 
     private UIElement? CreatePreviewShape(Point start)
     {
-        var brush = new SolidColorBrush(SelectedColor);
-        var thickness = (double)StrokeThickness;
+        var brush     = new SolidColorBrush(SelectedColor);
+        var thickness = StrokeThickness;
 
-        switch (SelectedTool)
+        return SelectedTool switch
         {
-            case DrawingTool.Rectangle:
-            {
-                var rect = new Rectangle
-                {
-                    Stroke          = brush,
-                    StrokeThickness = thickness,
-                    Fill            = Brushes.Transparent,
-                };
-                Canvas.SetLeft(rect, start.X);
-                Canvas.SetTop(rect, start.Y);
-                return rect;
-            }
-            case DrawingTool.Ellipse:
-            {
-                var ellipse = new Ellipse
-                {
-                    Stroke          = brush,
-                    StrokeThickness = thickness,
-                    Fill            = Brushes.Transparent,
-                };
-                Canvas.SetLeft(ellipse, start.X);
-                Canvas.SetTop(ellipse, start.Y);
-                return ellipse;
-            }
-            case DrawingTool.Line:
-            {
-                return new Line
-                {
-                    Stroke          = brush,
-                    StrokeThickness = thickness,
-                    X1 = start.X, Y1 = start.Y,
-                    X2 = start.X, Y2 = start.Y,
-                };
-            }
-            case DrawingTool.Arrow:
-                return CreateArrow(start, start, brush, thickness);
+            DrawingTool.Rectangle => BuildRect(start, brush, thickness),
+            DrawingTool.Ellipse   => BuildEllipse(start, brush, thickness),
+            DrawingTool.Line      => BuildLine(start, brush, thickness),
+            DrawingTool.Arrow     => BuildArrow(start, start, brush, thickness),
+            _                     => null,
+        };
+    }
 
-            default:
-                return null;
-        }
+    private static Rectangle BuildRect(Point start, Brush brush, double t)
+    {
+        var r = new Rectangle
+        {
+            Stroke = brush, StrokeThickness = t,
+            Fill = Brushes.Transparent, IsHitTestVisible = false,
+        };
+        Canvas.SetLeft(r, start.X);
+        Canvas.SetTop(r, start.Y);
+        return r;
+    }
+
+    private static Ellipse BuildEllipse(Point start, Brush brush, double t)
+    {
+        var e = new Ellipse
+        {
+            Stroke = brush, StrokeThickness = t,
+            Fill = Brushes.Transparent, IsHitTestVisible = false,
+        };
+        Canvas.SetLeft(e, start.X);
+        Canvas.SetTop(e, start.Y);
+        return e;
+    }
+
+    private static Line BuildLine(Point start, Brush brush, double t) => new()
+    {
+        Stroke = brush, StrokeThickness = t,
+        StrokeStartLineCap = PenLineCap.Round, StrokeEndLineCap = PenLineCap.Round,
+        IsHitTestVisible = false,
+        X1 = start.X, Y1 = start.Y, X2 = start.X, Y2 = start.Y,
+    };
+
+    private static Canvas BuildArrow(Point start, Point end, Brush brush, double t)
+    {
+        var line = new Line
+        {
+            Stroke = brush, StrokeThickness = t,
+            StrokeStartLineCap = PenLineCap.Round,
+            X1 = start.X, Y1 = start.Y, X2 = end.X, Y2 = end.Y,
+        };
+        var container = new Canvas { IsHitTestVisible = false };
+        container.Children.Add(line);
+        container.Children.Add(BuildArrowHead(start, end, brush, t));
+        return container;
     }
 
     private static void UpdatePreviewShape(UIElement element, Point start, Point end)
@@ -278,126 +335,95 @@ public sealed partial class DrawingOverlayViewModel : ObservableObject, IDrawing
         switch (element)
         {
             case Rectangle rect:
-            {
-                var x = Math.Min(start.X, end.X);
-                var y = Math.Min(start.Y, end.Y);
-                Canvas.SetLeft(rect, x);
-                Canvas.SetTop(rect, y);
+                Canvas.SetLeft(rect, Math.Min(start.X, end.X));
+                Canvas.SetTop(rect,  Math.Min(start.Y, end.Y));
                 rect.Width  = Math.Abs(end.X - start.X);
                 rect.Height = Math.Abs(end.Y - start.Y);
                 break;
-            }
+
             case Ellipse ellipse:
-            {
-                var x = Math.Min(start.X, end.X);
-                var y = Math.Min(start.Y, end.Y);
-                Canvas.SetLeft(ellipse, x);
-                Canvas.SetTop(ellipse, y);
+                Canvas.SetLeft(ellipse, Math.Min(start.X, end.X));
+                Canvas.SetTop(ellipse,  Math.Min(start.Y, end.Y));
                 ellipse.Width  = Math.Abs(end.X - start.X);
                 ellipse.Height = Math.Abs(end.Y - start.Y);
                 break;
-            }
+
             case Line line:
-                line.X2 = end.X;
-                line.Y2 = end.Y;
+                line.X2 = end.X; line.Y2 = end.Y;
                 break;
 
-            case Canvas arrowCanvas:
-                UpdateArrow(arrowCanvas, start, end);
+            case Canvas arrow:
+                UpdateArrow(arrow, start, end);
                 break;
         }
     }
 
-    // ── 화살표 (Canvas 컨테이너 안에 Line + Path) ───────────────────
-
-    private static Canvas CreateArrow(Point start, Point end, Brush brush, double thickness)
-    {
-        var line = new Line
-        {
-            Stroke          = brush,
-            StrokeThickness = thickness,
-            X1 = start.X, Y1 = start.Y,
-            X2 = end.X,   Y2 = end.Y,
-        };
-        var head = BuildArrowHead(start, end, brush, thickness);
-        var container = new Canvas();
-        container.Children.Add(line);
-        container.Children.Add(head);
-        return container;
-    }
+    // ── 화살표 ───────────────────────────────────────────────────
 
     private static void UpdateArrow(Canvas container, Point start, Point end)
     {
         if (container.Children.Count < 2) return;
-        Line? line = container.Children[0] as Line;
-        if (line is not null)
+        if (container.Children[0] is Line line)
         {
             line.X1 = start.X; line.Y1 = start.Y;
             line.X2 = end.X;   line.Y2 = end.Y;
         }
-        if (container.Children[1] is System.Windows.Shapes.Path oldHead)
+        if (container.Children[1] is System.Windows.Shapes.Path old)
         {
-            container.Children.Remove(oldHead);
-            container.Children.Add(BuildArrowHead(start, end, line?.Stroke ?? Brushes.Red, line?.StrokeThickness ?? 2));
+            container.Children.Remove(old);
+            if (container.Children[0] is Line l)
+                container.Children.Add(BuildArrowHead(start, end, l.Stroke, l.StrokeThickness));
         }
     }
 
-    private static System.Windows.Shapes.Path BuildArrowHead(Point start, Point end, Brush brush, double thickness)
+    private static System.Windows.Shapes.Path BuildArrowHead(
+        Point start, Point end, Brush brush, double t)
     {
-        var dir   = end - start;
-        var len   = dir.Length;
-        if (len < 1) dir = new Vector(1, 0);
-        else dir /= len;
+        var dir = end - start;
+        var len = dir.Length;
+        if (len < 1) dir = new Vector(1, 0); else dir /= len;
 
-        var perp      = new Vector(-dir.Y, dir.X);
-        double arrowL = Math.Max(12, thickness * 4);
-        double arrowW = arrowL * 0.4;
-
-        var p1 = end - dir * arrowL + perp * arrowW;
-        var p2 = end - dir * arrowL - perp * arrowW;
+        var perp = new Vector(-dir.Y, dir.X);
+        double arL = Math.Max(12, t * 4), arW = arL * 0.4;
 
         var geo = new PathGeometry(new[]
         {
-            new PathFigure(end, new[] { new PolyLineSegment(new[] { p1, p2, end }, true) }, true)
+            new PathFigure(end,
+                new[] { new PolyLineSegment(
+                    new[] { end - dir * arL + perp * arW, end - dir * arL - perp * arW, end }, true) },
+                true)
         });
-
         return new System.Windows.Shapes.Path { Fill = brush, Data = geo };
     }
 
-    // ── 텍스트 도구 ─────────────────────────────────────────────────
+    // ── 텍스트 ───────────────────────────────────────────────────
 
     private void StartTextInput(Point pos)
     {
-        if (_shapeCanvas is null) return;
-        CommitActiveTextBox();
-
+        if (_canvas is null) return;
         var tb = new TextBox
         {
-            Background   = Brushes.Transparent,
-            BorderBrush  = new SolidColorBrush(SelectedColor) { Opacity = 0.5 },
+            Background      = Brushes.Transparent,
+            BorderBrush     = new SolidColorBrush(SelectedColor) { Opacity = 0.5 },
             BorderThickness = new Thickness(1),
-            Foreground   = new SolidColorBrush(SelectedColor),
-            FontSize     = Math.Max(14, StrokeThickness * 5),
-            MinWidth     = 80,
-            CaretBrush   = new SolidColorBrush(SelectedColor),
-            AcceptsReturn = false,
+            Foreground      = new SolidColorBrush(SelectedColor),
+            FontSize        = Math.Max(14, StrokeThickness * 5),
+            MinWidth        = 80,
+            CaretBrush      = new SolidColorBrush(SelectedColor),
+            AcceptsReturn   = false,
         };
-
         Canvas.SetLeft(tb, pos.X);
-        Canvas.SetTop(tb, pos.Y);
-
-        tb.KeyDown += OnTextBoxKeyDown;
+        Canvas.SetTop(tb,  pos.Y);
+        tb.KeyDown   += OnTextBoxKeyDown;
         tb.LostFocus += OnTextBoxLostFocus;
-
-        _shapeCanvas.Children.Add(tb);
+        _canvas.Children.Add(tb);
         _activeTextBox = tb;
         tb.Focus();
     }
 
     private void OnTextBoxKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key is Key.Return or Key.Escape)
-            CommitActiveTextBox();
+        if (e.Key is Key.Return or Key.Escape) CommitActiveTextBox();
     }
 
     private void OnTextBoxLostFocus(object sender, RoutedEventArgs e)
@@ -405,54 +431,56 @@ public sealed partial class DrawingOverlayViewModel : ObservableObject, IDrawing
 
     private void CommitActiveTextBox()
     {
-        if (_activeTextBox is null || _shapeCanvas is null) return;
-
+        if (_activeTextBox is null || _canvas is null) return;
         var tb = _activeTextBox;
         _activeTextBox = null;
-
-        tb.KeyDown    -= OnTextBoxKeyDown;
-        tb.LostFocus  -= OnTextBoxLostFocus;
+        tb.KeyDown   -= OnTextBoxKeyDown;
+        tb.LostFocus -= OnTextBoxLostFocus;
 
         if (string.IsNullOrWhiteSpace(tb.Text))
         {
-            _shapeCanvas.Children.Remove(tb);
+            _canvas.Children.Remove(tb);
             return;
         }
 
-        // TextBox → TextBlock으로 고정
         var block = new TextBlock
         {
-            Text       = tb.Text,
-            Foreground = new SolidColorBrush(SelectedColor),
-            FontSize   = tb.FontSize,
+            Text             = tb.Text,
+            Foreground       = new SolidColorBrush(SelectedColor),
+            FontSize         = tb.FontSize,
+            IsHitTestVisible = false,
         };
-
         Canvas.SetLeft(block, Canvas.GetLeft(tb));
         Canvas.SetTop(block,  Canvas.GetTop(tb));
+        _canvas.Children.Remove(tb);
+        _canvas.Children.Add(block);
 
-        _shapeCanvas.Children.Remove(tb);
-        _shapeCanvas.Children.Add(block);
-        PushCommand(new AddShapeCommand(_shapeCanvas, block));
-    }
-
-    // ── InkCanvas StrokeCollected 핸들러 ────────────────────────────
-
-    private void OnStrokeCollected(object? sender, InkCanvasStrokeCollectedEventArgs e)
-    {
-        // InkCanvas가 이미 스트로크를 추가했으므로 히스토리만 기록
-        _redoStack.Clear();
-        _undoStack.Push(new AddStrokeCommand(_inkCanvas!, e.Stroke));
-        RefreshUndoRedoState();
+        // ★ 이미 Canvas에 추가된 TextBlock → RegisterCommand
+        RegisterCommand(new AddShapeCommand(_canvas, block));
     }
 
     // ── Undo / Redo ───────────────────────────────────────────────
 
+    /// <summary>
+    /// 이미 Canvas에 추가된 요소를 Undo 스택에만 등록합니다.
+    /// Execute()를 호출하지 않아 이중 추가 예외를 방지합니다.
+    /// </summary>
+    private void RegisterCommand(IDrawingCommand cmd)
+    {
+        _redoStack.Clear();
+        _undoStack.Push(cmd);
+        RefreshUndoRedoState();
+        RefreshHasDrawings();
+    }
+
+    /// <summary>Canvas에 아직 추가되지 않은 커맨드를 Execute한 뒤 스택에 등록합니다.</summary>
     private void PushCommand(IDrawingCommand cmd)
     {
         cmd.Execute();
         _redoStack.Clear();
         _undoStack.Push(cmd);
         RefreshUndoRedoState();
+        RefreshHasDrawings();
     }
 
     [RelayCommand(CanExecute = nameof(CanUndo))]
@@ -462,6 +490,7 @@ public sealed partial class DrawingOverlayViewModel : ObservableObject, IDrawing
         cmd.Undo();
         _redoStack.Push(cmd);
         RefreshUndoRedoState();
+        RefreshHasDrawings();
     }
 
     [RelayCommand(CanExecute = nameof(CanRedo))]
@@ -471,20 +500,15 @@ public sealed partial class DrawingOverlayViewModel : ObservableObject, IDrawing
         cmd.Execute();
         _undoStack.Push(cmd);
         RefreshUndoRedoState();
+        RefreshHasDrawings();
     }
 
     [RelayCommand]
     private void Clear()
     {
-        if (_inkCanvas is null || _shapeCanvas is null) return;
-        if (_inkCanvas.Strokes.Count == 0 && _shapeCanvas.Children.Count == 0) return;
-
+        if (_canvas is null || _canvas.Children.Count == 0) return;
         CommitActiveTextBox();
-        var cmd = new ClearCommand(_inkCanvas, _shapeCanvas);
-        cmd.Execute();
-        _undoStack.Push(cmd);
-        _redoStack.Clear();
-        RefreshUndoRedoState();
+        PushCommand(new ClearCommand(_canvas));
     }
 
     private void RefreshUndoRedoState()
@@ -493,7 +517,7 @@ public sealed partial class DrawingOverlayViewModel : ObservableObject, IDrawing
         CanRedo = _redoStack.Count > 0;
     }
 
-    // ── 도구 선택 커맨드 ───────────────────────────────────────────
+    // ── 도구 / 색상 / 굵기 커맨드 ────────────────────────────────
 
     [RelayCommand]
     private void SelectTool(string toolName)
@@ -502,8 +526,6 @@ public sealed partial class DrawingOverlayViewModel : ObservableObject, IDrawing
             SelectedTool = tool;
     }
 
-    // ── 색상 프리셋 커맨드 ─────────────────────────────────────────
-
     [RelayCommand]
     private void SelectColor(string hex)
     {
@@ -511,11 +533,9 @@ public sealed partial class DrawingOverlayViewModel : ObservableObject, IDrawing
         catch { }
     }
 
-    // ── 굵기 프리셋 커맨드 ─────────────────────────────────────────
-
     [RelayCommand]
-    private void SelectThickness(string thicknessStr)
+    private void SelectThickness(string v)
     {
-        if (double.TryParse(thicknessStr, out var t)) StrokeThickness = t;
+        if (double.TryParse(v, out var t)) StrokeThickness = t;
     }
 }

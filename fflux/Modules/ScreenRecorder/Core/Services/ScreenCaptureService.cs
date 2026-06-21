@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading.Channels;
 using System.Windows;
 using fflux.UI.Modules.ScreenRecorder.Core.Models;
@@ -40,8 +41,35 @@ public sealed class ScreenCaptureService : IScreenCaptureService
     }
 
     public void SetCaptureRegion(Rect region) => _region = region;
-    public void SetCaptureWindow(IntPtr hWnd) => _window = hWnd;
-    public void SetTargetFps(int fps)          => _targetFps = Math.Clamp(fps, 1, 120);
+
+    public void SetCaptureWindow(IntPtr hWnd)
+    {
+        _window = hWnd;
+        if (hWnd == IntPtr.Zero) return;
+
+        if (!GetWindowRect(hWnd, out var wr)) return;
+
+        // 창이 속한 모니터 감지 → 해당 DXGI 출력 인덱스와 크롭 영역 설정
+        var hMon = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+        var mi   = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
+        if (!GetMonitorInfo(hMon, ref mi)) return;
+
+        // MonitorInfo.Left/Top과 비교해 일치하는 DXGI 출력 인덱스 찾기
+        var monitors = GetAvailableMonitors();
+        var matched  = monitors.FirstOrDefault(
+            m => m.Left == mi.rcMonitor.Left && m.Top == mi.rcMonitor.Top);
+        if (matched is not null)
+            _monitor = matched.Index;
+
+        // 창 위치를 모니터 원점 기준 상대 좌표로 변환
+        _region = new Rect(
+            wr.Left - mi.rcMonitor.Left,
+            wr.Top  - mi.rcMonitor.Top,
+            wr.Right  - wr.Left,
+            wr.Bottom - wr.Top);
+    }
+
+    public void SetTargetFps(int fps) => _targetFps = Math.Clamp(fps, 1, 120);
 
     public IReadOnlyList<MonitorInfo> GetAvailableMonitors()
         => MonitorEnumerator.GetMonitors();
@@ -154,7 +182,7 @@ public sealed class ScreenCaptureService : IScreenCaptureService
                 var data  = ReadStagingTexture(context!, staging!, w, h);
                 var frame = new CaptureFrame(data, w, h, nowUs);
 
-                if (mode == CaptureMode.Region && region != Rect.Empty)
+                if ((mode == CaptureMode.Region || mode == CaptureMode.Window) && region != Rect.Empty)
                     frame = CropFrame(frame, region);
 
                 writer.TryWrite(frame);
@@ -286,4 +314,29 @@ public sealed class ScreenCaptureService : IScreenCaptureService
     }
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
+    // ── Win32 P/Invoke (Window 모드 모니터 감지용) ──────────────
+
+    private const uint MONITOR_DEFAULTTONEAREST = 2;
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct WIN32_RECT { public int Left, Top, Right, Bottom; }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MONITORINFO
+    {
+        public int      cbSize;
+        public WIN32_RECT rcMonitor;
+        public WIN32_RECT rcWork;
+        public uint     dwFlags;
+    }
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
+
+    [DllImport("user32.dll")]
+    private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
+
+    [DllImport("user32.dll")]
+    private static extern bool GetWindowRect(IntPtr hWnd, out WIN32_RECT lpRect);
 }

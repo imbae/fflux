@@ -192,6 +192,10 @@ public partial class App : Application
 #endif
 
         // 6. 메인 창 표시
+        // 오버레이 창(RegionIndicatorWindow, RecorderOverlayWindow 등)이 열려 있어도
+        // 메인 창이 닫히면 앱이 종료되도록 변경합니다 (기본값은 OnLastWindowClose).
+        Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
+
         var mainWindow = _host.Services.GetRequiredService<MainWindow>();
         mainWindow.Show();
 

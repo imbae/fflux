@@ -65,6 +65,8 @@ public sealed class RecordingSessionService : IRecordingSessionService
         _capture.SetTargetFps(settings.Fps);
         if (settings.CaptureRegion.HasValue)
             _capture.SetCaptureRegion(settings.CaptureRegion.Value);
+        if (settings.WindowHandle is { } hwnd && hwnd != IntPtr.Zero)
+            _capture.SetCaptureWindow(hwnd);
 
         // 오디오 설정
         _audio.SystemAudioEnabled = settings.RecordSystemAudio;

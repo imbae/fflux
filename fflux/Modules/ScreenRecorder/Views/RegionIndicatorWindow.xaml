@@ -1,0 +1,39 @@
+<Window x:Class="fflux.UI.Modules.ScreenRecorder.Views.RegionIndicatorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        WindowStartupLocation="Manual">
+
+    <Grid>
+        <!-- 배경 + 외곽 프레임 -->
+        <Border x:Name="Outline"
+                BorderThickness="3"
+                BorderBrush="Yellow"
+                Background="#66000000" />
+
+        <!-- 코너 핸들 (시각 표시 전용, 클릭 투과) -->
+        <Grid x:Name="HandleLayer" IsHitTestVisible="False">
+            <Rectangle Width="9" Height="9" Fill="White" Stroke="#666666" StrokeThickness="1"
+                       HorizontalAlignment="Left"  VerticalAlignment="Top" />
+            <Rectangle Width="9" Height="9" Fill="White" Stroke="#666666" StrokeThickness="1"
+                       HorizontalAlignment="Right" VerticalAlignment="Top" />
+            <Rectangle Width="9" Height="9" Fill="White" Stroke="#666666" StrokeThickness="1"
+                       HorizontalAlignment="Left"  VerticalAlignment="Bottom" />
+            <Rectangle Width="9" Height="9" Fill="White" Stroke="#666666" StrokeThickness="1"
+                       HorizontalAlignment="Right" VerticalAlignment="Bottom" />
+        </Grid>
+
+        <!-- 마우스 인터랙션 레이어 (투명하지만 히트테스트 수신) -->
+        <Grid x:Name="HitLayer"
+              Background="Transparent"
+              MouseMove="OnMouseMove"
+              MouseLeftButtonDown="OnMouseDown"
+              MouseLeftButtonUp="OnMouseUp" />
+    </Grid>
+
+</Window>

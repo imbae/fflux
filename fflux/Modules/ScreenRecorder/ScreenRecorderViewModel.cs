@@ -29,6 +29,8 @@ public sealed partial class ScreenRecorderViewModel : ObservableObject, IDisposa
 
     private RecorderOverlayWindow?  _overlay;
     private DrawingOverlayWindow?   _drawingOverlay;
+    private DrawingToolbarWindow?   _drawingToolbar;
+    private RegionIndicatorWindow?  _regionIndicator;
     private bool _disposed;
 
     // ── 모니터 목록 ─────────────────────────────────────────────
@@ -44,6 +46,7 @@ public sealed partial class ScreenRecorderViewModel : ObservableObject, IDisposa
     [NotifyPropertyChangedFor(nameof(IsFullScreenMode))]
     [NotifyPropertyChangedFor(nameof(IsRegionMode))]
     [NotifyPropertyChangedFor(nameof(IsWindowMode))]
+    [NotifyPropertyChangedFor(nameof(IsFullScreenOrRegionMode))]
     private CaptureMode _captureMode = CaptureMode.FullScreen;
 
     public bool IsFullScreenMode
@@ -61,6 +64,28 @@ public sealed partial class ScreenRecorderViewModel : ObservableObject, IDisposa
         get => CaptureMode == CaptureMode.Window;
         set { if (value) CaptureMode = CaptureMode.Window; }
     }
+
+    /// <summary>모니터 선택 카드를 활성화할 조건 (FullScreen + Region 모드).</summary>
+    public bool IsFullScreenOrRegionMode => CaptureMode != CaptureMode.Window;
+
+    // ── 영역 선택 ────────────────────────────────────────────────
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(RegionSummaryText))]
+    private Rect? _selectedRegion;
+
+    public string RegionSummaryText =>
+        SelectedRegion.HasValue
+            ? $"({(int)SelectedRegion.Value.X}, {(int)SelectedRegion.Value.Y})  " +
+              $"{(int)SelectedRegion.Value.Width} × {(int)SelectedRegion.Value.Height} px"
+            : "선택된 영역 없음";
+
+    // ── 윈도우 선택 ──────────────────────────────────────────────
+
+    public ObservableCollection<WindowInfo> AvailableWindows { get; } = [];
+
+    [ObservableProperty]
+    private WindowInfo? _selectedWindow;
 
     // ── 오디오 ──────────────────────────────────────────────────
 
@@ -111,6 +136,21 @@ public sealed partial class ScreenRecorderViewModel : ObservableObject, IDisposa
 
     // ── 커맨드 ──────────────────────────────────────────────────
 
+    // 모니터가 바뀌면 선택 영역 초기화 (영역은 특정 모니터 기준 좌표)
+    partial void OnSelectedMonitorChanged(MonitorInfo? value) => SelectedRegion = null;
+
+    // Window 모드 진입 시 창 목록 자동 로드 + 인디케이터 갱신
+    partial void OnCaptureModeChanged(CaptureMode value)
+    {
+        if (value == CaptureMode.Window && AvailableWindows.Count == 0)
+            LoadWindows();
+        UpdateRegionIndicator();
+    }
+
+    // 영역·창 변경 시 인디케이터 갱신
+    partial void OnSelectedRegionChanged(Rect? value)   => UpdateRegionIndicator();
+    partial void OnSelectedWindowChanged(WindowInfo? value) => UpdateRegionIndicator();
+
     [RelayCommand]
     private void SetFps(string fpsStr)
     {
@@ -130,6 +170,35 @@ public sealed partial class ScreenRecorderViewModel : ObservableObject, IDisposa
         catch (Exception ex)
         {
             _logger.LogError(ex, "모니터 목록 조회 실패");
+        }
+    }
+
+    [RelayCommand]
+    private async Task SelectRegionAsync()
+    {
+        var monitor = SelectedMonitor
+            ?? Monitors.FirstOrDefault(m => m.IsPrimary)
+            ?? Monitors.FirstOrDefault();
+        if (monitor is null) return;
+
+        var picker = new Views.RegionPickerWindow(monitor);
+        picker.Show();
+        SelectedRegion = await picker.PickAsync();
+    }
+
+    [RelayCommand]
+    private void LoadWindows()
+    {
+        try
+        {
+            AvailableWindows.Clear();
+            foreach (var w in Core.Services.WindowEnumerator.GetVisibleWindows())
+                AvailableWindows.Add(w);
+            SelectedWindow = AvailableWindows.FirstOrDefault();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "윈도우 목록 조회 실패");
         }
     }
 
@@ -208,6 +277,7 @@ public sealed partial class ScreenRecorderViewModel : ObservableObject, IDisposa
                     IsCapturing = true;
                     StatusText  = "녹화 중…";
                     ShowOverlay();
+                    _regionIndicator?.SetRecordingMode();
                     break;
 
                 case RecordingState.Paused:
@@ -222,6 +292,8 @@ public sealed partial class ScreenRecorderViewModel : ObservableObject, IDisposa
                     IsCapturing = false;
                     StatusText  = "대기 중";
                     CloseOverlay();
+                    HideDrawingOverlay();
+                    _regionIndicator?.SetPreviewMode();
                     break;
             }
         });
@@ -233,6 +305,98 @@ public sealed partial class ScreenRecorderViewModel : ObservableObject, IDisposa
             StatusText = IsCapturing
                 ? $"녹화 중… {elapsed:hh\\:mm\\:ss}"
                 : StatusText);
+    }
+
+    // ── 영역 인디케이터 ──────────────────────────────────────────
+
+    private Rect? GetIndicatorPhysicalRect() => CaptureMode switch
+    {
+        // Region 모드: SelectedRegion은 모니터 원점 기준 → 스크린 절대좌표로 변환
+        CaptureMode.Region when SelectedRegion.HasValue && SelectedMonitor is not null =>
+            new Rect(
+                SelectedRegion.Value.X + SelectedMonitor.Left,
+                SelectedRegion.Value.Y + SelectedMonitor.Top,
+                SelectedRegion.Value.Width,
+                SelectedRegion.Value.Height),
+        // Window 모드: Bounds는 이미 스크린 절대좌표
+        CaptureMode.Window when SelectedWindow is not null =>
+            SelectedWindow.Bounds,
+        _ => null
+    };
+
+    // ── 페이지 생명주기 ─────────────────────────────────────────────
+    // ScreenRecorderPage.Loaded / Unloaded 이벤트에서 호출됩니다.
+
+    public void OnPageNavigatedTo()   => UpdateRegionIndicator();
+    public void OnPageNavigatedAway()
+    {
+        // 녹화 중에는 인디케이터·그리기 오버레이 모두 유지
+        if (IsCapturing) return;
+        CloseRegionIndicator();
+        HideDrawingOverlay();
+    }
+
+    private void UpdateRegionIndicator()
+    {
+        var rect = GetIndicatorPhysicalRect();
+
+        if (rect is null)
+        {
+            CloseRegionIndicator();
+            return;
+        }
+
+        if (_regionIndicator is null)
+        {
+            _regionIndicator = new Views.RegionIndicatorWindow(rect.Value)
+            {
+                // 메인 창이 닫히면 오버레이도 자동으로 닫히도록 Owner를 지정합니다.
+                Owner = Application.Current.MainWindow
+            };
+            _regionIndicator.RegionChanged += OnIndicatorRegionChanged;
+            _regionIndicator.Closed        += (_, _) => _regionIndicator = null;
+            _regionIndicator.Show();
+        }
+        else
+        {
+            // 인디케이터 드래그가 SelectedRegion 변경을 유발해 다시 UpdateRegionIndicator()가
+            // 호출되는 피드백 루프를 방지 — 이미 같은 위치면 UpdateBounds 생략
+            if (!RectsApproxEqual(_regionIndicator.PhysRect, rect.Value))
+                _regionIndicator.UpdateBounds(rect.Value);
+        }
+
+        if (IsCapturing)
+            _regionIndicator.SetRecordingMode();
+        else
+            _regionIndicator.SetPreviewMode();
+    }
+
+    private void OnIndicatorRegionChanged(object? sender, Rect physRect)
+    {
+        // 드래그/리사이즈 확정 → SelectedRegion을 모니터 원점 기준 좌표로 환산
+        if (CaptureMode == CaptureMode.Region && SelectedMonitor is not null)
+        {
+            SelectedRegion = new Rect(
+                physRect.X - SelectedMonitor.Left,
+                physRect.Y - SelectedMonitor.Top,
+                physRect.Width,
+                physRect.Height);
+        }
+    }
+
+    private static bool RectsApproxEqual(Rect a, Rect b)
+    {
+        const double eps = 0.5;
+        return Math.Abs(a.X - b.X)           < eps
+            && Math.Abs(a.Y - b.Y)           < eps
+            && Math.Abs(a.Width  - b.Width)  < eps
+            && Math.Abs(a.Height - b.Height) < eps;
+    }
+
+    private void CloseRegionIndicator()
+    {
+        _regionIndicator?.Close();
+        _regionIndicator = null;
     }
 
     // ── 플로팅 컨트롤바 ─────────────────────────────────────────
@@ -267,18 +431,28 @@ public sealed partial class ScreenRecorderViewModel : ObservableObject, IDisposa
     private void ShowDrawingOverlay()
     {
         if (_drawingOverlay is not null) return;
+
         _drawingOverlay = new DrawingOverlayWindow(_drawingVm);
         _drawingOverlay.Closed += (_, _) =>
         {
             _drawingOverlay = null;
+            _drawingToolbar?.Close();
+            _drawingToolbar = null;
             IsDrawingActive = false;
         };
         _drawingOverlay.Show();
+
+        _drawingToolbar = new DrawingToolbarWindow(_drawingVm);
+        _drawingToolbar.Closed += (_, _) => _drawingToolbar = null;
+        _drawingToolbar.Show();
+
         IsDrawingActive = true;
     }
 
     private void HideDrawingOverlay()
     {
+        _drawingToolbar?.Close();
+        _drawingToolbar = null;
         _drawingOverlay?.Close();
         _drawingOverlay = null;
         IsDrawingActive = false;
@@ -316,8 +490,8 @@ public sealed partial class ScreenRecorderViewModel : ObservableObject, IDisposa
 
     public RecordingSettings BuildSettings() => new(
         new CaptureTarget(CaptureMode, SelectedMonitor?.Index ?? 0),
-        CaptureRegion: null,
-        WindowHandle:  null,
+        CaptureRegion: CaptureMode == CaptureMode.Region  ? SelectedRegion      : null,
+        WindowHandle:  CaptureMode == CaptureMode.Window  ? SelectedWindow?.Handle : null,
         TargetFps,
         OutputDirectory,
         RecordSystemAudio,
@@ -332,5 +506,6 @@ public sealed partial class ScreenRecorderViewModel : ObservableObject, IDisposa
         _hotkeys.UnregisterAll();
         CloseOverlay();
         HideDrawingOverlay();
+        CloseRegionIndicator();
     }
 }

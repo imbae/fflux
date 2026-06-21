@@ -1,33 +1,24 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Ink;
 
 namespace fflux.UI.Modules.ScreenRecorder.Drawing.Commands;
 
 public sealed class ClearCommand : IDrawingCommand
 {
-    private readonly InkCanvas   _inkCanvas;
-    private readonly Canvas      _shapeCanvas;
-    private readonly StrokeCollection _savedStrokes;
-    private readonly UIElement[] _savedShapes;
+    private readonly Canvas      _canvas;
+    private readonly UIElement[] _savedElements;
 
-    public ClearCommand(InkCanvas inkCanvas, Canvas shapeCanvas)
+    public ClearCommand(Canvas canvas)
     {
-        _inkCanvas   = inkCanvas;
-        _shapeCanvas = shapeCanvas;
-        _savedStrokes = inkCanvas.Strokes.Clone();
-        _savedShapes  = shapeCanvas.Children.OfType<UIElement>().ToArray();
+        _canvas        = canvas;
+        _savedElements = canvas.Children.OfType<UIElement>().ToArray();
     }
 
-    public void Execute()
-    {
-        _inkCanvas.Strokes.Clear();
-        _shapeCanvas.Children.Clear();
-    }
+    public void Execute() => _canvas.Children.Clear();
 
     public void Undo()
     {
-        foreach (var s in _savedStrokes) _inkCanvas.Strokes.Add(s);
-        foreach (var e in _savedShapes)  _shapeCanvas.Children.Add(e);
+        foreach (var e in _savedElements)
+            _canvas.Children.Add(e);
     }
 }

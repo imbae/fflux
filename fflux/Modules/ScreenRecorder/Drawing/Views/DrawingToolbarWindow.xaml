@@ -1,0 +1,21 @@
+<Window
+    x:Class="fflux.UI.Modules.ScreenRecorder.Drawing.Views.DrawingToolbarWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:fflux.UI.Modules.ScreenRecorder.Drawing.Views"
+    WindowStyle="None"
+    AllowsTransparency="True"
+    Background="Transparent"
+    Topmost="True"
+    ShowInTaskbar="False"
+    ResizeMode="NoResize"
+    SizeToContent="WidthAndHeight"
+    Title="fflux Drawing Toolbar">
+
+    <!--
+        이 창은 WS_EX_TRANSPARENT 없이 클릭을 수신합니다.
+        사용자가 드래그로 위치를 이동할 수 있습니다.
+    -->
+    <local:DrawingToolbarView MouseLeftButtonDown="OnDragMove" />
+
+</Window>

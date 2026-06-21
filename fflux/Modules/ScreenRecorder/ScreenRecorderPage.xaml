@@ -18,6 +18,7 @@
                 Text="Screen Recorder"
                 FontSize="24"
                 FontWeight="SemiBold"
+                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                 Margin="0,0,0,4" />
             <TextBlock
                 Text="DXGI Desktop Duplication 기반 고성능 화면 캡처"
@@ -55,7 +56,7 @@
 
             <!-- ══ 모니터 선택 ════════════════════════════════════════ -->
             <ui:Card Margin="0,0,0,12"
-                     IsEnabled="{Binding IsFullScreenMode}">
+                     IsEnabled="{Binding IsFullScreenOrRegionMode}">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -84,6 +85,73 @@
                         VerticalAlignment="Bottom"
                         Margin="12,0,0,0" />
                 </Grid>
+            </ui:Card>
+
+            <!-- ══ 영역 설정 (Region 모드) ══════════════════════════ -->
+            <ui:Card Margin="0,0,0,12"
+                     Visibility="{Binding IsRegionMode, Converter={StaticResource BoolToVis}}">
+                <StackPanel>
+                    <TextBlock
+                        Text="캡처 영역"
+                        FontSize="13"
+                        FontWeight="SemiBold"
+                        Margin="0,0,0,8" />
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock
+                            Grid.Column="0"
+                            Text="{Binding RegionSummaryText}"
+                            VerticalAlignment="Center"
+                            Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+
+                        <ui:Button
+                            Grid.Column="1"
+                            Content="영역 선택"
+                            Icon="{ui:SymbolIcon Crop24}"
+                            Command="{Binding SelectRegionCommand}"
+                            Appearance="Secondary"
+                            Margin="12,0,0,0" />
+                    </Grid>
+                </StackPanel>
+            </ui:Card>
+
+            <!-- ══ 윈도우 선택 (Window 모드) ═════════════════════════ -->
+            <ui:Card Margin="0,0,0,12"
+                     Visibility="{Binding IsWindowMode, Converter={StaticResource BoolToVis}}">
+                <StackPanel>
+                    <TextBlock
+                        Text="캡처 윈도우"
+                        FontSize="13"
+                        FontWeight="SemiBold"
+                        Margin="0,0,0,8" />
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <ComboBox
+                            Grid.Column="0"
+                            ItemsSource="{Binding AvailableWindows}"
+                            SelectedItem="{Binding SelectedWindow}"
+                            DisplayMemberPath="DisplayName"
+                            MinWidth="200" />
+
+                        <ui:Button
+                            Grid.Column="1"
+                            Content="새로고침"
+                            Icon="{ui:SymbolIcon ArrowSync24}"
+                            Command="{Binding LoadWindowsCommand}"
+                            Appearance="Secondary"
+                            Margin="12,0,0,0" />
+                    </Grid>
+                </StackPanel>
             </ui:Card>
 
             <!-- ══ 오디오 설정 ════════════════════════════════════════ -->
@@ -189,6 +257,50 @@
                             Appearance="Secondary" />
                     </Grid>
                 </StackPanel>
+            </ui:Card>
+
+            <!-- ══ 그리기 도구 ════════════════════════════════════════ -->
+            <ui:Card Margin="0,0,0,12">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock
+                            Text="그리기 도구"
+                            FontSize="13"
+                            FontWeight="SemiBold"
+                            Margin="0,0,0,4" />
+                        <TextBlock
+                            Text="녹화 화면 위에 펜·도형·화살표·텍스트를 그릴 수 있습니다. Ctrl+D로 클릭 통과 전환."
+                            FontSize="11"
+                            TextWrapping="Wrap"
+                            Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+
+                    <ui:Button
+                        Grid.Column="1"
+                        VerticalAlignment="Center"
+                        Margin="12,0,0,0"
+                        Command="{Binding ToggleDrawCommand}">
+                        <ui:Button.Style>
+                            <Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+                                <Setter Property="Content"     Value="열기" />
+                                <Setter Property="Icon"        Value="{ui:SymbolIcon DrawText24}" />
+                                <Setter Property="Appearance"  Value="Secondary" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsDrawingActive}" Value="True">
+                                        <Setter Property="Content"    Value="닫기" />
+                                        <Setter Property="Icon"       Value="{ui:SymbolIcon Dismiss24}" />
+                                        <Setter Property="Appearance" Value="Primary" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ui:Button.Style>
+                    </ui:Button>
+                </Grid>
             </ui:Card>
 
             <!-- ══ 핫키 안내 ══════════════════════════════════════════ -->

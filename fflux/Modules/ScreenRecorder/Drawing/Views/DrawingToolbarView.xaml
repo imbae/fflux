@@ -5,6 +5,98 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:local="clr-namespace:fflux.UI.Modules.ScreenRecorder.Drawing">
 
+    <UserControl.Resources>
+
+        <!-- 도구 선택 ToggleButton — 커스텀 템플릿으로 아이콘 클리핑 방지 -->
+        <Style x:Key="DrawToolToggleStyle" TargetType="ToggleButton">
+            <Setter Property="Background"       Value="Transparent"/>
+            <Setter Property="Foreground"       Value="White"/>
+            <Setter Property="BorderThickness"  Value="1"/>
+            <Setter Property="BorderBrush"      Value="Transparent"/>
+            <Setter Property="FontSize"         Value="15"/>
+            <Setter Property="FontFamily"       Value="Segoe UI Symbol"/>
+            <Setter Property="Width"            Value="32"/>
+            <Setter Property="Height"           Value="30"/>
+            <Setter Property="Margin"           Value="1,0"/>
+            <Setter Property="Cursor"           Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border
+                            x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="4"
+                            Padding="2,0">
+                            <ContentPresenter
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bd" Property="Background"  Value="#553388EE"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#3388EE"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background"  Value="#33FFFFFF"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsChecked"   Value="True"/>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Bd" Property="Background" Value="#664499FF"/>
+                            </MultiTrigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 액션 Button (Undo/Redo/Clear/굵기 등) — 클리핑 방지 -->
+        <Style x:Key="DrawToolButtonStyle" TargetType="Button">
+            <Setter Property="Background"      Value="Transparent"/>
+            <Setter Property="Foreground"      Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize"        Value="14"/>
+            <Setter Property="FontFamily"      Value="Segoe UI Emoji"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                            x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="4"
+                            Padding="2,0">
+                            <ContentPresenter
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#33FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#55FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+    </UserControl.Resources>
+
     <Border
         Background="#DD111111"
         CornerRadius="10"
@@ -16,78 +108,75 @@
             <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
 
                 <ToggleButton
-                    Content="✏" ToolTip="펜 (P)"
+                    Style="{StaticResource DrawToolToggleStyle}"
+                    ToolTip="펜 (P)"
                     IsChecked="{Binding IsToolPen, Mode=OneWay}"
-                    Command="{Binding SelectToolCommand}" CommandParameter="Pen"
-                    Style="{StaticResource {x:Type ToggleButton}}"
-                    Foreground="White" Background="Transparent"
-                    Width="30" Height="28" Margin="1,0" />
+                    Command="{Binding SelectToolCommand}" CommandParameter="Pen">
+                    <TextBlock Text="✏" FontFamily="Segoe UI Emoji" FontSize="15"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </ToggleButton>
 
                 <ToggleButton
+                    Style="{StaticResource DrawToolToggleStyle}"
                     Content="▭" ToolTip="사각형 (R)"
                     IsChecked="{Binding IsToolRectangle, Mode=OneWay}"
-                    Command="{Binding SelectToolCommand}" CommandParameter="Rectangle"
-                    Foreground="White" Background="Transparent"
-                    Width="30" Height="28" Margin="1,0" />
+                    Command="{Binding SelectToolCommand}" CommandParameter="Rectangle"/>
 
                 <ToggleButton
+                    Style="{StaticResource DrawToolToggleStyle}"
                     Content="○" ToolTip="원 (E)"
                     IsChecked="{Binding IsToolEllipse, Mode=OneWay}"
-                    Command="{Binding SelectToolCommand}" CommandParameter="Ellipse"
-                    Foreground="White" Background="Transparent"
-                    Width="30" Height="28" Margin="1,0" />
+                    Command="{Binding SelectToolCommand}" CommandParameter="Ellipse"/>
 
                 <ToggleButton
+                    Style="{StaticResource DrawToolToggleStyle}"
                     Content="╱" ToolTip="선 (L)"
                     IsChecked="{Binding IsToolLine, Mode=OneWay}"
-                    Command="{Binding SelectToolCommand}" CommandParameter="Line"
-                    Foreground="White" Background="Transparent"
-                    Width="30" Height="28" Margin="1,0" />
+                    Command="{Binding SelectToolCommand}" CommandParameter="Line"/>
 
                 <ToggleButton
+                    Style="{StaticResource DrawToolToggleStyle}"
                     Content="→" ToolTip="화살표 (A)"
                     IsChecked="{Binding IsToolArrow, Mode=OneWay}"
-                    Command="{Binding SelectToolCommand}" CommandParameter="Arrow"
-                    Foreground="White" Background="Transparent"
-                    Width="30" Height="28" Margin="1,0" />
+                    Command="{Binding SelectToolCommand}" CommandParameter="Arrow"/>
 
                 <ToggleButton
+                    Style="{StaticResource DrawToolToggleStyle}"
                     Content="T" ToolTip="텍스트 (T)"
+                    FontFamily="Segoe UI"
                     IsChecked="{Binding IsToolText, Mode=OneWay}"
-                    Command="{Binding SelectToolCommand}" CommandParameter="Text"
-                    Foreground="White" Background="Transparent"
-                    Width="30" Height="28" Margin="1,0" />
+                    Command="{Binding SelectToolCommand}" CommandParameter="Text"/>
 
             </StackPanel>
 
-            <Separator Style="{StaticResource {x:Type Separator}}" Width="1" Height="22" Margin="4,0" Background="#555" />
+            <Separator Width="1" Height="22" Margin="4,0" Background="#555" VerticalAlignment="Center"/>
 
             <!-- ── 색상 프리셋 ──────────────────────────────── -->
             <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
 
-                <Button
+                <Button Style="{StaticResource DrawToolButtonStyle}"
                     Width="20" Height="20" Margin="2,0"
-                    Background="#FF4444" BorderThickness="0"
+                    Background="#FF4444"
                     Command="{Binding SelectColorCommand}" CommandParameter="#FF4444"
                     ToolTip="빨강" />
-                <Button
+                <Button Style="{StaticResource DrawToolButtonStyle}"
                     Width="20" Height="20" Margin="2,0"
-                    Background="#FFDD00" BorderThickness="0"
+                    Background="#FFDD00"
                     Command="{Binding SelectColorCommand}" CommandParameter="#FFDD00"
                     ToolTip="노랑" />
-                <Button
+                <Button Style="{StaticResource DrawToolButtonStyle}"
                     Width="20" Height="20" Margin="2,0"
-                    Background="#44DD44" BorderThickness="0"
+                    Background="#44DD44"
                     Command="{Binding SelectColorCommand}" CommandParameter="#44DD44"
                     ToolTip="초록" />
-                <Button
+                <Button Style="{StaticResource DrawToolButtonStyle}"
                     Width="20" Height="20" Margin="2,0"
-                    Background="#4488FF" BorderThickness="0"
+                    Background="#4488FF"
                     Command="{Binding SelectColorCommand}" CommandParameter="#4488FF"
                     ToolTip="파랑" />
-                <Button
+                <Button Style="{StaticResource DrawToolButtonStyle}"
                     Width="20" Height="20" Margin="2,0"
-                    Background="White" BorderThickness="0"
+                    Background="White"
                     Command="{Binding SelectColorCommand}" CommandParameter="#FFFFFF"
                     ToolTip="흰색" />
 
@@ -102,64 +191,46 @@
 
             </StackPanel>
 
-            <Separator Style="{StaticResource {x:Type Separator}}" Width="1" Height="22" Margin="4,0" Background="#555" />
+            <Separator Width="1" Height="22" Margin="4,0" Background="#555" VerticalAlignment="Center"/>
 
             <!-- ── 굵기 ──────────────────────────────────────── -->
             <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
-                <Button Content="1" Width="24" Height="24" Margin="1,0"
+                <Button Style="{StaticResource DrawToolButtonStyle}"
+                        Content="1" Width="26" Height="26" Margin="1,0"
                         Command="{Binding SelectThicknessCommand}" CommandParameter="1"
-                        Foreground="White" Background="Transparent" ToolTip="굵기 1" />
-                <Button Content="3" Width="24" Height="24" Margin="1,0"
+                        ToolTip="굵기 1" />
+                <Button Style="{StaticResource DrawToolButtonStyle}"
+                        Content="3" Width="26" Height="26" Margin="1,0"
                         Command="{Binding SelectThicknessCommand}" CommandParameter="3"
-                        Foreground="White" Background="Transparent" ToolTip="굵기 3" />
-                <Button Content="5" Width="24" Height="24" Margin="1,0"
+                        ToolTip="굵기 3" />
+                <Button Style="{StaticResource DrawToolButtonStyle}"
+                        Content="5" Width="26" Height="26" Margin="1,0"
                         Command="{Binding SelectThicknessCommand}" CommandParameter="5"
-                        Foreground="White" Background="Transparent" ToolTip="굵기 5" />
-                <Button Content="8" Width="24" Height="24" Margin="1,0"
+                        ToolTip="굵기 5" />
+                <Button Style="{StaticResource DrawToolButtonStyle}"
+                        Content="8" Width="26" Height="26" Margin="1,0"
                         Command="{Binding SelectThicknessCommand}" CommandParameter="8"
-                        Foreground="White" Background="Transparent" ToolTip="굵기 8" />
+                        ToolTip="굵기 8" />
             </StackPanel>
 
-            <Separator Style="{StaticResource {x:Type Separator}}" Width="1" Height="22" Margin="4,0" Background="#555" />
+            <Separator Width="1" Height="22" Margin="4,0" Background="#555" VerticalAlignment="Center"/>
 
             <!-- ── Undo / Redo / Clear ───────────────────────── -->
             <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
-                <Button
-                    Content="↩" Width="28" Height="28" Margin="1,0"
+                <Button Style="{StaticResource DrawToolButtonStyle}"
+                    Content="↩" Width="30" Height="30" Margin="1,0"
                     Command="{Binding UndoCommand}"
-                    Foreground="White" Background="Transparent"
                     ToolTip="실행 취소 (Ctrl+Z)" />
-                <Button
-                    Content="↪" Width="28" Height="28" Margin="1,0"
+                <Button Style="{StaticResource DrawToolButtonStyle}"
+                    Content="↪" Width="30" Height="30" Margin="1,0"
                     Command="{Binding RedoCommand}"
-                    Foreground="White" Background="Transparent"
                     ToolTip="다시 실행 (Ctrl+Y)" />
-                <Button
-                    Content="🗑" Width="28" Height="28" Margin="1,0"
+                <Button Style="{StaticResource DrawToolButtonStyle}"
+                    Content="🗑" Width="30" Height="30" Margin="1,0"
                     Command="{Binding ClearCommand}"
-                    Foreground="White" Background="Transparent"
                     ToolTip="모두 지우기" />
             </StackPanel>
 
-            <Separator Style="{StaticResource {x:Type Separator}}" Width="1" Height="22" Margin="4,0" Background="#555" />
-
-            <!-- ── 클릭 통과 토글 ────────────────────────────── -->
-            <Button
-                Width="60" Height="28"
-                Command="{Binding ToggleClickThroughCommand}"
-                Foreground="White" Background="Transparent"
-                ToolTip="클릭 통과 ON/OFF (Ctrl+D)">
-                <Button.Style>
-                    <Style TargetType="Button">
-                        <Setter Property="Content" Value="✏ 그리기" />
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsClickThrough}" Value="True">
-                                <Setter Property="Content" Value="🖱 통과" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Button.Style>
-            </Button>
 
         </StackPanel>
     </Border>

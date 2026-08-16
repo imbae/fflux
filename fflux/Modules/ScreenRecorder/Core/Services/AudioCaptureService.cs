@@ -1,4 +1,5 @@
 using fflux.UI.Modules.ScreenRecorder.Core.Models;
+using NAudio.CoreAudioApi;
 using NAudio.Wave;
 
 namespace fflux.UI.Modules.ScreenRecorder.Core.Services;
@@ -7,11 +8,11 @@ public sealed class AudioCaptureService : IAudioCaptureService
 {
     private readonly ILogger<AudioCaptureService> _logger;
 
-    private WasapiLoopbackCapture? _loopback;
-    private IWaveIn?               _mic;      // WasapiCapture (마이크)
+    private WasapiRecorder? _loopback;
+    private WaveFormat?     _loopbackFormat;
+    private IWaveIn?        _mic;
     private bool _disposed;
 
-    // 생성자에서 포맷 쿼리 (StartRecording 없이 디바이스 포맷만 확인)
     public int SampleRate { get; }
     public int Channels   { get; }
 
@@ -26,7 +27,10 @@ public sealed class AudioCaptureService : IAudioCaptureService
 
         try
         {
-            using var probe = new WasapiLoopbackCapture();
+            // 루프백 레코더를 잠깐 빌드해 기본 렌더 장치 포맷만 쿼리
+            using var probe = new WasapiRecorderBuilder()
+                .WithLoopbackCapture()
+                .Build();
             SampleRate = probe.WaveFormat.SampleRate;
             Channels   = probe.WaveFormat.Channels;
         }
@@ -48,7 +52,10 @@ public sealed class AudioCaptureService : IAudioCaptureService
     {
         try
         {
-            _loopback = new WasapiLoopbackCapture();
+            _loopback = new WasapiRecorderBuilder()
+                .WithLoopbackCapture()
+                .Build();
+            _loopbackFormat      = _loopback.WaveFormat;
             _loopback.DataAvailable += OnLoopbackData;
             _loopback.StartRecording();
         }
@@ -62,7 +69,6 @@ public sealed class AudioCaptureService : IAudioCaptureService
     {
         try
         {
-            // WasapiCapture: 마이크 입력 캡처 (WASAPI)
             var mic = (IWaveIn)Activator.CreateInstance(
                 Type.GetType("NAudio.Wave.WasapiCapture, NAudio.Wasapi")
                 ?? Type.GetType("NAudio.Wave.WasapiCapture, NAudio")
@@ -77,14 +83,18 @@ public sealed class AudioCaptureService : IAudioCaptureService
         }
     }
 
-    private void OnLoopbackData(object? sender, WaveInEventArgs e)
+    // NAudio 3.0.0: DataAvailable 시그니처가 ReadOnlySpan<byte> 기반으로 변경됨
+    private void OnLoopbackData(
+        ReadOnlySpan<byte>      buffer,
+        AudioClientBufferFlags  flags,
+        long                    devicePosition,
+        long                    qpcPosition)
     {
-        if (e.BytesRecorded == 0) return;
-        var fmt  = ((WasapiLoopbackCapture)sender!).WaveFormat;
-        var data = new byte[e.BytesRecorded];
-        Buffer.BlockCopy(e.Buffer, 0, data, 0, e.BytesRecorded);
+        if (buffer.Length == 0) return;
+        var fmt  = _loopbackFormat!;
+        var data = buffer.ToArray();
         DataAvailable?.Invoke(this, new AudioDataEventArgs(
-            data, e.BytesRecorded, fmt.SampleRate, fmt.Channels,
+            data, data.Length, fmt.SampleRate, fmt.Channels,
             fmt.Encoding == WaveFormatEncoding.IeeeFloat));
     }
 

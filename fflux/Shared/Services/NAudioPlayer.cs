@@ -16,7 +16,7 @@ namespace fflux.UI.Shared.Services;
 /// </remarks>
 internal sealed class NAudioPlayer : IAudioPlayer
 {
-    private WaveOutEvent? _waveOut;
+    private WaveOut? _waveOut;
     private BufferedWaveProvider? _buffer;
     private float _volume = 0.8f;
     private bool _isMuted;
@@ -47,9 +47,8 @@ internal sealed class NAudioPlayer : IAudioPlayer
         // PCM 16-bit(포맷 태그 1)는 모든 Windows 드라이버 필수 지원입니다.
         var fmt = new WaveFormat(sampleRate, 16, channels);
 
-        _buffer = new BufferedWaveProvider(fmt)
+        _buffer = new BufferedWaveProvider(fmt, TimeSpan.FromSeconds(2))
         {
-            BufferDuration = TimeSpan.FromSeconds(2),
             DiscardOnBufferOverflow = true,
         };
         // WaveOutEvent는 Play() 호출 시 생성합니다 (지연 생성).
@@ -88,7 +87,7 @@ internal sealed class NAudioPlayer : IAudioPlayer
         // null 또는 Stopped: 새 WaveOutEvent로 장치를 재오픈합니다.
         // Stop()이 waveOutClose를 호출했으므로 동일 인스턴스 재사용이 불가합니다.
         DisposeWaveOut();
-        _waveOut = new WaveOutEvent { DesiredLatency = 100 };
+        _waveOut = new WaveOut { BufferMilliseconds = 100 };
         _waveOut.Init(_buffer);
         _waveOut.Volume = _isMuted ? 0f : _volume;
         _waveOut.Play();
